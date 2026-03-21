@@ -1,12 +1,12 @@
 /** App version - increment on each change */
-export const APP_VERSION = '1.02.27';
+export const APP_VERSION = '1.02.28';
 
 /** What's new in this version (numbered list for popup) */
 export const VERSION_WHATS_NEW = {
-  he: `1. פריסת מסך קשיחה: כל האפליקציה מוצגת בתוך מסך אחד (100dvh) ללא גלילת עמוד כללית
-2. חלון פעולות לוגים הוחזר לפורמט נקי ללא סליידר גובה, עם גלילה פנימית בלבד
-3. מקרא צבעים במפה שופר: תצוגת צבעים אמיתית גם ל-segment colors + כפתור איפוס צבעים`,
-  en: `1. Strict single-screen layout: the app now fits inside one 100dvh viewport with no page-level scrolling
-2. Log-tools area reverted to clean non-slider behavior with internal scrolling only
-3. Improved map color legend: real color samples for segment colors + one-click reset colors action`,
+  he: `1. תצוגת 3D בתוך האפליקציה: נוסף מעבר ישיר בין מפה 2D לתלת־ממד בזמן אמת
+2. Google Earth נשאר כאופציה נוספת: ייצוא KML + פתיחה אוטומטית ל-3D חיצוני
+3. מקרא צבעים שודרג: תרגום מלא לפי שפה נבחרת + ערכי כלל מדויקים לכל צבע`,
+  en: `1. In-app 3D view: added direct runtime toggle between 2D map and true 3D view
+2. Google Earth remains as extra option: KML export + automatic open for external 3D
+3. Upgraded color legend: fully localized labels + exact rule values per color`,
 };

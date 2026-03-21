@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { MapContainer, TileLayer, Polyline, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import { useTranslation } from 'react-i18next';
+import Plot from 'react-plotly.js';
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -108,19 +109,19 @@ function legendRows(config, t, pathSegments = []) {
       color: c,
       label: idx === 0
         ? t('map.legendSegments', 'Custom segment colors')
-        : t('map.legendSegmentsMore', 'Additional segment color'),
+        : `${t('map.legendSegmentN', 'Segment')} ${idx + 1}`,
     }));
   }
   if (config.threshold != null) {
     return [
-      { color: config.aboveColor || '#3fb950', label: `> ${config.threshold}` },
-      { color: config.belowColor || '#58a6ff', label: `<= ${config.threshold}` },
+      { color: config.aboveColor || '#3fb950', label: `${t('map.legendAbove', 'Above')} ${config.threshold}` },
+      { color: config.belowColor || '#58a6ff', label: `${t('map.legendBelowEq', 'Below or equal')} ${config.threshold}` },
     ];
   }
   return [
-    { color: config.positiveColor || '#f85149', label: t('map.legendPositive', 'Positive value') },
-    { color: config.zeroColor || '#58a6ff', label: t('map.legendZero', 'Zero') },
-    { color: config.negativeColor || '#d29922', label: t('map.legendNegative', 'Negative value') },
+    { color: config.positiveColor || '#f85149', label: t('map.legendPositive', 'Value > 0') },
+    { color: config.zeroColor || '#58a6ff', label: t('map.legendZero', 'Value = 0') },
+    { color: config.negativeColor || '#d29922', label: t('map.legendNegative', 'Value < 0') },
   ];
 }
 
@@ -138,6 +139,7 @@ export function MapPanel({
 }) {
   const { t, i18n } = useTranslation();
   const [contextMenu, setContextMenu] = useState(null);
+  const [viewMode, setViewMode] = useState('2d');
 
   const pathSegments = useMemo(() => {
     if (!path?.length) return null;
@@ -194,54 +196,112 @@ export function MapPanel({
     window.open('https://earth.google.com/web/', '_blank', 'noopener,noreferrer');
   };
 
+  const trace3D = useMemo(() => {
+    const lat = [];
+    const lng = [];
+    const alt = [];
+    for (let i = 0; i < path.length; i += 1) {
+      lat.push(Number(path[i][0]));
+      lng.push(Number(path[i][1]));
+      alt.push(Number(pathAltitudes?.[i] ?? 0));
+    }
+    return [{
+      type: 'scatter3d',
+      mode: 'lines',
+      x: lng,
+      y: lat,
+      z: alt,
+      line: {
+        width: 5,
+        color: pathColorConfig?.solidColor || '#58a6ff',
+      },
+      name: t('map.flightPath3d', 'Flight path'),
+      hovertemplate: 'Lat %{y:.6f}<br>Lon %{x:.6f}<br>Alt %{z:.1f}m<extra></extra>',
+    }];
+  }, [path, pathAltitudes, pathColorConfig?.solidColor, t]);
+
   return (
     <div className="relative flex-1 min-h-0 rounded-lg border border-border overflow-hidden">
-      <MapContainer
-        center={center}
-        zoom={14}
-        className="w-full h-full"
-      >
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
-        {pathSegments?.map((seg, i) => (
-          <Polyline
-            key={i}
-            positions={seg.positions}
-            pathOptions={{ color: seg.color, weight: 4 }}
-            eventHandlers={onPathIndexSelect ? {
-              contextmenu: (e) => {
-                L.DomEvent.preventDefault(e);
-                setContextMenu({ index: i, x: e.originalEvent.clientX, y: e.originalEvent.clientY });
-              }
-            } : undefined}
+      {viewMode === '2d' ? (
+        <MapContainer
+          center={center}
+          zoom={14}
+          className="w-full h-full"
+        >
+          <TileLayer
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
-        ))}
-        {markers.map((m, i) => (
-          <Marker key={i} position={[m.lat, m.lng]}>
-            {m.label && <Popup>{m.label}</Popup>}
-          </Marker>
-        ))}
-        {selectedTimeIndex != null && path?.[selectedTimeIndex] && (
-          <Marker
-            position={path[selectedTimeIndex]}
-            zIndexOffset={1000}
-            icon={L.divIcon({
-              className: 'time-sync-marker',
-              html: '<div style="width:16px;height:16px;border-radius:50%;background:#58a6ff;border:3px solid white;box-shadow:0 1px 3px rgba(0,0,0,0.4)"></div>',
-              iconSize: [16, 16],
-              iconAnchor: [8, 8]
-            })}
-          >
-            <Popup>{t('map.syncPoint', 'נקודה נבחרת')}</Popup>
-          </Marker>
-        )}
-        <FitBounds path={path} />
-        {selectedTimeIndex != null && <CenterOnIndex path={path} index={selectedTimeIndex} />}
-        {onMapReady && <MapController onReady={onMapReady} />}
-      </MapContainer>
+          {pathSegments?.map((seg, i) => (
+            <Polyline
+              key={i}
+              positions={seg.positions}
+              pathOptions={{ color: seg.color, weight: 4 }}
+              eventHandlers={onPathIndexSelect ? {
+                contextmenu: (e) => {
+                  L.DomEvent.preventDefault(e);
+                  setContextMenu({ index: i, x: e.originalEvent.clientX, y: e.originalEvent.clientY });
+                }
+              } : undefined}
+            />
+          ))}
+          {markers.map((m, i) => (
+            <Marker key={i} position={[m.lat, m.lng]}>
+              {m.label && <Popup>{m.label}</Popup>}
+            </Marker>
+          ))}
+          {selectedTimeIndex != null && path?.[selectedTimeIndex] && (
+            <Marker
+              position={path[selectedTimeIndex]}
+              zIndexOffset={1000}
+              icon={L.divIcon({
+                className: 'time-sync-marker',
+                html: '<div style="width:16px;height:16px;border-radius:50%;background:#58a6ff;border:3px solid white;box-shadow:0 1px 3px rgba(0,0,0,0.4)"></div>',
+                iconSize: [16, 16],
+                iconAnchor: [8, 8]
+              })}
+            >
+              <Popup>{t('map.syncPoint', 'נקודה נבחרת')}</Popup>
+            </Marker>
+          )}
+          <FitBounds path={path} />
+          {selectedTimeIndex != null && <CenterOnIndex path={path} index={selectedTimeIndex} />}
+          {onMapReady && <MapController onReady={onMapReady} />}
+        </MapContainer>
+      ) : (
+        <div className="w-full h-full bg-surface">
+          <Plot
+            data={trace3D}
+            layout={{
+              margin: { l: 0, r: 0, t: 0, b: 0 },
+              paper_bgcolor: '#0d1117',
+              plot_bgcolor: '#0d1117',
+              scene: {
+                bgcolor: '#0d1117',
+                xaxis: { title: 'Lon', color: '#8b949e', gridcolor: '#30363d' },
+                yaxis: { title: 'Lat', color: '#8b949e', gridcolor: '#30363d' },
+                zaxis: { title: 'Alt (m)', color: '#8b949e', gridcolor: '#30363d' },
+                camera: { eye: { x: 1.6, y: -1.6, z: 1.2 } },
+              },
+              showlegend: false,
+            }}
+            config={{ responsive: true, displaylogo: false }}
+            className="w-full h-full"
+            style={{ width: '100%', height: '100%' }}
+            useResizeHandler
+          />
+        </div>
+      )}
       <div className="absolute top-2 right-2 z-[500]">
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setViewMode((m) => (m === '2d' ? '3d' : '2d'))}
+            className="px-2.5 py-1.5 rounded-md bg-surfaceRaised/95 border border-border text-xs text-gray-100 hover:border-accent/60 hover:text-accent shadow"
+            title={t('map.toggle3DHint', 'Switch between 2D map and in-app 3D view')}
+          >
+            {viewMode === '2d' ? t('map.view3DInApp', '3D in app') : t('map.view2DInApp', '2D map')}
+          </button>
         <button
           type="button"
           onClick={handleOpenGoogleEarth3D}
@@ -250,6 +310,7 @@ export function MapPanel({
         >
           {t('map.open3D', '3D / Google Earth')}
         </button>
+        </div>
       </div>
       <div className="absolute bottom-2 left-2 z-[500] max-w-[240px] rounded-md bg-surfaceRaised/95 border border-border px-2 py-1.5 shadow">
         <div className="text-[11px] text-accent font-medium truncate">{legendTitle}</div>
