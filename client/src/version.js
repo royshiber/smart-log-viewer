@@ -1,12 +1,12 @@
 /** App version - increment on each change */
-export const APP_VERSION = '1.02.26';
+export const APP_VERSION = '1.02.27';
 
 /** What's new in this version (numbered list for popup) */
 export const VERSION_WHATS_NEW = {
-  he: `1. מפה תלת־ממדית: נוסף כפתור 3D/Google Earth שמייצא מסלול KML ופותח את Google Earth Web
-2. מקרא צבעים במפה: נוסף Legend קטן שמסביר בזמן אמת את צבעי המסלול והפילטר הפעיל
-3. ייצוא 3D כולל גובה: קובץ KML נבנה עם קואורדינטות וגובה לכל נקודה (כשזמין)`,
-  en: `1. 3D map workflow: added a 3D/Google Earth button that exports route KML and opens Google Earth Web
-2. Map color legend: added a compact live legend explaining active route colors and filters
-3. 3D export includes altitude: KML is generated with coordinates and per-point altitude when available`,
+  he: `1. פריסת מסך קשיחה: כל האפליקציה מוצגת בתוך מסך אחד (100dvh) ללא גלילת עמוד כללית
+2. חלון פעולות לוגים הוחזר לפורמט נקי ללא סליידר גובה, עם גלילה פנימית בלבד
+3. מקרא צבעים במפה שופר: תצוגת צבעים אמיתית גם ל-segment colors + כפתור איפוס צבעים`,
+  en: `1. Strict single-screen layout: the app now fits inside one 100dvh viewport with no page-level scrolling
+2. Log-tools area reverted to clean non-slider behavior with internal scrolling only
+3. Improved map color legend: real color samples for segment colors + one-click reset colors action`,
 };

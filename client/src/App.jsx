@@ -122,11 +122,6 @@ export default function App() {
   /** DB id of log loaded from saved list (or after auto-save) — excluded from "add flight" overlay */
   const [activeLoadedLogId, setActiveLoadedLogId] = useState(null);
   const [showVehiclePicker, setShowVehiclePicker] = useState(false);
-  const [logToolsCollapsed, setLogToolsCollapsed] = useState(false);
-  const [logToolsHeightPx, setLogToolsHeightPx] = useState(() => {
-    const raw = Number(localStorage.getItem('logToolsHeightPx'));
-    return Number.isFinite(raw) ? raw : 300;
-  });
   const [visibleOverlayLogIds, setVisibleOverlayLogIds] = useState([]);
   const [frskyMap, setFrskyMap] = useState(new Map());
   const [frskyName, setFrskyName] = useState('');
@@ -145,8 +140,6 @@ export default function App() {
   const MIN_CHAT_WIDTH = 260;
   const MAX_CHAT_WIDTH = 760;
   const MIN_CENTER_WIDTH = 560;
-  const MIN_LOG_TOOLS_HEIGHT = 180;
-  const MAX_LOG_TOOLS_HEIGHT = 560;
 
   const isRtl = i18n.language === 'he';
   const selectedVehicle = vehicles.find((v) => v.id === selectedVehicleId) ?? null;
@@ -265,12 +258,6 @@ export default function App() {
       localStorage.setItem('logListWidthPx', String(logListWidthPx));
     } catch {}
   }, [logListWidthPx]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('logToolsHeightPx', String(logToolsHeightPx));
-    } catch {}
-  }, [logToolsHeightPx]);
 
   useEffect(() => {
     const el = mainLayoutRef.current;
@@ -695,7 +682,7 @@ export default function App() {
 
   return (
     <div
-      className={`h-screen flex flex-col overflow-hidden ${!hasData ? 'bg-figmaBg text-gray-200' : 'bg-surface text-gray-200'}`}
+      className={`h-[100dvh] flex flex-col overflow-hidden ${!hasData ? 'bg-figmaBg text-gray-200' : 'bg-surface text-gray-200'}`}
       dir={isRtl ? 'rtl' : 'ltr'}
     >
       {!hasData ? (
@@ -895,30 +882,7 @@ export default function App() {
                 />
                 {/* Vehicle mini-card + compare button pinned at the bottom of the logs column */}
                 <div className="shrink min-h-0 border-t border-border flex flex-col bg-surfaceRaised/60">
-                  <button
-                    type="button"
-                    onClick={() => setLogToolsCollapsed((v) => !v)}
-                    className="px-2 py-1 text-[11px] text-accent/90 hover:text-accent border-b border-border/60 text-center"
-                    title={logToolsCollapsed ? (isRtl ? 'פתח פעולות לוגים' : 'Expand log tools') : (isRtl ? 'צמצם פעולות לוגים' : 'Collapse log tools')}
-                  >
-                    {logToolsCollapsed ? (isRtl ? 'פתח פעולות לוגים ▾' : 'Expand Log Tools ▾') : (isRtl ? 'צמצם פעולות לוגים ▴' : 'Collapse Log Tools ▴')}
-                  </button>
-                  {!logToolsCollapsed && (
-                    <div
-                      className="px-2 pt-1 pb-2 flex flex-col gap-1.5 overflow-y-auto min-h-0"
-                      style={{ height: logToolsHeightPx, minHeight: MIN_LOG_TOOLS_HEIGHT, maxHeight: MAX_LOG_TOOLS_HEIGHT }}
-                    >
-                      <input
-                        type="range"
-                        min={MIN_LOG_TOOLS_HEIGHT}
-                        max={MAX_LOG_TOOLS_HEIGHT}
-                        step={4}
-                        value={logToolsHeightPx}
-                        onChange={(e) => setLogToolsHeightPx(Number(e.target.value))}
-                        className="w-full h-2 accent-accent cursor-pointer opacity-90 shrink-0"
-                        aria-label={isRtl ? 'גובה חלון פעולות לוגים' : 'Log tools window height'}
-                        title={isRtl ? 'גובה חלון פעולות לוגים' : 'Log tools window height'}
-                      />
+                    <div className="p-2 flex flex-col gap-1.5 overflow-y-auto min-h-0 max-h-[45vh]">
                       <VehicleMiniCard vehicle={selectedVehicle} onClick={() => setShowVehiclePicker(true)} />
                   {showVehiclePicker && (
                     <div
@@ -989,7 +953,6 @@ export default function App() {
                     <span className="truncate">{isRtl ? 'הצלבת לוג שלט' : 'Overlay radio log'}</span>
                   </button>
                     </div>
-                  )}
                 </div>
               </div>
               <FieldsSidebar
@@ -1035,6 +998,7 @@ export default function App() {
                     pathWithValues={pathWithValues}
                     pathAltitudes={pathAltitudes}
                     pathName={currentLogName || 'flight-path'}
+                    onResetPathColor={() => setPathColorConfig(null)}
                     selectedTimeIndex={selectedTimeIndex}
                     onPathIndexSelect={handlePathIndexSelect}
                     onMapReady={(map) => { mapRef.current = map; }}

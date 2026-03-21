@@ -86,7 +86,7 @@ function buildPathKml(path, altitudes = [], name = 'flight-path', color = '#58a6
 </kml>`;
 }
 
-function legendRows(config, t) {
+function legendRows(config, t, pathSegments = []) {
   if (!config) {
     return [{ color: '#58a6ff', label: t('map.legendDefault', 'Default path') }];
   }
@@ -94,7 +94,22 @@ function legendRows(config, t) {
     return [{ color: config.solidColor, label: t('map.legendSolid', 'Fixed color') }];
   }
   if (config.segmentColors) {
-    return [{ color: '#58a6ff', label: t('map.legendSegments', 'Custom segment colors') }];
+    const seen = new Set();
+    const unique = [];
+    for (const seg of pathSegments) {
+      const c = seg?.color || '#58a6ff';
+      if (seen.has(c)) continue;
+      seen.add(c);
+      unique.push(c);
+      if (unique.length >= 4) break;
+    }
+    if (!unique.length) unique.push('#58a6ff');
+    return unique.map((c, idx) => ({
+      color: c,
+      label: idx === 0
+        ? t('map.legendSegments', 'Custom segment colors')
+        : t('map.legendSegmentsMore', 'Additional segment color'),
+    }));
   }
   if (config.threshold != null) {
     return [
@@ -117,6 +132,7 @@ export function MapPanel({
   pathWithValues,
   pathAltitudes = null,
   pathName = 'flight-path',
+  onResetPathColor,
   selectedTimeIndex,
   onPathIndexSelect
 }) {
@@ -157,7 +173,7 @@ export function MapPanel({
   }
 
   const center = path[Math.floor(path.length / 2)] || [32, 35];
-  const legend = legendRows(pathColorConfig, t);
+  const legend = legendRows(pathColorConfig, t, pathSegments || []);
   const legendTitle = pathColorConfig?.field
     ? `${t('map.legendByField', 'Color by')} ${pathColorConfig.field}`
     : t('map.legendTitle', 'Path legend');
@@ -245,6 +261,15 @@ export function MapPanel({
             </div>
           ))}
         </div>
+        {pathColorConfig && (
+          <button
+            type="button"
+            onClick={() => onResetPathColor?.()}
+            className="mt-1 w-full text-[11px] text-gray-300 hover:text-accent border border-border rounded px-1 py-0.5"
+          >
+            {t('map.legendReset', 'Reset colors')}
+          </button>
+        )}
       </div>
       {contextMenu && (
         <>
