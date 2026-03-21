@@ -1,12 +1,12 @@
 /** App version - increment on each change */
-export const APP_VERSION = '1.02.21';
+export const APP_VERSION = '1.02.22';
 
 /** What's new in this version (numbered list for popup) */
 export const VERSION_WHATS_NEW = {
-  he: `1. תיקון עמודת לוגים: אזור פעולות חכם עם גלילה פנימית וצמצום/פתיחה כדי למנוע חפיפות בעומס
-2. שיפור כרטיסי השוואה: רשימת השוואות מוגבלת גובה וניתנת לגלילה כדי למנוע עלייה אחד על השני
-3. ייצוא CSV: עמודת זמן ישראל תמיד קיימת ומחושבת לפי GWk+GMS (עם fallback פנימי לנתוני סדרות)`,
-  en: `1. Logs column fix: smart tools area with internal scrolling and collapse/expand to prevent overlap under heavy content
-2. Comparison cards improvement: fixed-height scrollable comparison list to avoid stacking collisions
-3. CSV export: Israel local-time column is always included and computed from GWk+GMS (with internal series fallback)`,
+  he: `1. שיפור תצוגת שדות לבחירה: כל פריט מוצג כעת בשם ברור + השם הטכני המקורי
+2. תרגום חכם לשדות ללא מילון ידני: יצירת תווית קריאה אוטומטית לפי הודעה/שם שדה
+3. חיפוש ברשימת השדות מחפש גם לפי השם הברור המתורגם וגם לפי המפתח המקורי`,
+  en: `1. Field selection readability upgrade: every item now shows a clear label plus its original technical key
+2. Smart fallback labels for unmapped fields: readable names are generated automatically by message/field pattern
+3. Field search now matches both the translated human label and the original key`,
 };

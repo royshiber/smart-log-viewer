@@ -1,8 +1,9 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { getFieldLabel } from '../utils/fieldLabels';
 
 export function FieldsSidebar({ fields, selected, onChange, defaultCollapsed = true }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [search, setSearch] = useState('');
   const [collapsed, setCollapsed] = useState(defaultCollapsed);
 
@@ -23,11 +24,14 @@ export function FieldsSidebar({ fields, selected, onChange, defaultCollapsed = t
     const q = search.toLowerCase();
     const out = {};
     for (const [msg, items] of Object.entries(grouped)) {
-      const match = items.filter((i) => i.full.toLowerCase().includes(q));
+      const match = items.filter((i) =>
+        i.full.toLowerCase().includes(q) ||
+        getFieldLabel(i.full, i18n.language).toLowerCase().includes(q)
+      );
       if (match.length) out[msg] = match;
     }
     return out;
-  }, [grouped, search]);
+  }, [grouped, search, i18n.language]);
 
   const toggle = (full) => {
     onChange(selected.includes(full) ? selected.filter((s) => s !== full) : [...selected, full]);
@@ -78,7 +82,7 @@ export function FieldsSidebar({ fields, selected, onChange, defaultCollapsed = t
               {items.map(({ full, field }) => (
                 <label
                   key={full}
-                  className="flex items-center gap-2 px-2 py-1 rounded hover:bg-surface cursor-pointer text-sm text-gray-300"
+                  className="flex items-start gap-2 px-2 py-1 rounded hover:bg-surface cursor-pointer text-sm text-gray-300"
                 >
                   <input
                     type="checkbox"
@@ -86,7 +90,10 @@ export function FieldsSidebar({ fields, selected, onChange, defaultCollapsed = t
                     onChange={() => toggle(full)}
                     className="rounded border-border accent-accent"
                   />
-                  <span>{field}</span>
+                  <span className="min-w-0">
+                    <span className="block truncate text-gray-200">{getFieldLabel(full, i18n.language)}</span>
+                    <span className="block truncate text-xs text-gray-500">{full || field}</span>
+                  </span>
                 </label>
               ))}
             </div>

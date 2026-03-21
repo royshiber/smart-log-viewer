@@ -70,6 +70,25 @@ const MSG_HINT_HE = {
   GPS2: 'GPS משני',
 };
 
+const MSG_HINT_EN = {
+  CTUN: 'Control',
+  GPS: 'GPS',
+  ATT: 'Attitude',
+  BARO: 'Barometer',
+  RCOU: 'RC Output',
+  BATT: 'Battery',
+  IMU: 'IMU',
+  GPS2: 'GPS Secondary',
+};
+
+function humanizeToken(token = '') {
+  return String(token)
+    .replace(/_/g, ' ')
+    .replace(/([a-z])([A-Z])/g, '$1 $2')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 /** Short Hebrew hint (1–3 words) for CSV / lists */
 export function getShortHeHint(fieldKey) {
   const dot = fieldKey.indexOf('.');
@@ -84,11 +103,19 @@ export function getShortHeHint(fieldKey) {
 export function getFieldLabel(fieldKey, lang = 'he') {
   const fieldName = fieldKey.includes('.') ? fieldKey.split('.')[1] : fieldKey;
   const msgName = fieldKey.includes('.') ? fieldKey.split('.')[0] : '';
+  const msg = msgName.replace(/\[\d+\]/, '');
   const heLabel = FIELD_LABELS_HE[fieldName];
-  if ((lang === 'he' || lang?.startsWith('he')) && heLabel) {
-    return `${heLabel} (${fieldName})`;
+  const isHe = lang === 'he' || lang?.startsWith('he');
+  const readableField = humanizeToken(fieldName);
+
+  if (isHe) {
+    const msgLabel = MSG_HINT_HE[msg] || (msg ? humanizeToken(msg) : 'נתון');
+    const fieldLabel = heLabel || readableField || fieldName;
+    return `${msgLabel}: ${fieldLabel}`;
   }
-  return fieldKey;
+  const msgLabel = MSG_HINT_EN[msg] || (msg ? humanizeToken(msg) : 'Field');
+  const fieldLabel = readableField || fieldName;
+  return `${msgLabel}: ${fieldLabel}`;
 }
 
 /** Build mapping: fieldKey -> Hebrew label, for Gemini context */
