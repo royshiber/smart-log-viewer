@@ -133,6 +133,14 @@ export default function App() {
   const uploadActiveRef = useRef(false);
   const mapRef = useRef(null);
   const vehicleGridRef = useRef(null);
+  const mainLayoutRef = useRef(null);
+  const [mainLayoutWidth, setMainLayoutWidth] = useState(0);
+
+  const MIN_LOG_WIDTH = 160;
+  const MAX_LOG_WIDTH = 760;
+  const MIN_CHAT_WIDTH = 260;
+  const MAX_CHAT_WIDTH = 760;
+  const MIN_CENTER_WIDTH = 560;
 
   const isRtl = i18n.language === 'he';
   const selectedVehicle = vehicles.find((v) => v.id === selectedVehicleId) ?? null;
@@ -215,6 +223,36 @@ export default function App() {
       localStorage.setItem('logListWidthPx', String(logListWidthPx));
     } catch {}
   }, [logListWidthPx]);
+
+  useEffect(() => {
+    const el = mainLayoutRef.current;
+    if (!el) return undefined;
+    const update = () => setMainLayoutWidth(Math.max(0, Math.floor(el.clientWidth)));
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  const logListMaxPx = useMemo(() => {
+    if (!mainLayoutWidth) return MAX_LOG_WIDTH;
+    const dynamicMax = mainLayoutWidth - geminiChatWidthPx - MIN_CENTER_WIDTH;
+    return Math.max(MIN_LOG_WIDTH, Math.min(MAX_LOG_WIDTH, dynamicMax));
+  }, [mainLayoutWidth, geminiChatWidthPx]);
+
+  const geminiChatMaxPx = useMemo(() => {
+    if (!mainLayoutWidth) return MAX_CHAT_WIDTH;
+    const dynamicMax = mainLayoutWidth - logListWidthPx - MIN_CENTER_WIDTH;
+    return Math.max(MIN_CHAT_WIDTH, Math.min(MAX_CHAT_WIDTH, dynamicMax));
+  }, [mainLayoutWidth, logListWidthPx]);
+
+  useEffect(() => {
+    setLogListWidthPx((v) => Math.min(Math.max(v, MIN_LOG_WIDTH), logListMaxPx));
+  }, [logListMaxPx]);
+
+  useEffect(() => {
+    setGeminiChatWidthPx((v) => Math.min(Math.max(v, MIN_CHAT_WIDTH), geminiChatMaxPx));
+  }, [geminiChatMaxPx]);
 
   const handleLogDeleted = useCallback((deletedId) => {
     setLogSaveCounter((c) => c + 1);
@@ -772,7 +810,7 @@ export default function App() {
             </div>
           </header>
 
-          <div className="flex-1 flex min-h-0">
+          <div ref={mainLayoutRef} className="flex-1 flex min-h-0">
             <aside className="flex shrink-0 border-e border-border min-h-0">
               <div
                 className="shrink-0 flex flex-col bg-surfaceRaised min-h-0 min-w-[160px]"
@@ -781,11 +819,14 @@ export default function App() {
                 <div className="shrink-0 px-2 py-1 border-b border-border/80">
                   <input
                     type="range"
-                    min={160}
-                    max={760}
+                    min={MIN_LOG_WIDTH}
+                    max={Math.max(MIN_LOG_WIDTH, logListMaxPx)}
                     step={4}
                     value={logListWidthPx}
-                    onChange={(e) => setLogListWidthPx(Number(e.target.value))}
+                    onChange={(e) => {
+                      const v = Number(e.target.value);
+                      setLogListWidthPx(Math.min(Math.max(v, MIN_LOG_WIDTH), logListMaxPx));
+                    }}
                     className="w-full h-2 accent-accent cursor-pointer opacity-90"
                     aria-label={t('logs.columnWidth', 'רוחב עמודת לוגים')}
                     title={t('logs.columnWidth', 'רוחב עמודת לוגים')}
@@ -1007,7 +1048,9 @@ export default function App() {
               onMapCommand={executeMapCode}
               onSaveCommand={handleSaveCommand}
               widthPx={geminiChatWidthPx}
-              onWidthPxChange={setGeminiChatWidthPx}
+              onWidthPxChange={(v) => setGeminiChatWidthPx(Math.min(Math.max(v, MIN_CHAT_WIDTH), geminiChatMaxPx))}
+              widthMinPx={MIN_CHAT_WIDTH}
+              widthMaxPx={geminiChatMaxPx}
             />
           </div>
         </>

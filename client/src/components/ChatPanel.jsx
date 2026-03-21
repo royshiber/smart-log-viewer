@@ -28,6 +28,8 @@ export function ChatPanel({
   onSaveCommand,
   widthPx = 360,
   onWidthPxChange,
+  widthMinPx = 260,
+  widthMaxPx = 760,
 }) {
   const { t, i18n } = useTranslation();
   const [input, setInput] = useState('');
@@ -139,7 +141,7 @@ export function ChatPanel({
     <div
       className="flex flex-col h-full bg-surfaceRaised border-l border-border"
       dir={dir}
-      style={{ width: widthPx, minWidth: 260, maxWidth: 760, flexShrink: 0 }}
+      style={{ width: widthPx, minWidth: widthMinPx, maxWidth: widthMaxPx, flexShrink: 0 }}
     >
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-2 border-b border-border bg-surface shrink-0">
@@ -163,8 +165,8 @@ export function ChatPanel({
         {typeof onWidthPxChange === 'function' && (
           <input
             type="range"
-            min={260}
-            max={760}
+            min={widthMinPx}
+            max={Math.max(widthMinPx, widthMaxPx)}
             step={10}
             value={widthPx}
             onChange={(e) => onWidthPxChange(Number(e.target.value))}
