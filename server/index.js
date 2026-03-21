@@ -99,6 +99,7 @@ RULES:
 - You have full access to the data. Answer any question about the log.
 - Be precise and avoid speculation. If uncertain, explicitly say what is uncertain.
 - Unless the user asks to expand, keep it concise and focused.
+- If the question is about "when", use absolute clock times when available from absoluteTimeHints (format HH:MM:SS).
 
 OUTPUT FORMAT (keep it short and structured):
 - בקצרה: משפט אחד שמסכם את התשובה
@@ -157,6 +158,7 @@ RULES:
 - You have full access to the data. Answer any question about the log.
 - Be precise and avoid speculation. If uncertain, explicitly say what is uncertain.
 - Unless the user asks to expand, keep it concise and focused.
+- If the question is about "when", use absolute clock times when available from absoluteTimeHints (format HH:MM:SS).
 
 RESPONSE SHAPE:
 - בקצרה: line 1
