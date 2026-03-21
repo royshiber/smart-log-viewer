@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getFieldLabel, getShortHeHint } from '../utils/fieldLabels';
 import { buildTimeToWallClock } from '../utils/csvGpsTime';
@@ -72,6 +72,8 @@ export function ReportsPanel({ fields, selectedFields, getTimeSeries, logDisplay
   const isRtl = i18n.language === 'he';
   const MIN_REPORT_PANEL_WIDTH = 260;
   const MAX_REPORT_PANEL_WIDTH = 720;
+  const layoutRef = useRef(null);
+  const [availableWidth, setAvailableWidth] = useState(0);
 
   const [csvChecked, setCsvChecked] = useState([]);
   const [csvSearch, setCsvSearch] = useState('');
@@ -112,9 +114,62 @@ export function ReportsPanel({ fields, selectedFields, getTimeSeries, logDisplay
   }, [pdfPanelWidth]);
 
   useEffect(() => {
+    const el = layoutRef.current;
+    if (!el) return undefined;
+    const update = () => {
+      setAvailableWidth(Math.max(0, Math.floor(el.clientWidth)));
+    };
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  useEffect(() => {
     getReportCsvPresets().then(setCsvPresets).catch(() => {});
     getReportPdfPresets().then(setPdfPresets).catch(() => {});
   }, []);
+
+  useEffect(() => {
+    if (!availableWidth) return;
+    const maxSum = Math.max(MIN_REPORT_PANEL_WIDTH * 2, availableWidth);
+    const sum = csvPanelWidth + pdfPanelWidth;
+    if (sum <= maxSum) return;
+    const overflow = sum - maxSum;
+    const shrinkPdf = Math.min(overflow, Math.max(0, pdfPanelWidth - MIN_REPORT_PANEL_WIDTH));
+    const rem = overflow - shrinkPdf;
+    const shrinkCsv = Math.min(rem, Math.max(0, csvPanelWidth - MIN_REPORT_PANEL_WIDTH));
+    if (shrinkPdf > 0) setPdfPanelWidth((v) => v - shrinkPdf);
+    if (shrinkCsv > 0) setCsvPanelWidth((v) => v - shrinkCsv);
+  }, [availableWidth, csvPanelWidth, pdfPanelWidth]);
+
+  const handleCsvWidthChange = useCallback((nextRaw) => {
+    const next = Math.min(MAX_REPORT_PANEL_WIDTH, Math.max(MIN_REPORT_PANEL_WIDTH, Number(nextRaw)));
+    if (!availableWidth) {
+      setCsvPanelWidth(next);
+      return;
+    }
+    const maxSum = Math.max(MIN_REPORT_PANEL_WIDTH * 2, availableWidth);
+    const allowedCsv = Math.min(next, maxSum - MIN_REPORT_PANEL_WIDTH);
+    const finalCsv = Math.max(MIN_REPORT_PANEL_WIDTH, allowedCsv);
+    const targetPdf = Math.max(MIN_REPORT_PANEL_WIDTH, maxSum - finalCsv);
+    setCsvPanelWidth(finalCsv);
+    if (pdfPanelWidth > targetPdf) setPdfPanelWidth(targetPdf);
+  }, [availableWidth, pdfPanelWidth]);
+
+  const handlePdfWidthChange = useCallback((nextRaw) => {
+    const next = Math.min(MAX_REPORT_PANEL_WIDTH, Math.max(MIN_REPORT_PANEL_WIDTH, Number(nextRaw)));
+    if (!availableWidth) {
+      setPdfPanelWidth(next);
+      return;
+    }
+    const maxSum = Math.max(MIN_REPORT_PANEL_WIDTH * 2, availableWidth);
+    const allowedPdf = Math.min(next, maxSum - MIN_REPORT_PANEL_WIDTH);
+    const finalPdf = Math.max(MIN_REPORT_PANEL_WIDTH, allowedPdf);
+    const targetCsv = Math.max(MIN_REPORT_PANEL_WIDTH, maxSum - finalPdf);
+    setPdfPanelWidth(finalPdf);
+    if (csvPanelWidth > targetCsv) setCsvPanelWidth(targetCsv);
+  }, [availableWidth, csvPanelWidth]);
 
   const filteredFields = useMemo(
     () => filterFieldsBySearch(fields, csvSearch, i18n.language),
@@ -363,8 +418,8 @@ export function ReportsPanel({ fields, selectedFields, getTimeSeries, logDisplay
   }
 
   return (
-    <div className="flex-1 min-h-0 overflow-x-auto overflow-y-hidden" dir={isRtl ? 'rtl' : 'ltr'}>
-      <div className="flex min-h-0 h-full" style={{ width: csvPanelWidth + pdfPanelWidth }}>
+    <div ref={layoutRef} className="flex-1 min-h-0 overflow-hidden" dir={isRtl ? 'rtl' : 'ltr'}>
+      <div className="flex min-h-0 h-full w-full">
       <div className="flex-none flex flex-col border-e border-border p-4 min-h-0" style={{ width: csvPanelWidth, minWidth: MIN_REPORT_PANEL_WIDTH, maxWidth: MAX_REPORT_PANEL_WIDTH }}>
         <h2 className="text-sm font-semibold text-accent mb-1">{t('reports.csvTitle')}</h2>
         <p className="text-xs text-gray-500 mb-2">{t('reports.csvDesc')}</p>
@@ -375,7 +430,7 @@ export function ReportsPanel({ fields, selectedFields, getTimeSeries, logDisplay
             max={MAX_REPORT_PANEL_WIDTH}
             step={4}
             value={csvPanelWidth}
-            onChange={(e) => setCsvPanelWidth(Number(e.target.value))}
+            onChange={(e) => handleCsvWidthChange(e.target.value)}
             className="w-full h-2 accent-accent cursor-pointer"
           />
         </div>
@@ -487,7 +542,7 @@ export function ReportsPanel({ fields, selectedFields, getTimeSeries, logDisplay
             max={MAX_REPORT_PANEL_WIDTH}
             step={4}
             value={pdfPanelWidth}
-            onChange={(e) => setPdfPanelWidth(Number(e.target.value))}
+            onChange={(e) => handlePdfWidthChange(e.target.value)}
             className="w-full h-2 accent-accent cursor-pointer"
           />
         </div>
