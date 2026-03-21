@@ -113,7 +113,9 @@ const resources = {
         toggle3DHint: 'מעבר בין מפה דו־ממדית לתצוגת 3D בתוך האפליקציה',
         view3DInApp: 'תלת־ממד באפליקציה',
         view2DInApp: 'חזרה למפה 2D',
-        flightPath3d: 'מסלול טיסה'
+        flightPath3d: 'מסלול טיסה',
+        timeline: 'ציר זמן',
+        aircraftNow: 'מיקום המטוס'
       },
       vehicle: {
         select: 'בחר כטב"ם',
@@ -276,7 +278,9 @@ const resources = {
         toggle3DHint: 'Switch between 2D map and in-app 3D view',
         view3DInApp: '3D in app',
         view2DInApp: 'Back to 2D map',
-        flightPath3d: 'Flight path'
+        flightPath3d: 'Flight path',
+        timeline: 'Timeline',
+        aircraftNow: 'Aircraft position'
       },
       vehicle: {
         select: 'Select vehicle',

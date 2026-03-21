@@ -140,6 +140,12 @@ export function MapPanel({
   const { t, i18n } = useTranslation();
   const [contextMenu, setContextMenu] = useState(null);
   const [viewMode, setViewMode] = useState('2d');
+  const [timelineIndex, setTimelineIndex] = useState(0);
+
+  useEffect(() => {
+    if (selectedTimeIndex == null) return;
+    setTimelineIndex(selectedTimeIndex);
+  }, [selectedTimeIndex]);
 
   const pathSegments = useMemo(() => {
     if (!path?.length) return null;
@@ -220,6 +226,47 @@ export function MapPanel({
     }];
   }, [path, pathAltitudes, pathColorConfig?.solidColor, t]);
 
+  const clampedIndex = useMemo(() => {
+    if (!path?.length) return 0;
+    const idx = Number.isFinite(timelineIndex) ? timelineIndex : 0;
+    return Math.max(0, Math.min(path.length - 1, idx));
+  }, [timelineIndex, path]);
+
+  const airplane2DIcon = useMemo(() => {
+    const cur = path?.[clampedIndex];
+    const nxt = path?.[Math.min((path?.length || 1) - 1, clampedIndex + 1)];
+    let angle = 0;
+    if (cur && nxt) {
+      const dy = Number(nxt[0]) - Number(cur[0]);
+      const dx = Number(nxt[1]) - Number(cur[1]);
+      angle = (Math.atan2(dy, dx) * 180) / Math.PI;
+    }
+    return L.divIcon({
+      className: 'airplane-time-marker',
+      html: `<div style="transform: rotate(${angle}deg);font-size:20px;line-height:20px;filter: drop-shadow(0 1px 2px rgba(0,0,0,0.6));">✈</div>`,
+      iconSize: [20, 20],
+      iconAnchor: [10, 10],
+    });
+  }, [path, clampedIndex]);
+
+  const cursor3DTrace = useMemo(() => {
+    const p = path?.[clampedIndex];
+    if (!p) return [];
+    const z = Number(pathAltitudes?.[clampedIndex] ?? 0);
+    return [{
+      type: 'scatter3d',
+      mode: 'markers+text',
+      x: [Number(p[1])],
+      y: [Number(p[0])],
+      z: [z],
+      text: ['✈'],
+      textposition: 'top center',
+      marker: { size: 5, color: '#ffd60a' },
+      hovertemplate: 'Lat %{y:.6f}<br>Lon %{x:.6f}<br>Alt %{z:.1f}m<extra></extra>',
+      showlegend: false,
+    }];
+  }, [path, pathAltitudes, clampedIndex]);
+
   return (
     <div className="relative flex-1 min-h-0 rounded-lg border border-border overflow-hidden">
       {viewMode === '2d' ? (
@@ -229,8 +276,8 @@ export function MapPanel({
           className="w-full h-full"
         >
           <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            attribution='Tiles &copy; Esri'
+            url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
           />
           {pathSegments?.map((seg, i) => (
             <Polyline
@@ -264,6 +311,11 @@ export function MapPanel({
               <Popup>{t('map.syncPoint', 'נקודה נבחרת')}</Popup>
             </Marker>
           )}
+          {path?.[clampedIndex] && (
+            <Marker position={path[clampedIndex]} zIndexOffset={1100} icon={airplane2DIcon}>
+              <Popup>{t('map.aircraftNow', 'מיקום מטוס')}</Popup>
+            </Marker>
+          )}
           <FitBounds path={path} />
           {selectedTimeIndex != null && <CenterOnIndex path={path} index={selectedTimeIndex} />}
           {onMapReady && <MapController onReady={onMapReady} />}
@@ -271,7 +323,7 @@ export function MapPanel({
       ) : (
         <div className="w-full h-full bg-surface">
           <Plot
-            data={trace3D}
+            data={[...trace3D, ...cursor3DTrace]}
             layout={{
               margin: { l: 0, r: 0, t: 0, b: 0 },
               paper_bgcolor: '#0d1117',
@@ -331,6 +383,25 @@ export function MapPanel({
             {t('map.legendReset', 'Reset colors')}
           </button>
         )}
+      </div>
+      <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-[500] w-[min(560px,75%)] rounded-md bg-surfaceRaised/95 border border-border px-2 py-1.5 shadow">
+        <div className="text-[11px] text-gray-300 mb-1">
+          {t('map.timeline', 'ציר זמן')} {clampedIndex + 1}/{path.length}
+        </div>
+        <input
+          type="range"
+          min={0}
+          max={Math.max(0, path.length - 1)}
+          step={1}
+          value={clampedIndex}
+          onChange={(e) => {
+            const idx = Number(e.target.value);
+            setTimelineIndex(idx);
+            onPathIndexSelect?.(idx);
+          }}
+          className="w-full h-2 accent-accent cursor-pointer"
+          aria-label={t('map.timeline', 'ציר זמן')}
+        />
       </div>
       {contextMenu && (
         <>
