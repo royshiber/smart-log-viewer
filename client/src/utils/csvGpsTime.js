@@ -38,30 +38,18 @@ function pickGpsMessage(messages) {
   return null;
 }
 
-/**
- * @returns {function(number): { utcIso: string, israelLocal: string } | null}
- */
-export function buildTimeToWallClock(messages) {
-  const gps = pickGpsMessage(messages);
-  if (!gps) return null;
-
-  const tus = gps.TimeUS;
-  const wk = gps.GWk;
-  const gms = gps.GMS;
-  const st = gps.Status;
-  const n = Math.min(tus.length, wk.length, gms.length, st.length);
-
+function buildMapperFromArrays(tus, wk, gms, st) {
+  const n = Math.min(tus?.length || 0, wk?.length || 0, gms?.length || 0, st?.length || 0);
   const points = [];
   for (let i = 0; i < n; i++) {
-    if (st[i] < GPS_OK_FIX_3D) continue;
-    if (wk[i] < 1000 || gms[i] <= 0) continue;
+    if (Number(st[i]) < GPS_OK_FIX_3D) continue;
+    if (Number(wk[i]) < 1000 || Number(gms[i]) <= 0) continue;
     points.push({
       tus: Number(tus[i]),
       unixMs: gpsToUnixMs(Number(wk[i]), Number(gms[i])),
     });
   }
   if (points.length === 0) return null;
-
   points.sort((a, b) => a.tus - b.tus);
 
   const fmtUtc = (unixMs) => {
@@ -120,4 +108,23 @@ export function buildTimeToWallClock(messages) {
     if (!Number.isFinite(unixMs)) return null;
     return { utcIso: fmtUtc(unixMs), israelLocal: fmtIl(unixMs) };
   };
+}
+
+/**
+ * @returns {function(number): { utcIso: string, israelLocal: string } | null}
+ */
+export function buildTimeToWallClock(messages) {
+  const gps = pickGpsMessage(messages);
+  if (!gps) return null;
+  return buildMapperFromArrays(gps.TimeUS, gps.GWk, gps.GMS, gps.Status);
+}
+
+export function buildTimeToWallClockFromSeries(getTimeSeries) {
+  if (typeof getTimeSeries !== 'function') return null;
+  const tus = getTimeSeries('GPS.TimeUS')?.y;
+  const wk = getTimeSeries('GPS.GWk')?.y;
+  const gms = getTimeSeries('GPS.GMS')?.y;
+  const st = getTimeSeries('GPS.Status')?.y;
+  if (!tus?.length || !wk?.length || !gms?.length || !st?.length) return null;
+  return buildMapperFromArrays(tus, wk, gms, st);
 }

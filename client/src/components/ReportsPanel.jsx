@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getFieldLabel, getShortHeHint } from '../utils/fieldLabels';
-import { buildTimeToWallClock } from '../utils/csvGpsTime';
+import { buildTimeToWallClock, buildTimeToWallClockFromSeries } from '../utils/csvGpsTime';
 import { parseGraphRequestViaGemini } from '../api/chat';
 import { parseGraphRequest } from '../utils/parseGraphRequest';
 import { getReportCsvPresets, saveReportCsvPreset, getReportPdfPresets, saveReportPdfPreset } from '../db/logsDb';
@@ -95,7 +95,10 @@ export function ReportsPanel({ fields, selectedFields, getTimeSeries, logDisplay
   const [csvPresets, setCsvPresets] = useState([]);
   const [pdfPresets, setPdfPresets] = useState([]);
 
-  const wallClock = useMemo(() => (messages ? buildTimeToWallClock(messages) : null), [messages]);
+  const wallClock = useMemo(
+    () => (messages ? buildTimeToWallClock(messages) : null) || buildTimeToWallClockFromSeries(getTimeSeries),
+    [messages, getTimeSeries]
+  );
 
   useEffect(() => {
     setReportTitle(logDisplayName || '');
@@ -220,15 +223,13 @@ export function ReportsPanel({ fields, selectedFields, getTimeSeries, logDisplay
     const times = Array.from(timeSet).sort((a, b) => a - b);
 
     const timeCol = 'log_time_us';
-    const extra = wallClock ? ['utc_iso_+00:00', 'israel_local_time'] : [];
+    const extra = ['israel_local_time'];
     const header = [timeCol, ...extra, ...seriesData.map((s) => s.f)].join(',');
 
     const rows = times.map((tVal) => {
       const parts = [tVal];
-      if (wallClock) {
-        const w = wallClock(tVal);
-        parts.push(w ? `"${w.utcIso}"` : '', w ? `"${w.israelLocal}"` : '');
-      }
+      const w = wallClock ? wallClock(tVal) : null;
+      parts.push(w ? `"${w.israelLocal}"` : '');
       for (const s of seriesData) {
         const idx = s.ts.x.indexOf(tVal);
         parts.push(idx >= 0 ? (s.ts.y[idx] ?? '') : '');

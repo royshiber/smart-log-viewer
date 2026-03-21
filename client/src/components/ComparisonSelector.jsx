@@ -161,7 +161,7 @@ export function ComparisonSelector({ vehicles, selectedVehicleId, comparisons, o
         </div>
       )}
 
-      <div className="mt-1.5 flex flex-col gap-1.5">
+      <div className="mt-1.5 flex flex-col gap-1.5 max-h-44 overflow-y-auto pe-0.5">
         {comparisons.map((comp, i) => (
           <div
             key={comp.id}

@@ -122,6 +122,7 @@ export default function App() {
   /** DB id of log loaded from saved list (or after auto-save) — excluded from "add flight" overlay */
   const [activeLoadedLogId, setActiveLoadedLogId] = useState(null);
   const [showVehiclePicker, setShowVehiclePicker] = useState(false);
+  const [logToolsCollapsed, setLogToolsCollapsed] = useState(false);
   const [visibleOverlayLogIds, setVisibleOverlayLogIds] = useState([]);
   const [frskyMap, setFrskyMap] = useState(new Map());
   const [frskyName, setFrskyName] = useState('');
@@ -804,8 +805,18 @@ export default function App() {
                   vehicleNamesById={vehicleNamesById}
                 />
                 {/* Vehicle mini-card + compare button pinned at the bottom of the logs column */}
-                <div className="shrink-0 border-t border-border p-2 flex flex-col gap-1.5">
-                  <VehicleMiniCard vehicle={selectedVehicle} onClick={() => setShowVehiclePicker(true)} />
+                <div className="shrink min-h-0 border-t border-border flex flex-col bg-surfaceRaised/60">
+                  <button
+                    type="button"
+                    onClick={() => setLogToolsCollapsed((v) => !v)}
+                    className="px-2 py-1 text-[11px] text-accent/90 hover:text-accent border-b border-border/60 text-center"
+                    title={logToolsCollapsed ? (isRtl ? 'פתח פעולות לוגים' : 'Expand log tools') : (isRtl ? 'צמצם פעולות לוגים' : 'Collapse log tools')}
+                  >
+                    {logToolsCollapsed ? (isRtl ? 'פתח פעולות לוגים ▾' : 'Expand Log Tools ▾') : (isRtl ? 'צמצם פעולות לוגים ▴' : 'Collapse Log Tools ▴')}
+                  </button>
+                  {!logToolsCollapsed && (
+                    <div className="p-2 flex flex-col gap-1.5 overflow-y-auto min-h-0 max-h-[42vh]">
+                      <VehicleMiniCard vehicle={selectedVehicle} onClick={() => setShowVehiclePicker(true)} />
                   {showVehiclePicker && (
                     <div
                       className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/65"
@@ -874,6 +885,8 @@ export default function App() {
                     <span className="text-amber-300 font-semibold">FRSKY</span>
                     <span className="truncate">{isRtl ? 'הצלבת לוג שלט' : 'Overlay radio log'}</span>
                   </button>
+                    </div>
+                  )}
                 </div>
               </div>
               <FieldsSidebar
