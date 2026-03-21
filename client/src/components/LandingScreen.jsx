@@ -21,8 +21,9 @@ export function LandingScreen({
   onLoadLog,
   onPrompt,
 }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [screen, setScreen] = useState('landing'); // 'landing' | 'picker' | 'vehicleLogs'
+  const isRtl = i18n.language === 'he';
 
   useEffect(() => {
     if (screen !== 'picker') return;
@@ -76,7 +77,7 @@ export function LandingScreen({
             className="text-white/80 hover:text-white text-[56px] leading-none px-3"
             aria-label={t('landing.closePicker')}
           >
-            ←
+            {isRtl ? '→' : '←'}
           </button>
         </div>
         <div className="flex-1 flex items-center justify-center overflow-y-auto p-6">
@@ -113,7 +114,7 @@ export function LandingScreen({
             <div className="absolute -left-20 bottom-0 h-64 w-64 rounded-full bg-cyan-400/20 blur-3xl" />
 
             <div className="relative text-center">
-              <h1 className="text-5xl font-black leading-tight tracking-tight text-white md:text-7xl">
+              <h1 className="text-5xl font-semibold leading-tight tracking-tight text-white md:text-7xl">
                 {t('appTitle')}
               </h1>
             </div>

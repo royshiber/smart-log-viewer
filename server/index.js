@@ -363,13 +363,20 @@ Requested output language: ${outputLanguage || 'en'}
 
 Return a JSON object with:
 - "englishTitle": short English title for the flight (e.g. "Flight over coastal area — Mar 2026")
-- "observationSummaryEn": concise but complete paragraph in English that references as many provided fields as possible
+- "executiveSummaryEn": concise engineering summary paragraph referencing the most important parameters
+- "keyFindingsEn": array of 3-6 short bullet-style findings in English
+- "engineeringConclusionEn": concise conclusion paragraph focused on flight quality and risk
 - "rows": array of objects, one per field, with:
   - "field": keep the original technical field key from input when possible (e.g. "CTUN.Alt")
   - "min": minimum value (string)
   - "max": maximum value (string)
   - "avg": average value (string)
-  - "note": one concise insight sentence in English for THIS field. If no insight can be inferred from current data, write a fallback comparative sentence such as "Compared with previous flights, this parameter appears within normal range." Do not leave note empty.
+  - "std": standard deviation (string; use input value when provided)
+  - "p95": 95th percentile (string; use input value when provided)
+  - "trend": trend delta first->last (string; use input value when provided)
+  - "riskLevel": LOW | MEDIUM | HIGH
+  - "note": one concise engineering insight sentence in English for THIS field. If no insight can be inferred from current data, write a fallback comparative sentence such as "Compared with previous flights, this parameter appears within normal range." Do not leave note empty.
+  - "recommendation": one practical follow-up recommendation sentence in English (can be empty only if truly none).
 
 Rules:
 - rows length MUST equal stats length (one note per field, never skip a field)
@@ -382,7 +389,9 @@ Rules:
       type: 'object',
       properties: {
         englishTitle: { type: 'string' },
-        observationSummaryEn: { type: 'string' },
+        executiveSummaryEn: { type: 'string' },
+        keyFindingsEn: { type: 'array', items: { type: 'string' } },
+        engineeringConclusionEn: { type: 'string' },
         rows: {
           type: 'array',
           items: {
@@ -392,13 +401,18 @@ Rules:
               min: { type: 'string' },
               max: { type: 'string' },
               avg: { type: 'string' },
+              std: { type: 'string' },
+              p95: { type: 'string' },
+              trend: { type: 'string' },
+              riskLevel: { type: 'string' },
               note: { type: 'string' },
+              recommendation: { type: 'string' },
             },
-            required: ['field', 'min', 'max', 'avg', 'note'],
+            required: ['field', 'min', 'max', 'avg', 'std', 'p95', 'trend', 'riskLevel', 'note', 'recommendation'],
           },
         },
       },
-      required: ['englishTitle', 'observationSummaryEn', 'rows'],
+      required: ['englishTitle', 'executiveSummaryEn', 'keyFindingsEn', 'engineeringConclusionEn', 'rows'],
     };
 
     const response = await callGemini(prompt, {

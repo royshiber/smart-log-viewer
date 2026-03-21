@@ -4,9 +4,10 @@ import { getLogs, deleteLog } from '../db/logsDb';
 import { DropZone } from './DropZone';
 
 export function VehicleLogsScreen({ vehicle, onFile, onFiles, loading, progress, error, onLoadLog, onBack }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [logs, setLogs] = useState([]);
   const [logsLoading, setLogsLoading] = useState(true);
+  const isRtl = i18n.language === 'he';
 
   useEffect(() => {
     if (!vehicle?.id) return;
@@ -22,7 +23,7 @@ export function VehicleLogsScreen({ vehicle, onFile, onFiles, loading, progress,
   };
 
   return (
-    <div className="flex-1 flex flex-col bg-figmaBg overflow-hidden">
+    <div className="flex-1 flex flex-col bg-figmaBg overflow-hidden" dir={isRtl ? 'rtl' : 'ltr'}>
       {/* Header */}
       <div className="shrink-0 flex items-center gap-4 px-5 py-4 border-b border-white/[0.08]">
         <button
@@ -31,7 +32,7 @@ export function VehicleLogsScreen({ vehicle, onFile, onFiles, loading, progress,
           className="text-white/80 hover:text-white text-[56px] leading-none px-2 shrink-0"
           aria-label={t('landing.closePicker')}
         >
-          ←
+          {isRtl ? '→' : '←'}
         </button>
         {vehicle?.photo ? (
           <img src={vehicle.photo} alt="" className="w-16 h-16 rounded-xl object-cover shrink-0 border border-white/20" />
@@ -51,7 +52,7 @@ export function VehicleLogsScreen({ vehicle, onFile, onFiles, loading, progress,
       </div>
 
       {/* Content: DropZone (left) + log list (right) — side by side, full height */}
-      <div className="flex-1 min-h-0 flex flex-row">
+      <div className={`flex-1 min-h-0 flex ${isRtl ? 'flex-row-reverse' : 'flex-row'}`}>
         {/* Left: DropZone */}
         <div className="w-[58%] flex flex-col p-6 border-e border-white/[0.08] min-h-0">
           <DropZone

@@ -6,16 +6,47 @@ import { parseGraphRequestViaGemini } from '../api/chat';
 import { parseGraphRequest } from '../utils/parseGraphRequest';
 import { getReportCsvPresets, saveReportCsvPreset, getReportPdfPresets, saveReportPdfPreset } from '../db/logsDb';
 
+function percentile(sortedVals, p) {
+  if (!sortedVals.length) return null;
+  const idx = (sortedVals.length - 1) * p;
+  const lo = Math.floor(idx);
+  const hi = Math.ceil(idx);
+  if (lo === hi) return sortedVals[lo];
+  const w = idx - lo;
+  return sortedVals[lo] * (1 - w) + sortedVals[hi] * w;
+}
+
 function computeStats(fields, getTimeSeries) {
   return fields.map((f) => {
     const ts = getTimeSeries(f);
     if (!ts?.y?.length) return null;
     const vals = ts.y.filter((v) => v != null && Number.isFinite(v));
     if (!vals.length) return null;
+    const sorted = [...vals].sort((a, b) => a - b);
     const min = Math.min(...vals);
     const max = Math.max(...vals);
     const avg = vals.reduce((a, b) => a + b, 0) / vals.length;
-    return { field: f, min: min.toFixed(2), max: max.toFixed(2), avg: avg.toFixed(2) };
+    const variance = vals.reduce((acc, v) => acc + ((v - avg) ** 2), 0) / vals.length;
+    const std = Math.sqrt(variance);
+    const p95 = percentile(sorted, 0.95);
+    const first = vals[0];
+    const last = vals[vals.length - 1];
+    const trend = last - first;
+    const cv = avg !== 0 ? (std / Math.abs(avg)) * 100 : null;
+    return {
+      field: f,
+      min: min.toFixed(2),
+      max: max.toFixed(2),
+      avg: avg.toFixed(2),
+      std: std.toFixed(2),
+      p95: (p95 ?? avg).toFixed(2),
+      count: vals.length,
+      first: first.toFixed(2),
+      last: last.toFixed(2),
+      trend: trend.toFixed(2),
+      range: (max - min).toFixed(2),
+      cv: cv == null ? '' : cv.toFixed(1),
+    };
   }).filter(Boolean);
 }
 
@@ -160,7 +191,9 @@ export function ReportsPanel({ fields, selectedFields, getTimeSeries, logDisplay
 
       let formattedRows = [];
       let englishTitle = 'Flight report';
-      let observationSummaryEn = '';
+      let executiveSummaryEn = '';
+      let engineeringConclusionEn = '';
+      let keyFindingsEn = [];
 
       try {
         const res = await fetch('/api/generate-report', {
@@ -171,16 +204,21 @@ export function ReportsPanel({ fields, selectedFields, getTimeSeries, logDisplay
         const data = await res.json();
         formattedRows = data.rows || [];
         if (data.englishTitle && typeof data.englishTitle === 'string') englishTitle = data.englishTitle;
-        if (data.observationSummaryEn && typeof data.observationSummaryEn === 'string') {
-          observationSummaryEn = data.observationSummaryEn;
-        }
+        if (typeof data.executiveSummaryEn === 'string') executiveSummaryEn = data.executiveSummaryEn;
+        if (typeof data.engineeringConclusionEn === 'string') engineeringConclusionEn = data.engineeringConclusionEn;
+        if (Array.isArray(data.keyFindingsEn)) keyFindingsEn = data.keyFindingsEn.filter(Boolean).slice(0, 6);
       } catch {
         formattedRows = stats.map((s) => ({
           field: s.field,
           min: s.min,
           max: s.max,
           avg: s.avg,
+          std: s.std,
+          p95: s.p95,
+          trend: s.trend,
+          riskLevel: 'MEDIUM',
           note: '',
+          recommendation: '',
         }));
       }
 
@@ -190,48 +228,115 @@ export function ReportsPanel({ fields, selectedFields, getTimeSeries, logDisplay
           min: s.min,
           max: s.max,
           avg: s.avg,
+          std: s.std,
+          p95: s.p95,
+          trend: s.trend,
+          riskLevel: 'MEDIUM',
           note: '',
+          recommendation: '',
         }));
       }
 
       const { jsPDF } = await import('jspdf');
       const autoTable = (await import('jspdf-autotable')).default;
 
-      const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+      const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
 
-      doc.setFontSize(18);
+      const pageWidth = doc.internal.pageSize.getWidth();
+
+      doc.setFontSize(20);
       doc.setFont('helvetica', 'bold');
-      doc.text(englishTitle, 105, 20, { align: 'center' });
+      doc.text(englishTitle, pageWidth / 2, 18, { align: 'center' });
 
       doc.setFontSize(10);
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(120);
-      doc.text(new Date().toLocaleDateString('en-GB'), 105, 28, { align: 'center' });
+      doc.text(
+        `Generated ${new Date().toLocaleString('en-GB')}  |  Fields analyzed: ${formattedRows.length}`,
+        pageWidth / 2,
+        26,
+        { align: 'center' }
+      );
       doc.setTextColor(0);
+
+      let cursorY = 34;
 
       doc.setFontSize(12);
       doc.setFont('helvetica', 'bold');
-      doc.text('Flight data statistics', 14, 38);
+      doc.text('Executive summary', 14, cursorY);
+      cursorY += 5;
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(10);
+      const execText = (executiveSummaryEn || '').trim() || 'No executive summary was generated.';
+      doc.text(doc.splitTextToSize(execText, pageWidth - 28), 14, cursorY);
+      cursorY += 10;
+
+      if (keyFindingsEn.length) {
+        doc.setFont('helvetica', 'bold');
+        doc.text('Key findings', 14, cursorY);
+        cursorY += 5;
+        doc.setFont('helvetica', 'normal');
+        keyFindingsEn.forEach((k) => {
+          doc.text(`- ${k}`, 16, cursorY);
+          cursorY += 4.2;
+        });
+        cursorY += 2;
+      }
 
       autoTable(doc, {
-        startY: 42,
-        head: [['Field', 'Min', 'Max', 'Avg', 'Note']],
-        body: formattedRows.map((r) => [r.field, r.min, r.max, r.avg, r.note || '']),
-        theme: 'striped',
-        headStyles: { fillColor: [30, 100, 200], textColor: 255, fontStyle: 'bold' },
-        styles: { fontSize: 10, cellPadding: 3, font: 'helvetica' },
+        startY: cursorY,
+        head: [['Field', 'Min', 'Max', 'Avg', 'Std', 'P95', 'Trend', 'Risk', 'Engineering insight']],
+        body: formattedRows.map((r) => [
+          r.field,
+          r.min,
+          r.max,
+          r.avg,
+          r.std || '',
+          r.p95 || '',
+          r.trend || '',
+          (r.riskLevel || 'MEDIUM').toUpperCase(),
+          r.note || '',
+        ]),
+        theme: 'grid',
+        headStyles: { fillColor: [24, 93, 156], textColor: 255, fontStyle: 'bold', halign: 'center' },
+        styles: { fontSize: 8.5, cellPadding: 2.2, font: 'helvetica', valign: 'middle' },
+        columnStyles: {
+          0: { cellWidth: 35, fontStyle: 'bold' },
+          8: { cellWidth: 'auto' },
+        },
       });
 
-      const summary = observationSummaryEn.trim();
-      if (summary) {
-        const finalY = doc.lastAutoTable.finalY + 10;
+      const recommendations = formattedRows
+        .filter((r) => (r.recommendation || '').trim())
+        .slice(0, 10)
+        .map((r) => `${r.field}: ${r.recommendation}`);
+
+      if (recommendations.length || engineeringConclusionEn.trim()) {
+        let finalY = doc.lastAutoTable.finalY + 8;
+        if (finalY > 188) {
+          doc.addPage();
+          finalY = 18;
+        }
         doc.setFontSize(12);
         doc.setFont('helvetica', 'bold');
-        doc.text('Observations (summary)', 14, finalY);
+        doc.text('Engineering conclusion', 14, finalY);
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(10);
-        const lines = doc.splitTextToSize(summary, 180);
-        doc.text(lines, 14, finalY + 7);
+        const cText = engineeringConclusionEn.trim() || 'No additional engineering conclusion generated.';
+        const cLines = doc.splitTextToSize(cText, pageWidth - 28);
+        doc.text(cLines, 14, finalY + 6);
+        let recY = finalY + 6 + (cLines.length * 4.2) + 4;
+        if (recommendations.length) {
+          doc.setFont('helvetica', 'bold');
+          doc.text('Recommended follow-up actions', 14, recY);
+          doc.setFont('helvetica', 'normal');
+          recY += 5;
+          recommendations.forEach((r) => {
+            const lines = doc.splitTextToSize(`- ${r}`, pageWidth - 28);
+            doc.text(lines, 16, recY);
+            recY += (lines.length * 4.2);
+          });
+        }
       }
 
       const safeName = englishTitle.replace(/[/\\?%*:|"<>]/g, '-').slice(0, 80) || 'flight_report';
