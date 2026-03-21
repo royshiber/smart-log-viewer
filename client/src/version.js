@@ -1,12 +1,12 @@
 /** App version - increment on each change */
-export const APP_VERSION = '1.02.25';
+export const APP_VERSION = '1.02.26';
 
 /** What's new in this version (numbered list for popup) */
 export const VERSION_WHATS_NEW = {
-  he: `1. שליטה בגובה חלון פעולות הלוגים: נוסף סליידר גובה ייעודי (כמו של רוחב) במקום גלילה קשיחה
-2. גובה חלון פעולות נשמר מקומית ונפתח באותו גודל בפעם הבאה
-3. שיפור שימושיות: אפשר להגדיל את החלון עד שרואים יותר פריטים בלי תחושת "דריסה"`,
-  en: `1. Added dedicated height control for the log-tools window (width-style slider) instead of fixed scrolling
-2. Log-tools window height now persists locally and restores on next launch
-3. Usability improvement: you can expand the window to show more items without overlap pressure`,
+  he: `1. מפה תלת־ממדית: נוסף כפתור 3D/Google Earth שמייצא מסלול KML ופותח את Google Earth Web
+2. מקרא צבעים במפה: נוסף Legend קטן שמסביר בזמן אמת את צבעי המסלול והפילטר הפעיל
+3. ייצוא 3D כולל גובה: קובץ KML נבנה עם קואורדינטות וגובה לכל נקודה (כשזמין)`,
+  en: `1. 3D map workflow: added a 3D/Google Earth button that exports route KML and opens Google Earth Web
+2. Map color legend: added a compact live legend explaining active route colors and filters
+3. 3D export includes altitude: KML is generated with coordinates and per-point altitude when available`,
 };

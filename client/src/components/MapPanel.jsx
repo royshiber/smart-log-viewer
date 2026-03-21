@@ -50,7 +50,76 @@ function CenterOnIndex({ path, index }) {
   return null;
 }
 
-export function MapPanel({ path, onMapReady, markers = [], pathColorConfig, pathWithValues, selectedTimeIndex, onPathIndexSelect }) {
+function kmlColor(hex) {
+  const clean = String(hex || '#58a6ff').replace('#', '');
+  const r = clean.slice(0, 2) || '58';
+  const g = clean.slice(2, 4) || 'a6';
+  const b = clean.slice(4, 6) || 'ff';
+  return `ff${b}${g}${r}`; // aabbggrr
+}
+
+function buildPathKml(path, altitudes = [], name = 'flight-path', color = '#58a6ff') {
+  const coords = path
+    .map((p, i) => `${Number(p[1]).toFixed(7)},${Number(p[0]).toFixed(7)},${Number(altitudes[i] ?? 0).toFixed(2)}`)
+    .join(' ');
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>
+    <name>${String(name).replace(/[<>]/g, '')}</name>
+    <Style id="flightLine">
+      <LineStyle>
+        <color>${kmlColor(color)}</color>
+        <width>3</width>
+      </LineStyle>
+    </Style>
+    <Placemark>
+      <name>${String(name).replace(/[<>]/g, '')}</name>
+      <styleUrl>#flightLine</styleUrl>
+      <LineString>
+        <extrude>1</extrude>
+        <tessellate>1</tessellate>
+        <altitudeMode>absolute</altitudeMode>
+        <coordinates>${coords}</coordinates>
+      </LineString>
+    </Placemark>
+  </Document>
+</kml>`;
+}
+
+function legendRows(config, t) {
+  if (!config) {
+    return [{ color: '#58a6ff', label: t('map.legendDefault', 'Default path') }];
+  }
+  if (config.solidColor) {
+    return [{ color: config.solidColor, label: t('map.legendSolid', 'Fixed color') }];
+  }
+  if (config.segmentColors) {
+    return [{ color: '#58a6ff', label: t('map.legendSegments', 'Custom segment colors') }];
+  }
+  if (config.threshold != null) {
+    return [
+      { color: config.aboveColor || '#3fb950', label: `> ${config.threshold}` },
+      { color: config.belowColor || '#58a6ff', label: `<= ${config.threshold}` },
+    ];
+  }
+  return [
+    { color: config.positiveColor || '#f85149', label: t('map.legendPositive', 'Positive value') },
+    { color: config.zeroColor || '#58a6ff', label: t('map.legendZero', 'Zero') },
+    { color: config.negativeColor || '#d29922', label: t('map.legendNegative', 'Negative value') },
+  ];
+}
+
+export function MapPanel({
+  path,
+  onMapReady,
+  markers = [],
+  pathColorConfig,
+  pathWithValues,
+  pathAltitudes = null,
+  pathName = 'flight-path',
+  selectedTimeIndex,
+  onPathIndexSelect
+}) {
   const { t, i18n } = useTranslation();
   const [contextMenu, setContextMenu] = useState(null);
 
@@ -88,9 +157,29 @@ export function MapPanel({ path, onMapReady, markers = [], pathColorConfig, path
   }
 
   const center = path[Math.floor(path.length / 2)] || [32, 35];
+  const legend = legendRows(pathColorConfig, t);
+  const legendTitle = pathColorConfig?.field
+    ? `${t('map.legendByField', 'Color by')} ${pathColorConfig.field}`
+    : t('map.legendTitle', 'Path legend');
+  const primaryColor = pathColorConfig?.solidColor
+    || pathColorConfig?.aboveColor
+    || pathColorConfig?.positiveColor
+    || '#58a6ff';
+
+  const handleOpenGoogleEarth3D = () => {
+    const kml = buildPathKml(path, pathAltitudes || [], pathName, primaryColor);
+    const blob = new Blob([kml], { type: 'application/vnd.google-earth.kml+xml;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${String(pathName || 'flight-path').replace(/[/\\?%*:|"<>]/g, '-')}.kml`;
+    a.click();
+    URL.revokeObjectURL(url);
+    window.open('https://earth.google.com/web/', '_blank', 'noopener,noreferrer');
+  };
 
   return (
-    <div className="flex-1 min-h-0 rounded-lg border border-border overflow-hidden">
+    <div className="relative flex-1 min-h-0 rounded-lg border border-border overflow-hidden">
       <MapContainer
         center={center}
         zoom={14}
@@ -136,6 +225,27 @@ export function MapPanel({ path, onMapReady, markers = [], pathColorConfig, path
         {selectedTimeIndex != null && <CenterOnIndex path={path} index={selectedTimeIndex} />}
         {onMapReady && <MapController onReady={onMapReady} />}
       </MapContainer>
+      <div className="absolute top-2 right-2 z-[500]">
+        <button
+          type="button"
+          onClick={handleOpenGoogleEarth3D}
+          className="px-2.5 py-1.5 rounded-md bg-surfaceRaised/95 border border-border text-xs text-gray-100 hover:border-accent/60 hover:text-accent shadow"
+          title={t('map.open3DHint', 'Download KML and open Google Earth Web')}
+        >
+          {t('map.open3D', '3D / Google Earth')}
+        </button>
+      </div>
+      <div className="absolute bottom-2 left-2 z-[500] max-w-[240px] rounded-md bg-surfaceRaised/95 border border-border px-2 py-1.5 shadow">
+        <div className="text-[11px] text-accent font-medium truncate">{legendTitle}</div>
+        <div className="mt-1 space-y-1">
+          {legend.map((row, i) => (
+            <div key={i} className="flex items-center gap-2 text-[11px] text-gray-200">
+              <span className="inline-block w-4 h-[3px] rounded-full" style={{ background: row.color }} />
+              <span className="truncate">{row.label}</span>
+            </div>
+          ))}
+        </div>
+      </div>
       {contextMenu && (
         <>
           <div

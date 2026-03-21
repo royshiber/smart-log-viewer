@@ -205,6 +205,42 @@ export default function App() {
   const flightPathData = useFlightPath(fields, getTimeSeries);
   const flightPath = flightPathData?.path ?? null;
   const pathTimes = flightPathData?.times ?? [];
+  const pathAltitudes = useMemo(() => {
+    if (!pathTimes.length || !fields.length) return null;
+    const candidates = ['GPS.Alt', 'CTUN.Alt', 'BARO.Alt', 'CTUN.BarAlt', 'GPS.RelAlt'];
+    const altKey = candidates.find((c) => fields.includes(c))
+      || fields.find((f) => /\.Alt$/.test(f) || f.endsWith('.RelAlt') || f.endsWith('.BarAlt'));
+    if (!altKey) return null;
+    const ts = getTimeSeries(altKey);
+    if (!ts?.x?.length || !ts?.y?.length) return null;
+    const x = ts.x;
+    const y = ts.y;
+    const out = [];
+    for (const t of pathTimes) {
+      let lo = 0;
+      let hi = x.length - 1;
+      while (lo < hi) {
+        const mid = (lo + hi) >> 1;
+        if (x[mid] < t) lo = mid + 1;
+        else hi = mid;
+      }
+      const i1 = lo;
+      const i0 = Math.max(0, i1 - 1);
+      const x0 = x[i0];
+      const x1 = x[i1];
+      const y0 = Number(y[i0]);
+      const y1 = Number(y[i1]);
+      if (!Number.isFinite(y0) && !Number.isFinite(y1)) {
+        out.push(0);
+        continue;
+      }
+      if (!Number.isFinite(y0)) { out.push(y1); continue; }
+      if (!Number.isFinite(y1) || x1 === x0) { out.push(y0); continue; }
+      const frac = (t - x0) / (x1 - x0);
+      out.push(y0 + frac * (y1 - y0));
+    }
+    return out;
+  }, [pathTimes, fields, getTimeSeries]);
   const pathWithValues = usePathWithField(fields, getTimeSeries, pathColorConfig?.field);
 
   useEffect(() => {
@@ -997,6 +1033,8 @@ export default function App() {
                     markers={mapMarkers}
                     pathColorConfig={pathColorConfig}
                     pathWithValues={pathWithValues}
+                    pathAltitudes={pathAltitudes}
+                    pathName={currentLogName || 'flight-path'}
                     selectedTimeIndex={selectedTimeIndex}
                     onPathIndexSelect={handlePathIndexSelect}
                     onMapReady={(map) => { mapRef.current = map; }}
