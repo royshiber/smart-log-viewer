@@ -120,6 +120,10 @@ export function ReportsPanel({ fields, selectedFields, getTimeSeries, logDisplay
     () => filterFieldsBySearch(fields, csvSearch, i18n.language),
     [fields, csvSearch, i18n.language]
   );
+  const reportFields = useMemo(
+    () => (selectedFields.length ? selectedFields : csvChecked),
+    [selectedFields, csvChecked]
+  );
 
   const toggleCsv = (f) => {
     setCsvChecked((prev) => (prev.includes(f) ? prev.filter((x) => x !== f) : [...prev, f]));
@@ -188,10 +192,10 @@ export function ReportsPanel({ fields, selectedFields, getTimeSeries, logDisplay
   };
 
   const handleGeneratePdf = async () => {
-    if (!selectedFields.length) return;
+    if (!reportFields.length) return;
     setReportLoading(true);
     try {
-      const stats = computeStats(selectedFields, getTimeSeries);
+      const stats = computeStats(reportFields, getTimeSeries);
 
       let formattedRows = [];
       let englishTitle = 'Flight report';
@@ -540,13 +544,13 @@ export function ReportsPanel({ fields, selectedFields, getTimeSeries, logDisplay
 
         <div className="text-xs text-gray-600 mb-3">
           {isRtl ? 'שדות בדוח:' : 'Fields in report:'}{' '}
-          <span className="text-gray-400">{selectedFields.length ? selectedFields.join(', ') : (isRtl ? 'אין שדות נבחרים' : 'No fields selected')}</span>
+          <span className="text-gray-400">{reportFields.length ? reportFields.join(', ') : (isRtl ? 'אין שדות נבחרים' : 'No fields selected')}</span>
         </div>
 
         <button
           type="button"
           onClick={handleGeneratePdf}
-          disabled={reportLoading || !selectedFields.length}
+          disabled={reportLoading || !reportFields.length}
           className="w-full py-2 rounded-lg bg-figmaAccent text-white text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
           {reportLoading ? (
