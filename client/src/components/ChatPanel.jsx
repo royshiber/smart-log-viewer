@@ -52,11 +52,14 @@ export function ChatPanel({
         });
       } catch (e) {
         if (!live) return;
-        setGeminiStatus({ ok: false, reason: e.message || (i18n.language === 'he' ? 'שגיאת חיבור' : 'Connection error') });
+        setGeminiStatus((prev) => {
+          if (prev.ok === true) return prev; // avoid false red when status check transiently fails
+          return { ok: null, reason: i18n.language === 'he' ? 'בדיקת סטטוס זמנית נכשלה' : 'Status check temporarily failed' };
+        });
       }
     };
     poll();
-    const id = setInterval(poll, 30000);
+    const id = setInterval(poll, 10000);
     return () => { live = false; clearInterval(id); };
   }, [i18n.language]);
 
@@ -108,6 +111,10 @@ export function ChatPanel({
           onMessages((prev) =>
             prev.map((m) => m.id === streamingId ? { ...m, text: m.text + delta } : m)
           );
+        });
+        setGeminiStatus({
+          ok: true,
+          reason: i18n.language === 'he' ? 'חיבור תקין' : 'Connected',
         });
         onMessages((prev) =>
           prev.map((m) => m.id === streamingId ? { ...m, streaming: false } : m)

@@ -70,6 +70,8 @@ function filterFieldsBySearch(fields, q, lang) {
 export function ReportsPanel({ fields, selectedFields, getTimeSeries, logDisplayName, messages }) {
   const { t, i18n } = useTranslation();
   const isRtl = i18n.language === 'he';
+  const MIN_REPORT_PANEL_WIDTH = 260;
+  const MAX_REPORT_PANEL_WIDTH = 720;
 
   const [csvChecked, setCsvChecked] = useState([]);
   const [csvSearch, setCsvSearch] = useState('');
@@ -80,11 +82,13 @@ export function ReportsPanel({ fields, selectedFields, getTimeSeries, logDisplay
   const [reportLoading, setReportLoading] = useState(false);
   const [csvPanelWidth, setCsvPanelWidth] = useState(() => {
     const raw = Number(localStorage.getItem('reportsCsvWidthPx'));
-    return Number.isFinite(raw) ? raw : 420;
+    const base = Number.isFinite(raw) ? raw : 420;
+    return Math.min(MAX_REPORT_PANEL_WIDTH, Math.max(MIN_REPORT_PANEL_WIDTH, base));
   });
   const [pdfPanelWidth, setPdfPanelWidth] = useState(() => {
     const raw = Number(localStorage.getItem('reportsPdfWidthPx'));
-    return Number.isFinite(raw) ? raw : 420;
+    const base = Number.isFinite(raw) ? raw : 420;
+    return Math.min(MAX_REPORT_PANEL_WIDTH, Math.max(MIN_REPORT_PANEL_WIDTH, base));
   });
   const [csvPresets, setCsvPresets] = useState([]);
   const [pdfPresets, setPdfPresets] = useState([]);
@@ -355,15 +359,16 @@ export function ReportsPanel({ fields, selectedFields, getTimeSeries, logDisplay
   }
 
   return (
-    <div className="flex-1 flex min-h-0 overflow-hidden" dir={isRtl ? 'rtl' : 'ltr'}>
-      <div className="flex flex-col border-e border-border p-4 min-h-0" style={{ width: csvPanelWidth, minWidth: 320, maxWidth: 720 }}>
+    <div className="flex-1 min-h-0 overflow-x-auto overflow-y-hidden" dir={isRtl ? 'rtl' : 'ltr'}>
+      <div className="flex min-h-0 h-full" style={{ width: csvPanelWidth + pdfPanelWidth }}>
+      <div className="flex-none flex flex-col border-e border-border p-4 min-h-0" style={{ width: csvPanelWidth, minWidth: MIN_REPORT_PANEL_WIDTH, maxWidth: MAX_REPORT_PANEL_WIDTH }}>
         <h2 className="text-sm font-semibold text-accent mb-1">{t('reports.csvTitle')}</h2>
         <p className="text-xs text-gray-500 mb-2">{t('reports.csvDesc')}</p>
         <div className="mb-2">
           <input
             type="range"
-            min={320}
-            max={720}
+            min={MIN_REPORT_PANEL_WIDTH}
+            max={MAX_REPORT_PANEL_WIDTH}
             step={4}
             value={csvPanelWidth}
             onChange={(e) => setCsvPanelWidth(Number(e.target.value))}
@@ -469,13 +474,13 @@ export function ReportsPanel({ fields, selectedFields, getTimeSeries, logDisplay
         </button>
       </div>
 
-      <div className="flex-none min-w-0 flex flex-col p-4 min-h-0 border-s border-border" style={{ width: pdfPanelWidth, minWidth: 320, maxWidth: 720 }}>
+      <div className="flex-none min-w-0 flex flex-col p-4 min-h-0 border-s border-border" style={{ width: pdfPanelWidth, minWidth: MIN_REPORT_PANEL_WIDTH, maxWidth: MAX_REPORT_PANEL_WIDTH }}>
         <h2 className="text-sm font-semibold text-accent mb-3">{t('reports.pdfTitle')}</h2>
         <div className="mb-2">
           <input
             type="range"
-            min={320}
-            max={720}
+            min={MIN_REPORT_PANEL_WIDTH}
+            max={MAX_REPORT_PANEL_WIDTH}
             step={4}
             value={pdfPanelWidth}
             onChange={(e) => setPdfPanelWidth(Number(e.target.value))}
@@ -554,6 +559,7 @@ export function ReportsPanel({ fields, selectedFields, getTimeSeries, logDisplay
             </>
           ) : t('reports.generateBtn')}
         </button>
+      </div>
       </div>
     </div>
   );
