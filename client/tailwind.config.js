@@ -9,6 +9,8 @@ export default {
         border: '#30363d',
         accent: '#58a6ff',
         accentGreen: '#3fb950',
+        figmaBg: '#0b0e14',
+        figmaAccent: '#3b82f6',
       },
     },
   },

@@ -1,9 +1,10 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-export function FieldsSidebar({ fields, selected, onChange }) {
+export function FieldsSidebar({ fields, selected, onChange, defaultCollapsed = true }) {
   const { t } = useTranslation();
   const [search, setSearch] = useState('');
+  const [collapsed, setCollapsed] = useState(defaultCollapsed);
 
   const grouped = useMemo(() => {
     const out = {};
@@ -32,16 +33,40 @@ export function FieldsSidebar({ fields, selected, onChange }) {
     onChange(selected.includes(full) ? selected.filter((s) => s !== full) : [...selected, full]);
   };
 
+  if (collapsed) {
+    return (
+      <div className="h-full flex flex-col bg-surfaceRaised border-r border-border w-10 shrink-0">
+        <button
+          type="button"
+          onClick={() => setCollapsed(false)}
+          className="p-2 w-full flex items-center justify-center text-gray-500 hover:text-accent hover:bg-surface border-b border-border h-10"
+          title={t('fields.select')}
+          aria-label={t('fields.select')}
+        >
+          ▶
+        </button>
+      </div>
+    );
+  }
+
   return (
-    <div className="h-full flex flex-col bg-surfaceRaised border-r border-border">
-      <div className="p-3 border-b border-border">
+    <div className="h-full flex flex-col bg-surfaceRaised border-r border-border w-64 shrink-0">
+      <div className="flex items-center justify-between p-2 border-b border-border">
         <input
           type="text"
           placeholder={t('fields.search')}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full px-3 py-2 rounded bg-surface border border-border text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-accent/50"
+          className="flex-1 px-3 py-2 rounded bg-surface border border-border text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-accent/50 text-sm"
         />
+        <button
+          type="button"
+          onClick={() => setCollapsed(true)}
+          className="ml-1 px-2 py-1 text-gray-500 hover:text-gray-200"
+          aria-label="Collapse"
+        >
+          −
+        </button>
       </div>
       <div className="flex-1 overflow-y-auto p-2">
         {Object.entries(filtered).map(([msgName, items]) => (

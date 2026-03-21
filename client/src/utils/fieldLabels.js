@@ -42,7 +42,44 @@ export const FIELD_LABELS_HE = {
   AccX: 'תאוצה X',
   AccY: 'תאוצה Y',
   AccZ: 'תאוצה Z',
+  Rdo: 'ערוץ פלט',
+  As: 'מהירות אוויר',
+  E2T: 'טמפ. מנוע',
+  SAlt: 'גובה מנוע',
+  DAlt: 'גובה יעד',
+  BAlt: 'גובה ברומטרי',
+  DS: 'מהירות ירידה',
+  DCRt: 'קצב פנייה',
+  CRt: 'קצב פנייה נוכחי',
+  Tthr: 'מצערת מטרה',
+  SRate: 'קצב סיבוב',
+  TimeUS: 'זמן',
+  GMS: 'זמן GPS',
+  GWk: 'שבוע GPS',
 };
+
+const MSG_HINT_HE = {
+  CTUN: 'בקרת טיסה',
+  GPS: 'GPS',
+  ATT: 'ייחוס',
+  BARO: 'ברומטר',
+  RCOU: 'פלט מ״מ',
+  BATT: 'סוללה',
+  IMU: 'IMU',
+  RCOU2: 'פלט מ״מ',
+  GPS2: 'GPS משני',
+};
+
+/** Short Hebrew hint (1–3 words) for CSV / lists */
+export function getShortHeHint(fieldKey) {
+  const dot = fieldKey.indexOf('.');
+  const msg = dot > 0 ? fieldKey.slice(0, dot).replace(/\[\d+\]/, '') : '';
+  const fn = dot > 0 ? fieldKey.slice(dot + 1) : fieldKey;
+  const full = FIELD_LABELS_HE[fn];
+  if (full) return full.split(/\s+/).slice(0, 3).join(' ');
+  const mh = MSG_HINT_HE[msg] || 'נתון';
+  return `${mh} · ${fn}`;
+}
 
 export function getFieldLabel(fieldKey, lang = 'he') {
   const fieldName = fieldKey.includes('.') ? fieldKey.split('.')[1] : fieldKey;
@@ -52,4 +89,14 @@ export function getFieldLabel(fieldKey, lang = 'he') {
     return `${heLabel} (${fieldName})`;
   }
   return fieldKey;
+}
+
+/** Build mapping: fieldKey -> Hebrew label, for Gemini context */
+export function buildFieldLabelsMap(fields) {
+  const map = {};
+  for (const f of fields || []) {
+    const fn = f.includes('.') ? f.split('.')[1] : f;
+    if (FIELD_LABELS_HE[fn]) map[f] = FIELD_LABELS_HE[fn];
+  }
+  return map;
 }

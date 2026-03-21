@@ -94,6 +94,25 @@ const NOISE_WORDS = new Set([
 
 const DEFAULT_COLORS = ['#58a6ff', '#3fb950', '#f85149', '#d29922', '#a371f7', '#79c0ff', '#ff7b72', '#56d364'];
 
+const ADD_PHRASES = /(הוסף|עוד|גם|בנוסף|תוסיף|ותוסיף|על גבי|גם את|וכן|add|also|plus|and also|now add)/i;
+const REPLACE_PHRASES = /(החלף|במקום|מחק|הסר|replace|instead|clear|only\s+show)/i;
+
+/** Extract append mode from request text - used by both local and Gemini parsing */
+export function getAppendFromText(text) {
+  return ADD_PHRASES.test(text || '') && !REPLACE_PHRASES.test(text || '');
+}
+
+/** Rough lower bound on how many distinct fields the user asked for (commas, ו-, and, etc.) */
+export function estimateMinFieldCount(text) {
+  if (!text?.trim()) return 1;
+  const t = text.trim();
+  const commas = (t.match(/,/g) || []).length;
+  const fromCommas = Math.min(commas + 1, 12);
+  const connectors = (t.match(/(\sו\S|,|\/|\band\b|\balso\b|\bplus\b|\badd\b|\bוגם\b|\bועוד\b)/gi) || []).length;
+  const fromConn = connectors > 0 ? Math.min(connectors + 1, 12) : 1;
+  return Math.max(1, Math.max(fromCommas, fromConn));
+}
+
 function tokenize(text) {
   return text
     .toLowerCase()
@@ -144,10 +163,7 @@ export function parseGraphRequest(text, availableFields, currentSelected = []) {
 
   const tokens = tokenize(text);
   const colorOrder = extractColors(text);
-
-  const ADD_PHRASES = /(הוסף|עוד|גם|בנוסף|תוסיף|ותוסיף|על גבי|גם את|וכן|add|also|plus|and also|now add)/i;
-  const REPLACE_PHRASES = /(החלף|במקום|מחק|הסר|replace|instead|clear|only\s+show)/i;
-  const append = ADD_PHRASES.test(text) && !REPLACE_PHRASES.test(text);
+  const append = getAppendFromText(text);
 
   const scored = [];
   for (const fieldFull of availableFields) {
@@ -171,11 +187,9 @@ export function parseGraphRequest(text, availableFields, currentSelected = []) {
 
   function suggestSimilar() {
     if (!notFound || !availableFields.length) return [];
+    if (scored.length > 0) return scored.slice(0, 6).map((s) => s.field);
     const priority = ['ATT.Roll', 'ATT.Pitch', 'ATT.Yaw', 'GPS.NSats', 'GPS.Spd', 'GPS.GSpd', 'GPS.Status', 'BARO.Alt', 'CTUN.Alt', 'GPS.Alt', 'RCOU.Thr', 'CTUN.ThrOut', 'BATT.Volt', 'BATT.Curr'];
-    const byPriority = [];
-    for (const p of priority) {
-      if (availableFields.includes(p)) byPriority.push(p);
-    }
+    const byPriority = priority.filter((p) => availableFields.includes(p));
     const rest = availableFields.filter((f) => !byPriority.includes(f)).slice(0, 6 - byPriority.length);
     return [...byPriority, ...rest].slice(0, 6);
   }

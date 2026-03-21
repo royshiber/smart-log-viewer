@@ -45,7 +45,8 @@ export function useBinParser() {
     if (dot === -1) return null;
     const msgName = fieldKey.slice(0, dot);
     const fieldName = fieldKey.slice(dot + 1);
-    const msg = messages[msgName];
+    let msg = messages[msgName];
+    if (!msg && messages[msgName + '[0]']) msg = messages[msgName + '[0]'];
     if (!msg) return null;
     const time = msg.time_boot_ms || msg.TimeUS;
     const values = msg[fieldName];
@@ -58,5 +59,13 @@ export function useBinParser() {
     };
   }, [messages]);
 
-  return { fields, messages, progress, parseFile, loading, error, getTimeSeries };
+  const reset = useCallback(() => {
+    setFields([]);
+    setMessages({});
+    setProgress(0);
+    setLoading(false);
+    setError(null);
+  }, []);
+
+  return { fields, messages, progress, parseFile, reset, loading, error, getTimeSeries };
 }
