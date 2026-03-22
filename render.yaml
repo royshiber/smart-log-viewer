@@ -5,7 +5,7 @@ services:
   - type: web
     name: smart-log-viewer
     runtime: node
-    # Root postinstall installs client + server deps; matches Render UI defaults.
+    # Install must include client devDependencies (Vite) — Render sets NODE_ENV=production.
     buildCommand: npm ci && npm run build
     startCommand: npm start
     healthCheckPath: /api/health

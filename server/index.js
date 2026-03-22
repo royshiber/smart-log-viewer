@@ -2,6 +2,7 @@ import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import { GoogleGenAI } from '@google/genai';
+import { existsSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 
@@ -427,7 +428,26 @@ Rules:
   }
 });
 
-app.use(express.static(join(__dirname, '../client/dist')));
+const distPath = join(__dirname, '../client/dist');
+const indexHtml = join(distPath, 'index.html');
+
+if (!existsSync(indexHtml)) {
+  console.error('[smart-log-viewer] Missing client/dist/index.html — run: npm ci && npm run build (client needs devDependencies for Vite).');
+}
+
+app.use(express.static(distPath));
+
+/** SPA fallback + clear error if frontend was never built (e.g. CI skipped Vite) */
+app.use((req, res, next) => {
+  if (req.method !== 'GET' && req.method !== 'HEAD') return next();
+  if (req.path.startsWith('/api')) return next();
+  if (!existsSync(indexHtml)) {
+    return res.status(503).type('text/plain').send(
+      'Smart Log Viewer: UI not built (missing client/dist). On Render, ensure Build runs with client devDependencies (Vite). Redeploy after pulling the latest repo (postinstall uses npm ci --include=dev in client).'
+    );
+  }
+  res.sendFile(indexHtml, (err) => (err ? next(err) : undefined));
+});
 
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server: http://localhost:${PORT}`);
