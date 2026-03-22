@@ -1,10 +1,10 @@
 /** App version - increment on each change */
-export const APP_VERSION = '1.02.41';
+export const APP_VERSION = '1.02.42';
 
 /** What's new in this version (numbered list for popup) */
 export const VERSION_WHATS_NEW = {
-  he: `1. תפריט קליק-ימני בגרף/מפה: שכבת סגירה רק מעל האזור (לא fixed על כל המסך) — לא ננעלים מחוץ לגרף
-2. Escape סוגר את התפריט; איפוס אוטומטי כשאין סדרת נתונים / מסלול`,
-  en: `1. Chart/map context menu: dismiss overlay scoped to panel (not full-viewport fixed) — no more "everything dead except scroll"
-2. Escape closes menu; auto-clear when series/path empties`,
+  he: `1. תפריט הקשר: z גבוה מ-Plotly/Leaflet + pointer-events-none על הגרף/מפה בזמן תפריט — סגירה בקליק/קליק-ימני על השכבה
+2. מפת 2D/3D בעטיפה absolute יציבה`,
+  en: `1. Context menu: dismiss layer above Plotly/Leaflet z-order; disable pointer events on chart/map while open; right-click on overlay also dismisses
+2. Map 2D/3D in stable absolute wrapper`,
 };

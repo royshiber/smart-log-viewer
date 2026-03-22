@@ -123,25 +123,30 @@ export function ChartPanel({ series, onTimeSelect, selectedTime }) {
       className="flex-1 min-h-0 bg-surfaceRaised rounded-lg border border-border overflow-hidden relative"
       onContextMenu={handleContextMenu}
     >
-      <Plot
-        data={traces}
-        layout={layout}
-        config={config}
-        className="w-full h-full"
-        style={{ width: '100%', height: '100%' }}
-        useResizeHandler
-        onHover={handleHover}
-      />
+      {/* Plotly uses high internal z-index; without pointer-events-none while menu is open, it steals clicks from the dismiss layer. */}
+      <div
+        className={`absolute inset-0 z-0 flex min-h-0 flex-col ${contextMenu ? 'pointer-events-none' : ''}`}
+      >
+        <Plot
+          data={traces}
+          layout={layout}
+          config={config}
+          className="min-h-0 flex-1 w-full"
+          style={{ width: '100%', height: '100%' }}
+          useResizeHandler
+          onHover={handleHover}
+        />
+      </div>
       {contextMenu && (
         <>
-          {/* absolute = only this chart card; fixed inset-0 blocked the whole app (Plotly ate clicks). */}
           <div
-            className="absolute inset-0 z-[80] bg-transparent"
+            className="absolute inset-0 z-[12000] bg-transparent"
             onClick={() => setContextMenu(null)}
+            onContextMenu={(e) => { e.preventDefault(); setContextMenu(null); }}
             aria-hidden
           />
           <div
-            className="fixed z-[90] py-1 rounded-lg bg-surfaceRaised border border-border shadow-xl min-w-[140px]"
+            className="fixed z-[12010] py-1 rounded-lg bg-surfaceRaised border border-border shadow-xl min-w-[140px]"
             style={{ left: contextMenu.x, top: contextMenu.y }}
             dir={i18n.language === 'he' ? 'rtl' : 'ltr'}
           >

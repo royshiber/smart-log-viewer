@@ -357,6 +357,7 @@ export function MapPanel({
 
   return (
     <div className="relative flex-1 min-h-0 rounded-lg border border-border overflow-hidden">
+      <div className={`absolute inset-0 z-0 min-h-0 ${contextMenu ? 'pointer-events-none' : ''}`}>
       {viewMode === '2d' ? (
         <MapContainer
           center={center}
@@ -436,6 +437,7 @@ export function MapPanel({
           />
         </div>
       )}
+      </div>
       <div className="absolute top-2 right-2 z-[500]">
         <div className="flex items-center gap-2">
           <button
@@ -506,14 +508,15 @@ export function MapPanel({
       </div>
       {contextMenu && (
         <>
-          {/* absolute = map panel only; fixed inset-0 z-1000 blocked header, tabs, chat. */}
+          {/* Above Leaflet panes (~700); scoped to map card only (not viewport fixed). */}
           <div
-            className="absolute inset-0 z-[650] bg-transparent"
+            className="absolute inset-0 z-[8000] bg-transparent"
             onClick={() => setContextMenu(null)}
+            onContextMenu={(e) => { e.preventDefault(); setContextMenu(null); }}
             aria-hidden
           />
           <div
-            className="fixed z-[1001] py-1 rounded-lg bg-surfaceRaised border border-border shadow-xl min-w-[140px]"
+            className="fixed z-[8010] py-1 rounded-lg bg-surfaceRaised border border-border shadow-xl min-w-[140px]"
             style={{ left: contextMenu.x, top: contextMenu.y }}
             dir={i18n.language === 'he' ? 'rtl' : 'ltr'}
           >
