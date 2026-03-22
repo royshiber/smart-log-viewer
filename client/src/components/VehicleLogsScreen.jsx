@@ -11,9 +11,6 @@ export function VehicleLogsScreen({ vehicle, onFile, onFiles, loading, progress,
 
   useEffect(() => {
     if (!vehicle?.id) {
-      // #region agent log
-      fetch('http://127.0.0.1:7634/ingest/2a4c37c4-9528-4a94-88f0-8ea23ce2aa2e', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': 'a006d7' }, body: JSON.stringify({ sessionId: 'a006d7', hypothesisId: 'H3', location: 'VehicleLogsScreen.jsx:noVehicle', message: 'missing vehicle — clear stuck loading', data: { hasVehicle: !!vehicle }, timestamp: Date.now(), runId: 'post-fix' }) }).catch(() => {});
-      // #endregion
       setLogsLoading(false);
       setLogs([]);
       return;

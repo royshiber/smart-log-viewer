@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { startTransition, useState, useCallback } from 'react';
 
 /**
  * Manages multiple parsed BIN comparisons.
@@ -26,10 +26,15 @@ export function useComparisonParser() {
         );
       }
       if (type === 'DONE') {
-        setComparisons((prev) =>
-          prev.map((c) => (c.id === id ? { ...c, messages: m ?? {}, loading: false } : c))
-        );
         worker.terminate();
+        const payload = m ?? {};
+        requestAnimationFrame(() => {
+          startTransition(() => {
+            setComparisons((prev) =>
+              prev.map((c) => (c.id === id ? { ...c, messages: payload, loading: false } : c))
+            );
+          });
+        });
       }
     };
 

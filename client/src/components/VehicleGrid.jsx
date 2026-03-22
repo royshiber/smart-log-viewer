@@ -26,33 +26,17 @@ export const VehicleGrid = forwardRef(function VehicleGrid(
   const showAddButton = !hideAddButton || vehicles.length === 0;
 
   useEffect(() => {
-    // #region agent log
-    fetch('http://127.0.0.1:7634/ingest/2a4c37c4-9528-4a94-88f0-8ea23ce2aa2e', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': 'a006d7' }, body: JSON.stringify({ sessionId: 'a006d7', hypothesisId: 'H1', location: 'VehicleGrid.jsx:getVehicles:start', message: 'getVehicles called', data: { hideAddButton, adaptive, noAutoSelect, selectedId: selectedId ?? null }, timestamp: Date.now() }) }).catch(() => {});
-    // #endregion
     getVehicles().then((v) => {
-      // #region agent log
-      fetch('http://127.0.0.1:7634/ingest/2a4c37c4-9528-4a94-88f0-8ea23ce2aa2e', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': 'a006d7' }, body: JSON.stringify({ sessionId: 'a006d7', hypothesisId: 'H1', location: 'VehicleGrid.jsx:getVehicles:ok', message: 'getVehicles resolved', data: { count: Array.isArray(v) ? v.length : -1 }, timestamp: Date.now() }) }).catch(() => {});
-      // #endregion
       setVehicles(v);
       setLoading(false);
       setLoadError(null);
       onVehiclesChange?.(v);
       if (!noAutoSelect && v.length && !selectedId) onSelect(v[0].id);
     }).catch((e) => {
-      // #region agent log
-      fetch('http://127.0.0.1:7634/ingest/2a4c37c4-9528-4a94-88f0-8ea23ce2aa2e', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': 'a006d7' }, body: JSON.stringify({ sessionId: 'a006d7', hypothesisId: 'H1', location: 'VehicleGrid.jsx:getVehicles:err', message: 'getVehicles rejected', data: { err: String(e?.message || e) }, timestamp: Date.now() }) }).catch(() => {});
-      // #endregion
       setLoading(false);
       setLoadError(e?.message || 'IndexedDB');
     });
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    // #region agent log
-    const branch = loading ? 'loading' : loadError ? 'loadError' : vehicles.length === 0 ? 'empty' : 'list';
-    fetch('http://127.0.0.1:7634/ingest/2a4c37c4-9528-4a94-88f0-8ea23ce2aa2e', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': 'a006d7' }, body: JSON.stringify({ sessionId: 'a006d7', hypothesisId: 'H2', location: 'VehicleGrid.jsx:renderBranch', message: 'grid branch', data: { branch, showAddButton, vehicleCount: vehicles.length }, timestamp: Date.now() }) }).catch(() => {});
-    // #endregion
-  }, [loading, loadError, vehicles.length, showAddButton]);
 
   useEffect(() => {
     if (!adaptive || !containerRef.current) return;
@@ -75,9 +59,6 @@ export const VehicleGrid = forwardRef(function VehicleGrid(
   }, [onVehiclesChange]);
 
   const handleAdd = useCallback(async () => {
-    // #region agent log
-    fetch('http://127.0.0.1:7634/ingest/2a4c37c4-9528-4a94-88f0-8ea23ce2aa2e', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': 'a006d7' }, body: JSON.stringify({ sessionId: 'a006d7', hypothesisId: 'H5', location: 'VehicleGrid.jsx:handleAdd:start', message: 'add clicked', data: { hasOnPrompt: typeof onPrompt === 'function' }, timestamp: Date.now() }) }).catch(() => {});
-    // #endregion
     const name = onPrompt
       ? await onPrompt(t('vehicle.newVehiclePrompt', 'שם הכטב"ם:'), '')
       : window.prompt(t('vehicle.newVehiclePrompt', 'שם הכטב"ם:'), '');
@@ -89,9 +70,6 @@ export const VehicleGrid = forwardRef(function VehicleGrid(
       return next;
     });
     onSelect(v.id);
-    // #region agent log
-    fetch('http://127.0.0.1:7634/ingest/2a4c37c4-9528-4a94-88f0-8ea23ce2aa2e', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': 'a006d7' }, body: JSON.stringify({ sessionId: 'a006d7', hypothesisId: 'H5', location: 'VehicleGrid.jsx:handleAdd:done', message: 'addVehicle saved', data: { newId: v?.id }, timestamp: Date.now() }) }).catch(() => {});
-    // #endregion
   }, [t, onSelect, onVehiclesChange, onPrompt]);
 
   useImperativeHandle(ref, () => ({

@@ -34,13 +34,6 @@ export function LandingScreen({
     return () => window.removeEventListener('keydown', onKey);
   }, [screen]);
 
-  useEffect(() => {
-    // #region agent log
-    const found = selectedVehicleId ? vehicles?.find((v) => v.id === selectedVehicleId) : null;
-    fetch('http://127.0.0.1:7634/ingest/2a4c37c4-9528-4a94-88f0-8ea23ce2aa2e', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': 'a006d7' }, body: JSON.stringify({ sessionId: 'a006d7', hypothesisId: 'H3', location: 'LandingScreen.jsx:state', message: 'landing screen state', data: { screen, selectedVehicleId: selectedVehicleId ?? null, vehiclesLen: vehicles?.length ?? -1, vehicleResolved: !!found }, timestamp: Date.now() }) }).catch(() => {});
-    // #endregion
-  }, [screen, selectedVehicleId, vehicles]);
-
   /** Parent `vehicles` can be stale vs IndexedDB (e.g. after add). Resync before showing broken vehicleLogs. */
   useEffect(() => {
     if (screen !== 'vehicleLogs' || !selectedVehicleId) return;
