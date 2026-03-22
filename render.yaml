@@ -5,8 +5,9 @@ services:
   - type: web
     name: smart-log-viewer
     runtime: node
-    buildCommand: npm ci --prefix client && npm ci --prefix server && npm run build --prefix client
-    startCommand: node server/index.js
+    # Root postinstall installs client + server deps; matches Render UI defaults.
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
     healthCheckPath: /api/health
     envVars:
       - key: GEMINI_API_KEY
