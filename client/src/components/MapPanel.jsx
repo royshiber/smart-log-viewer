@@ -301,6 +301,19 @@ export function MapPanel({
     }];
   }, [path, pathAltitudes, pathColorConfig?.solidColor, t]);
 
+  useEffect(() => {
+    if (!contextMenu) return;
+    const onKey = (e) => {
+      if (e.key === 'Escape') setContextMenu(null);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [contextMenu]);
+
+  useEffect(() => {
+    if (!path?.length) setContextMenu(null);
+  }, [path?.length]);
+
   const clampedIndex = useMemo(() => {
     if (!path?.length) return 0;
     const idx = Number.isFinite(timelineIndex) ? timelineIndex : 0;
@@ -493,8 +506,9 @@ export function MapPanel({
       </div>
       {contextMenu && (
         <>
+          {/* absolute = map panel only; fixed inset-0 z-1000 blocked header, tabs, chat. */}
           <div
-            className="fixed inset-0 z-[1000]"
+            className="absolute inset-0 z-[650] bg-transparent"
             onClick={() => setContextMenu(null)}
             aria-hidden
           />

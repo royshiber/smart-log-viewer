@@ -1,4 +1,4 @@
-import { useMemo, useState, useRef } from 'react';
+import { useMemo, useState, useRef, useEffect } from 'react';
 import Plot from 'react-plotly.js';
 import { useTranslation } from 'react-i18next';
 import { getFieldLabel } from '../utils/fieldLabels';
@@ -13,6 +13,19 @@ export function ChartPanel({ series, onTimeSelect, selectedTime }) {
   const { t, i18n } = useTranslation();
   const [contextMenu, setContextMenu] = useState(null);
   const lastHoverRef = useRef(null);
+
+  useEffect(() => {
+    if (!series?.length) setContextMenu(null);
+  }, [series?.length]);
+
+  useEffect(() => {
+    if (!contextMenu) return;
+    const onKey = (e) => {
+      if (e.key === 'Escape') setContextMenu(null);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [contextMenu]);
 
   const traces = useMemo(() => {
     if (!series || series.length === 0) return [];
@@ -121,13 +134,14 @@ export function ChartPanel({ series, onTimeSelect, selectedTime }) {
       />
       {contextMenu && (
         <>
+          {/* absolute = only this chart card; fixed inset-0 blocked the whole app (Plotly ate clicks). */}
           <div
-            className="fixed inset-0 z-40"
+            className="absolute inset-0 z-[80] bg-transparent"
             onClick={() => setContextMenu(null)}
             aria-hidden
           />
           <div
-            className="fixed z-50 py-1 rounded-lg bg-surfaceRaised border border-border shadow-xl min-w-[140px]"
+            className="fixed z-[90] py-1 rounded-lg bg-surfaceRaised border border-border shadow-xl min-w-[140px]"
             style={{ left: contextMenu.x, top: contextMenu.y }}
             dir={i18n.language === 'he' ? 'rtl' : 'ltr'}
           >
