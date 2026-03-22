@@ -10,7 +10,7 @@ import { toPromptList } from './tools/registry.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
-const PORT = 3001;
+const PORT = Number(process.env.PORT) || 3001;
 
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
@@ -429,6 +429,6 @@ Rules:
 
 app.use(express.static(join(__dirname, '../client/dist')));
 
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server: http://localhost:${PORT}`);
 });

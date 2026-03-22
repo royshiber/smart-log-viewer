@@ -24,7 +24,31 @@ import { buildChatContext } from './utils/chatContext';
 import { saveLog, getVehicles, getLogs, getLog } from './db/logsDb';
 import { getNearestCity } from './utils/geocode';
 import { extractFlightDate, buildLogDisplayName } from './utils/logNaming';
+import { buildPathNavHeadingsDeg } from './utils/headingFromLog';
 import { APP_VERSION, VERSION_WHATS_NEW } from './version';
+
+/** Interpolate y at time t from time series (same logic as path altitude sampling). */
+function interpolateSeriesAtTime(x, y, t) {
+  if (!x?.length || !y?.length) return null;
+  let lo = 0;
+  let hi = x.length - 1;
+  while (lo < hi) {
+    const mid = (lo + hi) >> 1;
+    if (x[mid] < t) lo = mid + 1;
+    else hi = mid;
+  }
+  const i1 = lo;
+  const i0 = Math.max(0, i1 - 1);
+  const x0 = x[i0];
+  const x1 = x[i1];
+  const y0 = Number(y[i0]);
+  const y1 = Number(y[i1]);
+  if (!Number.isFinite(y0) && !Number.isFinite(y1)) return null;
+  if (!Number.isFinite(y0)) return y1;
+  if (!Number.isFinite(y1) || x1 === x0) return y0;
+  const frac = (t - x0) / (x1 - x0);
+  return y0 + frac * (y1 - y0);
+}
 
 const COLORS = [
   '#58a6ff', '#3fb950', '#f85149', '#d29922', '#a371f7', '#79c0ff', '#ff7b72', '#56d364',
@@ -110,6 +134,8 @@ export default function App() {
   });
   const [mapChatLoading, setMapChatLoading] = useState(false);
   const [selectedTimeIndex, setSelectedTimeIndex] = useState(null);
+  /** Pan map only when user picks time from chart (not when dragging map timeline). */
+  const [mapPanRequest, setMapPanRequest] = useState(null);
   const [versionPopupOpen, setVersionPopupOpen] = useState(false);
   const [savedCommands, setSavedCommands] = useState(() => {
     try { return JSON.parse(localStorage.getItem('mapSavedCommands') || '[]'); }
@@ -234,6 +260,12 @@ export default function App() {
     }
     return out;
   }, [pathTimes, fields, getTimeSeries]);
+
+  const pathNavHeadingsDeg = useMemo(
+    () => buildPathNavHeadingsDeg(pathTimes, fields, getTimeSeries, interpolateSeriesAtTime),
+    [pathTimes, fields, getTimeSeries]
+  );
+
   const pathWithValues = usePathWithField(fields, getTimeSeries, pathColorConfig?.field);
 
   useEffect(() => {
@@ -335,9 +367,13 @@ export default function App() {
   }, [hasData, messages, flightPath, selectedVehicleId]);
 
   const handleLoadLog = useCallback((log) => {
+    if (!log?.id) return;
     setCurrentLogName(log.displayName || '');
-    setActiveLoadedLogId(log.id ?? null);
-    parseFile(log.rawBin);
+    setActiveLoadedLogId(log.id);
+    (async () => {
+      const full = await getLog(log.id);
+      if (full?.rawBin) parseFile(full.rawBin);
+    })();
   }, [parseFile]);
 
   const processOneFile = useCallback((arrayBuffer, originalName) => {
@@ -643,10 +679,15 @@ export default function App() {
       if (d < bestDiff) { bestDiff = d; bestIdx = i; }
     }
     setSelectedTimeIndex(bestIdx);
+    setMapPanRequest({ id: Date.now(), index: bestIdx });
     setActiveTab('map');
   }, [pathTimes]);
 
-  const handlePathIndexSelect = useCallback((index) => {
+  const handleMapTimelineIndex = useCallback((index) => {
+    setSelectedTimeIndex(index);
+  }, []);
+
+  const handleMarkOnChartFromMap = useCallback((index) => {
     setSelectedTimeIndex(index);
     setActiveTab('chart');
   }, []);
@@ -997,10 +1038,13 @@ export default function App() {
                     pathColorConfig={pathColorConfig}
                     pathWithValues={pathWithValues}
                     pathAltitudes={pathAltitudes}
+                    pathNavHeadingsDeg={pathNavHeadingsDeg}
                     pathName={currentLogName || 'flight-path'}
                     onResetPathColor={() => setPathColorConfig(null)}
                     selectedTimeIndex={selectedTimeIndex}
-                    onPathIndexSelect={handlePathIndexSelect}
+                    panToIndexRequest={mapPanRequest}
+                    onTimelineIndexChange={handleMapTimelineIndex}
+                    onMarkOnChart={handleMarkOnChartFromMap}
                     onMapReady={(map) => { mapRef.current = map; }}
                   />
                 )}

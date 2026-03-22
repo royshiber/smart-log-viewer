@@ -1,15 +1,22 @@
 /** IndexedDB wrapper for vehicles, logs, chart/map presets */
 const DB_NAME = 'SmartLogViewer';
-const DB_VERSION = 2;
-const STORES = ['vehicles', 'logs', 'chartPresets', 'mapPresets', 'reportCsvPresets', 'reportPdfPresets'];
+const DB_VERSION = 3;
+
+let dbOpenPromise = null;
 
 function openDb() {
-  return new Promise((resolve, reject) => {
+  if (dbOpenPromise) return dbOpenPromise;
+  dbOpenPromise = new Promise((resolve, reject) => {
     const req = indexedDB.open(DB_NAME, DB_VERSION);
-    req.onerror = () => reject(req.error);
+    req.onerror = () => {
+      dbOpenPromise = null;
+      reject(req.error);
+    };
     req.onsuccess = () => resolve(req.result);
     req.onupgradeneeded = (e) => {
       const db = e.target.result;
+      const oldV = e.oldVersion;
+
       if (!db.objectStoreNames.contains('vehicles')) {
         db.createObjectStore('vehicles', { keyPath: 'id' });
       }
@@ -29,8 +36,37 @@ function openDb() {
       if (!db.objectStoreNames.contains('reportPdfPresets')) {
         db.createObjectStore('reportPdfPresets', { keyPath: 'id' });
       }
+      if (!db.objectStoreNames.contains('logBlobs')) {
+        db.createObjectStore('logBlobs', { keyPath: 'logId' });
+      }
+
+      /* v2 → v3: move raw ArrayBuffers out of `logs` so getLogs() stays lightweight */
+      if (oldV < 3 && oldV >= 1 && db.objectStoreNames.contains('logs') && db.objectStoreNames.contains('logBlobs')) {
+        const tx = e.target.transaction;
+        const logsStore = tx.objectStore('logs');
+        const blobsStore = tx.objectStore('logBlobs');
+        logsStore.openCursor().onsuccess = (ev) => {
+          const cursor = ev.target.result;
+          if (!cursor) return;
+          const val = cursor.value;
+          if (val.rawBin instanceof ArrayBuffer) {
+            blobsStore.put({ logId: val.id, buffer: val.rawBin });
+            cursor.update({
+              id: val.id,
+              vehicleId: val.vehicleId,
+              displayName: val.displayName,
+              originalName: val.originalName ?? null,
+              flightDate: val.flightDate ?? null,
+              nearestCity: val.nearestCity ?? null,
+              savedAt: val.savedAt ?? Date.now(),
+            });
+          }
+          cursor.continue();
+        };
+      }
     };
   });
+  return dbOpenPromise;
 }
 
 export async function getVehicles() {
@@ -83,6 +119,7 @@ export async function deleteVehicle(id) {
   });
 }
 
+/** List logs for UI — metadata only (no raw bin), fast even with many large logs */
 export async function getLogs(vehicleId) {
   const db = await openDb();
   return new Promise((resolve, reject) => {
@@ -102,15 +139,15 @@ export async function saveLog(vehicleId, arrayBuffer, meta) {
     vehicleId,
     displayName: meta?.displayName || 'לוג',
     originalName: meta?.originalName || null,
-    rawBin: arrayBuffer,
     flightDate: meta?.flightDate || null,
     nearestCity: meta?.nearestCity || null,
     savedAt: Date.now(),
   };
   return new Promise((resolve, reject) => {
-    const tx = db.transaction('logs', 'readwrite');
+    const tx = db.transaction(['logs', 'logBlobs'], 'readwrite');
     tx.objectStore('logs').add(log);
-    tx.oncomplete = () => resolve(log);
+    tx.objectStore('logBlobs').put({ logId: id, buffer: arrayBuffer });
+    tx.oncomplete = () => resolve({ ...log, rawBin: arrayBuffer });
     tx.onerror = () => reject(tx.error);
   });
 }
@@ -118,14 +155,38 @@ export async function saveLog(vehicleId, arrayBuffer, meta) {
 export async function getLog(id) {
   const db = await openDb();
   return new Promise((resolve, reject) => {
-    const tx = db.transaction('logs', 'readonly');
-    const req = tx.objectStore('logs').get(id);
-    req.onsuccess = () => resolve(req.result);
-    req.onerror = () => reject(req.error);
+    const tx = db.transaction(['logs', 'logBlobs'], 'readonly');
+    const logsStore = tx.objectStore('logs');
+    const blobsStore = tx.objectStore('logBlobs');
+    const getReq = logsStore.get(id);
+    getReq.onsuccess = () => {
+      const meta = getReq.result;
+      if (!meta) {
+        resolve(null);
+        return;
+      }
+      const blobReq = blobsStore.get(id);
+      blobReq.onsuccess = () => {
+        const row = blobReq.result;
+        if (row?.buffer instanceof ArrayBuffer) {
+          resolve({ ...meta, rawBin: row.buffer });
+          return;
+        }
+        if (meta.rawBin instanceof ArrayBuffer) {
+          resolve(meta);
+          return;
+        }
+        resolve(meta);
+      };
+      blobReq.onerror = () => reject(blobReq.error);
+    };
+    getReq.onerror = () => reject(getReq.error);
+    tx.onerror = () => reject(tx.error);
   });
 }
 
 export async function updateLog(id, updates) {
+  const { rawBin: _rb, buffer: _buf, ...safe } = updates;
   const db = await openDb();
   return new Promise((resolve, reject) => {
     const tx = db.transaction('logs', 'readwrite');
@@ -134,7 +195,7 @@ export async function updateLog(id, updates) {
     getReq.onsuccess = () => {
       const existing = getReq.result;
       if (!existing) { reject(new Error('Log not found')); return; }
-      const updated = { ...existing, ...updates };
+      const updated = { ...existing, ...safe };
       store.put(updated);
       tx.oncomplete = () => resolve(updated);
     };
@@ -146,8 +207,9 @@ export async function updateLog(id, updates) {
 export async function deleteLog(id) {
   const db = await openDb();
   return new Promise((resolve, reject) => {
-    const tx = db.transaction('logs', 'readwrite');
+    const tx = db.transaction(['logs', 'logBlobs'], 'readwrite');
     tx.objectStore('logs').delete(id);
+    tx.objectStore('logBlobs').delete(id);
     tx.oncomplete = () => resolve();
     tx.onerror = () => reject(tx.error);
   });

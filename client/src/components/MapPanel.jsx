@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { MapContainer, TileLayer, Polyline, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import { useTranslation } from 'react-i18next';
@@ -87,6 +87,56 @@ function buildPathKml(path, altitudes = [], name = 'flight-path', color = '#58a6
 </kml>`;
 }
 
+/**
+ * Navigation heading (0°=N, 90°=E, CW from north) → CSS rotate() for an icon drawn nose to +x (east).
+ * Math.atan2(dlat, dlng) uses CCW from +x; screen CSS rotate is CW from +x with y-down, so we use (nav - 90).
+ */
+function navHeadingToMapRotationDeg(navDeg) {
+  if (navDeg == null || !Number.isFinite(navDeg)) return null;
+  return navDeg - 90;
+}
+
+/** Tangent direction at path[index]: average incoming + outgoing segment; CSS rotate degrees */
+function bearingFromPathPoints(path, index) {
+  if (!path?.length) return 0;
+  const n = path.length;
+  let dy = 0;
+  let dx = 0;
+  if (index > 0) {
+    dy += Number(path[index][0]) - Number(path[index - 1][0]);
+    dx += Number(path[index][1]) - Number(path[index - 1][1]);
+  }
+  if (index < n - 1) {
+    dy += Number(path[index + 1][0]) - Number(path[index][0]);
+    dx += Number(path[index + 1][1]) - Number(path[index][1]);
+  }
+  if (dx === 0 && dy === 0) {
+    for (let step = 2; step < n && dx === 0 && dy === 0; step += 1) {
+      if (index + step < n) {
+        dy = Number(path[index + step][0]) - Number(path[index][0]);
+        dx = Number(path[index + step][1]) - Number(path[index][1]);
+      }
+      if (dx === 0 && dy === 0 && index - step >= 0) {
+        dy = Number(path[index][0]) - Number(path[index - step][0]);
+        dx = Number(path[index][1]) - Number(path[index - step][1]);
+      }
+    }
+  }
+  if (dx === 0 && dy === 0) return 0;
+  const mathDeg = (Math.atan2(dy, dx) * 180) / Math.PI;
+  return -mathDeg;
+}
+
+/** Top-view cute craft, nose toward +x (east) before rotation */
+function aircraftSvgHtml(variant) {
+  const shadow = 'filter:drop-shadow(0 2px 4px rgba(0,0,0,0.4))';
+  if (variant === 'quad') {
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="-26 -26 52 52" width="50" height="50" style="${shadow}" aria-hidden="true"><g stroke-linejoin="round"><line x1="0" y1="0" x2="-13" y2="-13" stroke="#d473a3" stroke-width="1.5"/><line x1="0" y1="0" x2="13" y2="-13" stroke="#d473a3" stroke-width="1.5"/><line x1="0" y1="0" x2="-13" y2="13" stroke="#d473a3" stroke-width="1.5"/><line x1="0" y1="0" x2="13" y2="13" stroke="#d473a3" stroke-width="1.5"/><circle cx="-13" cy="-13" r="5.5" fill="#ffd6e8" stroke="#e84d8b" stroke-width="1.2"/><circle cx="13" cy="-13" r="5.5" fill="#ffd6e8" stroke="#e84d8b" stroke-width="1.2"/><circle cx="-13" cy="13" r="5.5" fill="#ffd6e8" stroke="#e84d8b" stroke-width="1.2"/><circle cx="13" cy="13" r="5.5" fill="#ffd6e8" stroke="#e84d8b" stroke-width="1.2"/><rect x="-7" y="-7" width="14" height="14" rx="3.5" fill="#fff5eb" stroke="#e8b896" stroke-width="1.4"/><circle cx="-2.5" cy="-2" r="1.6" fill="#2d2d2d"/><circle cx="2.5" cy="-2" r="1.6" fill="#2d2d2d"/><circle cx="-1.8" cy="-2.6" r="0.55" fill="#fff"/><circle cx="3.2" cy="-2.6" r="0.55" fill="#fff"/><path d="M-2 3q2.5 2.5 5 0" fill="none" stroke="#c97b63" stroke-width="1" stroke-linecap="round"/></g></svg>`;
+  }
+  /* kawaii plane blob */
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="-30 -24 60 48" width="54" height="44" style="${shadow}" aria-hidden="true"><g stroke-linejoin="round"><ellipse cx="2" cy="0" rx="7" ry="19" fill="#ff9ec7" stroke="#e84d8b" stroke-width="1.3"/><ellipse cx="4" cy="0" rx="21" ry="12" fill="#fff5eb" stroke="#e8b896" stroke-width="1.5"/><circle cx="-5" cy="3" r="3.2" fill="#ffb6c9" opacity="0.7"/><circle cx="13" cy="3" r="3.2" fill="#ffb6c9" opacity="0.7"/><circle cx="-1" cy="-3" r="3" fill="#2d2d2d"/><circle cx="9" cy="-3" r="3" fill="#2d2d2d"/><circle cx="0.2" cy="-4.2" r="1" fill="#fff"/><circle cx="10.2" cy="-4.2" r="1" fill="#fff"/><path d="M2 5q6 5 12 2" fill="none" stroke="#c97b63" stroke-width="1.3" stroke-linecap="round"/></g></svg>`;
+}
+
 function legendRows(config, t, pathSegments = []) {
   if (!config) {
     return [{ color: '#58a6ff', label: t('map.legendDefault', 'Default path') }];
@@ -132,20 +182,45 @@ export function MapPanel({
   pathColorConfig,
   pathWithValues,
   pathAltitudes = null,
+  pathNavHeadingsDeg = null,
   pathName = 'flight-path',
+  aircraftModel = 'fixed',
   onResetPathColor,
   selectedTimeIndex,
-  onPathIndexSelect
+  panToIndexRequest = null,
+  onTimelineIndexChange,
+  onMarkOnChart,
 }) {
   const { t, i18n } = useTranslation();
   const [contextMenu, setContextMenu] = useState(null);
   const [viewMode, setViewMode] = useState('2d');
   const [timelineIndex, setTimelineIndex] = useState(0);
+  const timelineRafRef = useRef(null);
+  const pendingTimelineParentIdx = useRef(null);
+  const onTimelineParentRef = useRef(onTimelineIndexChange);
+  onTimelineParentRef.current = onTimelineIndexChange;
 
   useEffect(() => {
     if (selectedTimeIndex == null) return;
     setTimelineIndex(selectedTimeIndex);
   }, [selectedTimeIndex]);
+
+  useEffect(() => () => {
+    if (timelineRafRef.current != null) {
+      cancelAnimationFrame(timelineRafRef.current);
+      timelineRafRef.current = null;
+    }
+  }, []);
+
+  const queueTimelineParentSync = (idx) => {
+    pendingTimelineParentIdx.current = idx;
+    if (timelineRafRef.current != null) return;
+    timelineRafRef.current = requestAnimationFrame(() => {
+      timelineRafRef.current = null;
+      const v = pendingTimelineParentIdx.current;
+      if (v != null) onTimelineParentRef.current?.(v);
+    });
+  };
 
   const pathSegments = useMemo(() => {
     if (!path?.length) return null;
@@ -232,22 +307,24 @@ export function MapPanel({
     return Math.max(0, Math.min(path.length - 1, idx));
   }, [timelineIndex, path]);
 
+  const aircraftRotationDeg = useMemo(() => {
+    const nav = pathNavHeadingsDeg?.[clampedIndex];
+    const fromLog = navHeadingToMapRotationDeg(nav);
+    return fromLog != null ? fromLog : bearingFromPathPoints(path, clampedIndex);
+  }, [path, clampedIndex, pathNavHeadingsDeg]);
+
   const airplane2DIcon = useMemo(() => {
-    const cur = path?.[clampedIndex];
-    const nxt = path?.[Math.min((path?.length || 1) - 1, clampedIndex + 1)];
-    let angle = 0;
-    if (cur && nxt) {
-      const dy = Number(nxt[0]) - Number(cur[0]);
-      const dx = Number(nxt[1]) - Number(cur[1]);
-      angle = (Math.atan2(dy, dx) * 180) / Math.PI;
-    }
+    const angle = aircraftRotationDeg;
+    const inner = aircraftSvgHtml(aircraftModel);
+    const w = aircraftModel === 'quad' ? 50 : 54;
+    const h = aircraftModel === 'quad' ? 50 : 44;
     return L.divIcon({
       className: 'airplane-time-marker',
-      html: `<div style="transform: rotate(${angle}deg);font-size:20px;line-height:20px;filter: drop-shadow(0 1px 2px rgba(0,0,0,0.6));">✈</div>`,
-      iconSize: [20, 20],
-      iconAnchor: [10, 10],
+      html: `<div style="width:${w}px;height:${h}px;display:flex;align-items:center;justify-content:center;"><div style="transform:rotate(${angle}deg);transform-origin:center center;display:flex;align-items:center;justify-content:center;width:${w}px;height:${h}px;">${inner}</div></div>`,
+      iconSize: [w, h],
+      iconAnchor: [Math.round(w / 2), Math.round(h / 2)],
     });
-  }, [path, clampedIndex]);
+  }, [aircraftRotationDeg, aircraftModel]);
 
   const cursor3DTrace = useMemo(() => {
     const p = path?.[clampedIndex];
@@ -255,13 +332,11 @@ export function MapPanel({
     const z = Number(pathAltitudes?.[clampedIndex] ?? 0);
     return [{
       type: 'scatter3d',
-      mode: 'markers+text',
+      mode: 'markers',
       x: [Number(p[1])],
       y: [Number(p[0])],
       z: [z],
-      text: ['✈'],
-      textposition: 'top center',
-      marker: { size: 5, color: '#ffd60a' },
+      marker: { size: 12, color: '#ffb3d9', line: { color: '#c2185b', width: 1 }, symbol: 'circle' },
       hovertemplate: 'Lat %{y:.6f}<br>Lon %{x:.6f}<br>Alt %{z:.1f}m<extra></extra>',
       showlegend: false,
     }];
@@ -284,7 +359,7 @@ export function MapPanel({
               key={i}
               positions={seg.positions}
               pathOptions={{ color: seg.color, weight: 4 }}
-              eventHandlers={onPathIndexSelect ? {
+              eventHandlers={onMarkOnChart ? {
                 contextmenu: (e) => {
                   L.DomEvent.preventDefault(e);
                   setContextMenu({ index: i, x: e.originalEvent.clientX, y: e.originalEvent.clientY });
@@ -312,12 +387,16 @@ export function MapPanel({
             </Marker>
           )}
           {path?.[clampedIndex] && (
-            <Marker position={path[clampedIndex]} zIndexOffset={1100} icon={airplane2DIcon}>
+            <Marker
+              position={path[clampedIndex]}
+              zIndexOffset={1100}
+              icon={airplane2DIcon}
+            >
               <Popup>{t('map.aircraftNow', 'מיקום מטוס')}</Popup>
             </Marker>
           )}
           <FitBounds path={path} />
-          {selectedTimeIndex != null && <CenterOnIndex path={path} index={selectedTimeIndex} />}
+          <PanToIndexWhenRequested path={path} request={panToIndexRequest} />
           {onMapReady && <MapController onReady={onMapReady} />}
         </MapContainer>
       ) : (
@@ -397,7 +476,16 @@ export function MapPanel({
           onChange={(e) => {
             const idx = Number(e.target.value);
             setTimelineIndex(idx);
-            onPathIndexSelect?.(idx);
+            queueTimelineParentSync(idx);
+          }}
+          onPointerUp={(e) => {
+            if (timelineRafRef.current != null) {
+              cancelAnimationFrame(timelineRafRef.current);
+              timelineRafRef.current = null;
+            }
+            const idx = Number(e.currentTarget.value);
+            pendingTimelineParentIdx.current = idx;
+            onTimelineParentRef.current?.(idx);
           }}
           className="w-full h-2 accent-accent cursor-pointer"
           aria-label={t('map.timeline', 'ציר זמן')}
@@ -419,7 +507,7 @@ export function MapPanel({
               type="button"
               className="w-full px-3 py-2 text-left text-sm text-gray-200 hover:bg-surface rounded-t-lg"
               onClick={() => {
-                onPathIndexSelect(contextMenu.index);
+                onMarkOnChart(contextMenu.index);
                 setContextMenu(null);
               }}
             >
