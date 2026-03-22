@@ -18,16 +18,24 @@ export const VehicleGrid = forwardRef(function VehicleGrid(
   const { t } = useTranslation();
   const [vehicles, setVehicles] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
   const [cardSize, setCardSize] = useState(null);
   const containerRef = useRef(null);
+
+  /** In vehicle picker, hide "+" when list is non-empty (landing has its own "add new"). Always show + when empty. */
+  const showAddButton = !hideAddButton || vehicles.length === 0;
 
   useEffect(() => {
     getVehicles().then((v) => {
       setVehicles(v);
       setLoading(false);
+      setLoadError(null);
       onVehiclesChange?.(v);
       if (!noAutoSelect && v.length && !selectedId) onSelect(v[0].id);
-    }).catch(() => setLoading(false));
+    }).catch((e) => {
+      setLoading(false);
+      setLoadError(e?.message || 'IndexedDB');
+    });
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -85,7 +93,48 @@ export const VehicleGrid = forwardRef(function VehicleGrid(
     if (selectedId === id) onSelect(next[0]?.id ?? null);
   };
 
-  if (loading) return <span className="text-gray-500 text-xs px-2">{t('common.loading')}</span>;
+  if (loading) {
+    return (
+      <div className={`flex min-h-[120px] items-center justify-center px-4 ${className}`}>
+        <span className="text-gray-400 text-sm">{t('common.loading')}</span>
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <div className={`flex min-h-[120px] flex-col items-center justify-center gap-3 px-4 text-center ${className}`}>
+        <p className="text-sm text-amber-200/90 max-w-md">{t('vehicle.storageError')}</p>
+        <p className="text-xs text-gray-500 font-mono break-all max-w-full">{loadError}</p>
+        <button
+          type="button"
+          onClick={() => window.location.reload()}
+          className="text-sm text-accent hover:underline"
+        >
+          {t('common.retry')}
+        </button>
+      </div>
+    );
+  }
+
+  if (vehicles.length === 0) {
+    return (
+      <div
+        ref={containerRef}
+        className={`flex min-h-[160px] flex-col items-center justify-center gap-5 px-4 py-6 ${className}`}
+      >
+        <p className="text-center text-sm text-gray-300 max-w-sm">{t('vehicle.noVehicles')}</p>
+        <button
+          type="button"
+          onClick={handleAdd}
+          title={t('vehicle.newVehicle')}
+          className="h-14 min-w-14 px-5 rounded-xl border border-dashed border-cyan-300/50 text-cyan-100 hover:border-cyan-200 hover:bg-cyan-400/10 flex items-center justify-center text-2xl shrink-0 transition-colors"
+        >
+          +
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -106,7 +155,7 @@ export const VehicleGrid = forwardRef(function VehicleGrid(
           size={adaptive ? cardSize : undefined}
         />
       ))}
-      {!hideAddButton && (
+      {showAddButton && (
         <button
           type="button"
           onClick={handleAdd}

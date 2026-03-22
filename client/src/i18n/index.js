@@ -76,7 +76,8 @@ const resources = {
       },
       common: {
         loading: 'טוען...',
-        error: 'שגיאה'
+        error: 'שגיאה',
+        retry: 'נסה שוב',
       },
       presets: {
         stability: 'יציבות (Roll, Pitch)',
@@ -122,6 +123,7 @@ const resources = {
         newVehicle: 'כטב"ם חדש',
         newVehiclePrompt: 'שם הכטב"ם:',
         noVehicles: 'אין כטב"מים. הוסף כטב"ם חדש.',
+        storageError: 'לא ניתן לטעון כטב״מים מהדפדפן. נסה מחוץ למצב גלישה בסתר, או אפשר אחסון לאתר זה בהגדרות הדפדפן.',
         rename: 'שנה שם',
         renamePrompt: 'שם חדש:',
         setPhoto: 'הוסף תמונה',
@@ -241,7 +243,8 @@ const resources = {
       },
       common: {
         loading: 'Loading...',
-        error: 'Error'
+        error: 'Error',
+        retry: 'Retry',
       },
       presets: {
         stability: 'Stability (Roll, Pitch)',
@@ -287,6 +290,7 @@ const resources = {
         newVehicle: 'New vehicle',
         newVehiclePrompt: 'Vehicle name:',
         noVehicles: 'No vehicles. Add a new vehicle.',
+        storageError: 'Could not load vehicles from browser storage. Try outside private/incognito mode, or allow site storage in browser settings.',
         rename: 'Rename',
         renamePrompt: 'New name:',
         setPhoto: 'Add photo',
