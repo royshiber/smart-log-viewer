@@ -4,7 +4,7 @@ $desktopPath = [Environment]::GetFolderPath("Desktop")
 $shortcutPath = Join-Path $desktopPath "Smart Log Viewer.lnk"
 
 # Copy ICO to a path without Hebrew characters (Windows shortcut icon requires ASCII-safe path)
-$safeIconDir = "C:\Users\shibe\AppData\Local\SmartLogViewer"
+$safeIconDir = Join-Path $env:LOCALAPPDATA "SmartLogViewer"
 $sourceIco   = Join-Path $projectPath "client\public\favicon.ico"
 New-Item -ItemType Directory -Path $safeIconDir -Force | Out-Null
 if (Test-Path $sourceIco) {

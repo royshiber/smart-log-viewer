@@ -24,31 +24,7 @@ import { buildChatContext } from './utils/chatContext';
 import { saveLog, getVehicles, getLogs, getLog } from './db/logsDb';
 import { getNearestCity } from './utils/geocode';
 import { extractFlightDate, buildLogDisplayName } from './utils/logNaming';
-import { buildPathNavHeadingsDeg } from './utils/headingFromLog';
 import { APP_VERSION, VERSION_WHATS_NEW } from './version';
-
-/** Interpolate y at time t from time series (same logic as path altitude sampling). */
-function interpolateSeriesAtTime(x, y, t) {
-  if (!x?.length || !y?.length) return null;
-  let lo = 0;
-  let hi = x.length - 1;
-  while (lo < hi) {
-    const mid = (lo + hi) >> 1;
-    if (x[mid] < t) lo = mid + 1;
-    else hi = mid;
-  }
-  const i1 = lo;
-  const i0 = Math.max(0, i1 - 1);
-  const x0 = x[i0];
-  const x1 = x[i1];
-  const y0 = Number(y[i0]);
-  const y1 = Number(y[i1]);
-  if (!Number.isFinite(y0) && !Number.isFinite(y1)) return null;
-  if (!Number.isFinite(y0)) return y1;
-  if (!Number.isFinite(y1) || x1 === x0) return y0;
-  const frac = (t - x0) / (x1 - x0);
-  return y0 + frac * (y1 - y0);
-}
 
 const COLORS = [
   '#58a6ff', '#3fb950', '#f85149', '#d29922', '#a371f7', '#79c0ff', '#ff7b72', '#56d364',
@@ -64,13 +40,13 @@ function VehicleMiniCard({ vehicle, onClick }) {
     <button
       type="button"
       onClick={onClick}
-      className="flex items-center justify-center gap-2 w-full min-h-[52px] px-3 py-2 rounded-xl bg-surfaceRaised border border-border hover:border-accent/50 transition-colors shadow-sm"
+      className="flex items-center justify-center gap-2 w-full min-h-[52px] px-3 py-2 border bg-surfaceContainer border-border hover:border-accent transition-colors"
       title={vehicle.name}
     >
       {vehicle.photo ? (
-        <img src={vehicle.photo} alt="" className="w-12 h-12 rounded-lg object-cover shrink-0 border border-border/50" />
+        <img src={vehicle.photo} alt="" className="w-12 h-12 object-cover shrink-0 border border-border" />
       ) : (
-        <div className="w-12 h-12 rounded-lg bg-white/10 flex items-center justify-center shrink-0 border border-border/50">
+        <div className="w-12 h-12 flex items-center justify-center shrink-0 border border-border bg-surfaceRaised">
           <svg viewBox="0 0 48 48" className="w-7 h-7 opacity-70" fill="none">
             <ellipse cx="24" cy="24" rx="4" ry="12" fill="#b2dfdb" />
             <path d="M20 22 L4 30 L6 34 L20 27Z" fill="#80cbc4" />
@@ -79,7 +55,7 @@ function VehicleMiniCard({ vehicle, onClick }) {
           </svg>
         </div>
       )}
-      <span className="text-sm text-gray-200 truncate text-center leading-tight">{vehicle.name}</span>
+      <span className="text-sm text-onSurface truncate text-center leading-tight font-medium">{vehicle.name}</span>
     </button>
   );
 }
@@ -134,8 +110,6 @@ export default function App() {
   });
   const [mapChatLoading, setMapChatLoading] = useState(false);
   const [selectedTimeIndex, setSelectedTimeIndex] = useState(null);
-  /** Pan map only when user picks time from chart (not when dragging map timeline). */
-  const [mapPanRequest, setMapPanRequest] = useState(null);
   const [versionPopupOpen, setVersionPopupOpen] = useState(false);
   const [savedCommands, setSavedCommands] = useState(() => {
     try { return JSON.parse(localStorage.getItem('mapSavedCommands') || '[]'); }
@@ -148,6 +122,11 @@ export default function App() {
   /** DB id of log loaded from saved list (or after auto-save) — excluded from "add flight" overlay */
   const [activeLoadedLogId, setActiveLoadedLogId] = useState(null);
   const [showVehiclePicker, setShowVehiclePicker] = useState(false);
+  const [logToolsCollapsed, setLogToolsCollapsed] = useState(false);
+  const [logToolsHeightPx, setLogToolsHeightPx] = useState(() => {
+    const raw = Number(localStorage.getItem('logToolsHeightPx'));
+    return Number.isFinite(raw) ? raw : 300;
+  });
   const [visibleOverlayLogIds, setVisibleOverlayLogIds] = useState([]);
   const [frskyMap, setFrskyMap] = useState(new Map());
   const [frskyName, setFrskyName] = useState('');
@@ -159,6 +138,8 @@ export default function App() {
   const mapRef = useRef(null);
   const vehicleGridRef = useRef(null);
   const mainLayoutRef = useRef(null);
+  /** Bounds "What's new" popup — fullscreen transparent overlays blocked clicks on some hosts; we use click-outside instead. */
+  const versionPopupRef = useRef(null);
   const [mainLayoutWidth, setMainLayoutWidth] = useState(0);
 
   const MIN_LOG_WIDTH = 160;
@@ -166,6 +147,8 @@ export default function App() {
   const MIN_CHAT_WIDTH = 260;
   const MAX_CHAT_WIDTH = 760;
   const MIN_CENTER_WIDTH = 560;
+  const MIN_LOG_TOOLS_HEIGHT = 180;
+  const MAX_LOG_TOOLS_HEIGHT = 560;
 
   const isRtl = i18n.language === 'he';
   const selectedVehicle = vehicles.find((v) => v.id === selectedVehicleId) ?? null;
@@ -224,48 +207,6 @@ export default function App() {
   const flightPathData = useFlightPath(fields, getTimeSeries);
   const flightPath = flightPathData?.path ?? null;
   const pathTimes = flightPathData?.times ?? [];
-  const pathAltitudes = useMemo(() => {
-    if (!pathTimes.length || !fields.length) return null;
-    const candidates = ['GPS.Alt', 'CTUN.Alt', 'BARO.Alt', 'CTUN.BarAlt', 'GPS.RelAlt'];
-    const altKey = candidates.find((c) => fields.includes(c))
-      || fields.find((f) => /\.Alt$/.test(f) || f.endsWith('.RelAlt') || f.endsWith('.BarAlt'));
-    if (!altKey) return null;
-    const ts = getTimeSeries(altKey);
-    if (!ts?.x?.length || !ts?.y?.length) return null;
-    const x = ts.x;
-    const y = ts.y;
-    const out = [];
-    for (const t of pathTimes) {
-      let lo = 0;
-      let hi = x.length - 1;
-      while (lo < hi) {
-        const mid = (lo + hi) >> 1;
-        if (x[mid] < t) lo = mid + 1;
-        else hi = mid;
-      }
-      const i1 = lo;
-      const i0 = Math.max(0, i1 - 1);
-      const x0 = x[i0];
-      const x1 = x[i1];
-      const y0 = Number(y[i0]);
-      const y1 = Number(y[i1]);
-      if (!Number.isFinite(y0) && !Number.isFinite(y1)) {
-        out.push(0);
-        continue;
-      }
-      if (!Number.isFinite(y0)) { out.push(y1); continue; }
-      if (!Number.isFinite(y1) || x1 === x0) { out.push(y0); continue; }
-      const frac = (t - x0) / (x1 - x0);
-      out.push(y0 + frac * (y1 - y0));
-    }
-    return out;
-  }, [pathTimes, fields, getTimeSeries]);
-
-  const pathNavHeadingsDeg = useMemo(
-    () => buildPathNavHeadingsDeg(pathTimes, fields, getTimeSeries, interpolateSeriesAtTime),
-    [pathTimes, fields, getTimeSeries]
-  );
-
   const pathWithValues = usePathWithField(fields, getTimeSeries, pathColorConfig?.field);
 
   useEffect(() => {
@@ -280,6 +221,31 @@ export default function App() {
   }, [apiErrorToast]);
 
   useEffect(() => {
+    if (!versionPopupOpen) return undefined;
+    const onKey = (e) => {
+      if (e.key === 'Escape') setVersionPopupOpen(false);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [versionPopupOpen]);
+
+  useEffect(() => {
+    if (!versionPopupOpen) return undefined;
+    const down = (e) => {
+      const el = versionPopupRef.current;
+      if (el && e.target instanceof Node && !el.contains(e.target)) {
+        setVersionPopupOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', down, true);
+    document.addEventListener('touchstart', down, true);
+    return () => {
+      document.removeEventListener('mousedown', down, true);
+      document.removeEventListener('touchstart', down, true);
+    };
+  }, [versionPopupOpen]);
+
+  useEffect(() => {
     try {
       localStorage.setItem('geminiChatWidthPx', String(geminiChatWidthPx));
     } catch {}
@@ -290,6 +256,12 @@ export default function App() {
       localStorage.setItem('logListWidthPx', String(logListWidthPx));
     } catch {}
   }, [logListWidthPx]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('logToolsHeightPx', String(logToolsHeightPx));
+    } catch {}
+  }, [logToolsHeightPx]);
 
   useEffect(() => {
     const el = mainLayoutRef.current;
@@ -367,13 +339,9 @@ export default function App() {
   }, [hasData, messages, flightPath, selectedVehicleId]);
 
   const handleLoadLog = useCallback((log) => {
-    if (!log?.id) return;
     setCurrentLogName(log.displayName || '');
-    setActiveLoadedLogId(log.id);
-    (async () => {
-      const full = await getLog(log.id);
-      if (full?.rawBin) parseFile(full.rawBin);
-    })();
+    setActiveLoadedLogId(log.id ?? null);
+    parseFile(log.rawBin);
   }, [parseFile]);
 
   const processOneFile = useCallback((arrayBuffer, originalName) => {
@@ -679,15 +647,10 @@ export default function App() {
       if (d < bestDiff) { bestDiff = d; bestIdx = i; }
     }
     setSelectedTimeIndex(bestIdx);
-    setMapPanRequest({ id: Date.now(), index: bestIdx });
     setActiveTab('map');
   }, [pathTimes]);
 
-  const handleMapTimelineIndex = useCallback((index) => {
-    setSelectedTimeIndex(index);
-  }, []);
-
-  const handleMarkOnChartFromMap = useCallback((index) => {
+  const handlePathIndexSelect = useCallback((index) => {
     setSelectedTimeIndex(index);
     setActiveTab('chart');
   }, []);
@@ -723,21 +686,21 @@ export default function App() {
 
   return (
     <div
-      className={`h-[100dvh] flex flex-col overflow-hidden ${!hasData ? 'bg-figmaBg text-gray-200' : 'bg-surface text-gray-200'}`}
+      className={`h-screen flex flex-col overflow-hidden ${!hasData ? 'bg-surface text-onSurface' : 'bg-surface text-onSurface'}`}
       dir={isRtl ? 'rtl' : 'ltr'}
     >
       {!hasData ? (
         <>
           {/* Landing header — no + button */}
-          <header className="shrink-0 min-h-16 flex items-center justify-between px-5 py-3 bg-figmaBg border-b border-white/[0.08] gap-4">
+          <header className="shrink-0 min-h-16 flex items-center justify-between px-6 py-3 bg-surfaceContainerLow border-b border-border gap-4">
             <div className="flex items-center gap-1">
               <button
                 type="button"
                 onClick={() => i18n.changeLanguage('en')}
-                className={`text-sm font-medium transition-colors rounded-md px-2 py-1 ${
+                className={`text-xs font-label font-bold tracking-wider uppercase px-3 py-2 border transition-colors ${
                   i18n.language === 'en'
-                    ? 'bg-figmaAccent text-white px-3 py-1.5'
-                    : 'text-white/55 hover:text-white bg-transparent'
+                    ? 'bg-accent text-white border-accent'
+                    : 'text-muted border-transparent hover:border-border hover:text-onSurface bg-transparent'
                 }`}
               >
                 English
@@ -745,21 +708,21 @@ export default function App() {
               <button
                 type="button"
                 onClick={() => i18n.changeLanguage('he')}
-                className={`text-sm font-medium transition-colors rounded-md px-2 py-1 ${
+                className={`text-xs font-label font-bold tracking-wider uppercase px-3 py-2 border transition-colors ${
                   i18n.language === 'he'
-                    ? 'bg-figmaAccent text-white px-3 py-1.5'
-                    : 'text-white/55 hover:text-white bg-transparent'
+                    ? 'bg-accent text-white border-accent'
+                    : 'text-muted border-transparent hover:border-border hover:text-onSurface bg-transparent'
                 }`}
               >
                 עברית
               </button>
             </div>
             <div className="flex items-center gap-4 min-w-0">
-              <div className="shrink-0 min-w-0 text-end">
-                <h1 className="text-base font-semibold tracking-tight text-white leading-snug whitespace-nowrap">
+              <div ref={versionPopupRef} className="relative shrink-0 min-w-0 text-end">
+                <h1 className="font-headline font-bold tracking-tight text-accent leading-snug whitespace-nowrap uppercase text-[11px] tracking-[0.14em]">
                   {t('appTitle')}{' '}
                   <span
-                    className="text-white/90 font-normal cursor-pointer hover:underline decoration-white/40"
+                    className="text-muted font-normal cursor-pointer hover:text-accent hover:underline"
                     onClick={() => setVersionPopupOpen((o) => !o)}
                     title={t('version.whatsNew', 'מה חדש')}
                   >
@@ -767,16 +730,14 @@ export default function App() {
                   </span>
                 </h1>
                 {versionPopupOpen && (
-                  <>
-                    <span className="fixed inset-0 z-[9998]" onClick={() => setVersionPopupOpen(false)} aria-hidden />
-                    <span
-                      className="fixed z-[9999] px-3 py-2 rounded-lg bg-surfaceRaised border border-border shadow-xl text-sm text-gray-300 max-w-sm mt-1 whitespace-pre-line"
-                      style={{ top: 64, [isRtl ? 'right' : 'left']: 16 }}
-                      dir={isRtl ? 'rtl' : 'ltr'}
-                    >
-                      {VERSION_WHATS_NEW[i18n.language] || VERSION_WHATS_NEW.he}
-                    </span>
-                  </>
+                  <div
+                    className="absolute end-0 top-full z-[9999] mt-2 max-w-sm whitespace-pre-line border border-border bg-surfaceContainer shadow-lg px-3 py-2 text-sm text-onSurface"
+                    dir={isRtl ? 'rtl' : 'ltr'}
+                    role="dialog"
+                    aria-label={t('version.whatsNew', 'מה חדש')}
+                  >
+                    {VERSION_WHATS_NEW[i18n.language] || VERSION_WHATS_NEW.he}
+                  </div>
                 )}
               </div>
             </div>
@@ -799,7 +760,7 @@ export default function App() {
       ) : (
         <>
           {/* Main app header: Logo (left) | Tabs (center) | Upload + Language (right) */}
-          <header className="shrink-0 h-14 flex items-center px-4 bg-surfaceRaised border-b border-border relative">
+          <header className="shrink-0 h-14 flex items-center px-4 bg-surfaceContainerLow border-b border-border relative">
             {/* Left: logo + title (clickable → home) */}
             <div className="flex items-center gap-2 shrink-0 z-10">
               <button
@@ -810,11 +771,11 @@ export default function App() {
               >
                 <img src="/logo.svg" alt="logo" className="h-14 w-14 rounded-lg" />
               </button>
-              <div className="shrink-0">
-                <h1 className="text-sm font-semibold text-accent leading-tight whitespace-nowrap">
+              <div ref={versionPopupRef} className="relative shrink-0">
+                <h1 className="text-xs font-headline font-bold text-accent leading-tight whitespace-nowrap uppercase tracking-[0.1em]">
                   {t('appTitle')}{' '}
                   <span
-                    className="text-gray-500 text-xs font-normal cursor-pointer hover:text-accent hover:underline"
+                    className="text-muted text-[11px] font-normal cursor-pointer hover:text-accent hover:underline normal-case tracking-normal"
                     onClick={() => setVersionPopupOpen((o) => !o)}
                     title={t('version.whatsNew', 'מה חדש')}
                   >
@@ -822,16 +783,14 @@ export default function App() {
                   </span>
                 </h1>
                 {versionPopupOpen && (
-                  <>
-                    <span className="fixed inset-0 z-[9998]" onClick={() => setVersionPopupOpen(false)} aria-hidden />
-                    <span
-                      className="fixed z-[9999] px-3 py-2 rounded-lg bg-surfaceRaised border border-border shadow-xl text-sm text-gray-300 max-w-sm mt-1 whitespace-pre-line"
-                      style={{ top: 56, [isRtl ? 'right' : 'left']: 16 }}
-                      dir={isRtl ? 'rtl' : 'ltr'}
-                    >
-                      {VERSION_WHATS_NEW[i18n.language] || VERSION_WHATS_NEW.he}
-                    </span>
-                  </>
+                  <div
+                    className="absolute start-0 top-full z-[9999] mt-1 max-w-sm whitespace-pre-line border border-border bg-surfaceContainer px-3 py-2 text-sm text-onSurface shadow-lg"
+                    dir={isRtl ? 'rtl' : 'ltr'}
+                    role="dialog"
+                    aria-label={t('version.whatsNew', 'מה חדש')}
+                  >
+                    {VERSION_WHATS_NEW[i18n.language] || VERSION_WHATS_NEW.he}
+                  </div>
                 )}
               </div>
             </div>
@@ -843,8 +802,8 @@ export default function App() {
                   key={tab}
                   type="button"
                   onClick={() => setActiveTab(tab)}
-                  className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                    activeTab === tab ? 'bg-accent/20 text-accent' : 'text-gray-500 hover:text-gray-300 hover:bg-surface/60'
+                  className={`px-4 py-1.5 text-xs font-label font-bold uppercase tracking-wider transition-colors border ${
+                    activeTab === tab ? 'bg-accent text-white border-accent' : 'text-muted border-transparent hover:border-border hover:text-onSurface hover:bg-surfaceRaised'
                   }`}
                 >
                   {tab === 'chart' ? t('chart.tab', 'גרף') : tab === 'map' ? t('map.tab', 'מפה') : t('reports.tab', 'הפק דוחות')}
@@ -854,7 +813,7 @@ export default function App() {
 
             {/* Right: upload + language */}
             <div className="flex items-center gap-2 shrink-0 ms-auto z-10">
-              <label className="text-sm px-3 py-1.5 rounded-lg bg-surface border border-border cursor-pointer hover:border-accent/50 text-gray-300 transition-colors whitespace-nowrap">
+              <label className="text-xs font-label font-bold uppercase tracking-wider px-3 py-2 bg-surfaceContainer border border-border cursor-pointer hover:border-accent text-onSurface transition-colors whitespace-nowrap">
                 {t('dropZone.newFile')}
                 <input
                   type="file"
@@ -872,14 +831,14 @@ export default function App() {
               <button
                 type="button"
                 onClick={() => i18n.changeLanguage('he')}
-                className={`px-2 py-1 rounded text-sm ${i18n.language === 'he' ? 'bg-accent/20 text-accent' : 'text-gray-500 hover:text-gray-300'}`}
+                className={`px-2 py-1 text-xs font-medium ${i18n.language === 'he' ? 'bg-accent text-white' : 'text-muted hover:text-onSurface'}`}
               >
                 עברית
               </button>
               <button
                 type="button"
                 onClick={() => i18n.changeLanguage('en')}
-                className={`px-2 py-1 rounded text-sm ${i18n.language === 'en' ? 'bg-accent/20 text-accent' : 'text-gray-500 hover:text-gray-300'}`}
+                className={`px-2 py-1 text-xs font-medium ${i18n.language === 'en' ? 'bg-accent text-white' : 'text-muted hover:text-onSurface'}`}
               >
                 English
               </button>
@@ -889,7 +848,7 @@ export default function App() {
           <div ref={mainLayoutRef} className="flex-1 flex min-h-0">
             <aside className="flex shrink-0 border-e border-border min-h-0">
               <div
-                className="shrink-0 flex flex-col bg-surfaceRaised min-h-0 min-w-[160px]"
+                className="shrink-0 flex flex-col bg-surfaceContainerLow min-h-0 min-w-[160px]"
                 style={{ width: logListWidthPx }}
               >
                 <div className="shrink-0 px-2 py-1 border-b border-border/80">
@@ -922,12 +881,35 @@ export default function App() {
                   vehicleNamesById={vehicleNamesById}
                 />
                 {/* Vehicle mini-card + compare button pinned at the bottom of the logs column */}
-                <div className="shrink min-h-0 border-t border-border flex flex-col bg-surfaceRaised/60">
-                    <div className="p-2 flex flex-col gap-1.5 overflow-y-auto min-h-0 max-h-[45vh]">
+                <div className="shrink min-h-0 border-t border-border flex flex-col bg-surfaceContainerLow/80">
+                  <button
+                    type="button"
+                    onClick={() => setLogToolsCollapsed((v) => !v)}
+                    className="px-2 py-1 text-[11px] text-accent/90 hover:text-accent border-b border-border/60 text-center"
+                    title={logToolsCollapsed ? (isRtl ? 'פתח פעולות לוגים' : 'Expand log tools') : (isRtl ? 'צמצם פעולות לוגים' : 'Collapse log tools')}
+                  >
+                    {logToolsCollapsed ? (isRtl ? 'פתח פעולות לוגים ▾' : 'Expand Log Tools ▾') : (isRtl ? 'צמצם פעולות לוגים ▴' : 'Collapse Log Tools ▴')}
+                  </button>
+                  {!logToolsCollapsed && (
+                    <div
+                      className="px-2 pt-1 pb-2 flex flex-col gap-1.5 overflow-y-auto min-h-0"
+                      style={{ height: logToolsHeightPx, minHeight: MIN_LOG_TOOLS_HEIGHT, maxHeight: MAX_LOG_TOOLS_HEIGHT }}
+                    >
+                      <input
+                        type="range"
+                        min={MIN_LOG_TOOLS_HEIGHT}
+                        max={MAX_LOG_TOOLS_HEIGHT}
+                        step={4}
+                        value={logToolsHeightPx}
+                        onChange={(e) => setLogToolsHeightPx(Number(e.target.value))}
+                        className="w-full h-2 accent-accent cursor-pointer opacity-90 shrink-0"
+                        aria-label={isRtl ? 'גובה חלון פעולות לוגים' : 'Log tools window height'}
+                        title={isRtl ? 'גובה חלון פעולות לוגים' : 'Log tools window height'}
+                      />
                       <VehicleMiniCard vehicle={selectedVehicle} onClick={() => setShowVehiclePicker(true)} />
                   {showVehiclePicker && (
                     <div
-                      className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/65"
+                      className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-onSurface/35 backdrop-blur-sm"
                       onClick={() => setShowVehiclePicker(false)}
                       role="presentation"
                     >
@@ -941,7 +923,7 @@ export default function App() {
                           <button
                             type="button"
                             onClick={() => setShowVehiclePicker(false)}
-                            className="text-gray-400 hover:text-gray-100 px-2 py-1 rounded-lg hover:bg-surface text-lg leading-none"
+                            className="text-muted hover:text-onSurface px-2 py-1 border border-transparent hover:border-border text-lg leading-none"
                             aria-label={t('landing.closePicker')}
                           >
                             ✕
@@ -954,13 +936,13 @@ export default function App() {
                                 type="button"
                                 onClick={() => { setSelectedVehicleId(v.id); setShowVehiclePicker(false); }}
                                 className={`w-full flex items-center gap-3 px-4 py-3 text-sm transition-colors text-start ${
-                                  v.id === selectedVehicleId ? 'text-accent bg-accent/10' : 'text-gray-200 hover:bg-surface'
+                                  v.id === selectedVehicleId ? 'text-accent bg-accent/10 font-semibold' : 'text-onSurface hover:bg-surfaceRaised'
                                 }`}
                               >
                                 {v.photo ? (
                                   <img src={v.photo} alt="" className="w-9 h-9 rounded-lg object-cover shrink-0 border border-border" />
                                 ) : (
-                                  <div className="w-9 h-9 rounded-lg bg-white/10 shrink-0 flex items-center justify-center text-sm border border-border">✈</div>
+                                  <div className="w-9 h-9 shrink-0 flex items-center justify-center text-sm border border-border bg-surfaceRaised">✈</div>
                                 )}
                                 <span className="truncate font-medium">{v.name}</span>
                               </button>
@@ -987,13 +969,14 @@ export default function App() {
                   <button
                     type="button"
                     onClick={handleLoadFrsky}
-                    className="flex items-center justify-center gap-2 w-full min-h-[52px] px-3 py-2 rounded-xl bg-surfaceRaised border border-border text-sm text-gray-200 hover:border-amber-400/60 hover:text-amber-200 transition-all shadow-sm"
+                    className="flex items-center justify-center gap-2 w-full min-h-[52px] px-3 py-2 border bg-surfaceContainer border-border text-sm text-onSurface hover:border-amber-500 hover:text-amber-800 transition-all"
                     title={isRtl ? 'העלה לוג FrSky להצלבה' : 'Load FrSky log for overlay'}
                   >
-                    <span className="text-amber-300 font-semibold">FRSKY</span>
+                    <span className="text-amber-800 font-semibold">FRSKY</span>
                     <span className="truncate">{isRtl ? 'הצלבת לוג שלט' : 'Overlay radio log'}</span>
                   </button>
                     </div>
+                  )}
                 </div>
               </div>
               <FieldsSidebar
@@ -1007,7 +990,7 @@ export default function App() {
             {/* Center column: presets → chart/map/reports → feedback → request bar */}
             <div className="flex-1 flex flex-col min-w-0 min-h-0">
               {activeTab !== 'reports' && (
-                <div className="shrink-0 px-3 py-1.5 flex items-center gap-2 border-b border-border bg-surfaceRaised">
+                <div className="shrink-0 px-3 py-1.5 flex items-center gap-2 border-b border-border bg-surfaceContainerLow">
                   {activeTab === 'chart' ? (
                     <ChartPresetManager
                       selectedFields={selectedFields}
@@ -1037,14 +1020,8 @@ export default function App() {
                     markers={mapMarkers}
                     pathColorConfig={pathColorConfig}
                     pathWithValues={pathWithValues}
-                    pathAltitudes={pathAltitudes}
-                    pathNavHeadingsDeg={pathNavHeadingsDeg}
-                    pathName={currentLogName || 'flight-path'}
-                    onResetPathColor={() => setPathColorConfig(null)}
                     selectedTimeIndex={selectedTimeIndex}
-                    panToIndexRequest={mapPanRequest}
-                    onTimelineIndexChange={handleMapTimelineIndex}
-                    onMarkOnChart={handleMarkOnChartFromMap}
+                    onPathIndexSelect={handlePathIndexSelect}
                     onMapReady={(map) => { mapRef.current = map; }}
                   />
                 )}
@@ -1060,7 +1037,7 @@ export default function App() {
               </div>
 
               {fieldFeedback && activeTab !== 'reports' && (
-                <div className="shrink-0 px-4 py-2 bg-amber-500/20 border-t border-amber-500/30 text-amber-200 text-sm flex items-start justify-between gap-2">
+                <div className="shrink-0 px-4 py-2 bg-amber-50 border-t border-amber-200 text-amber-950 text-sm flex items-start justify-between gap-2">
                   <div>
                     {fieldFeedback.presetMismatch ? (
                       <p>{t('preset.noFieldsMatch', 'הפריסט לא תואם ללוג הנוכחי')}</p>
@@ -1068,7 +1045,7 @@ export default function App() {
                       <>
                         <p>{t('fieldNotFound.message')}</p>
                         {(fieldFeedback.suggested?.length ?? 0) > 0 ? (
-                          <p className="mt-1 text-amber-300/90">
+                          <p className="mt-1 text-amber-900">
                             {t('fieldNotFound.suggest')}{' '}
                             {(fieldFeedback.suggested || []).map((f) => (
                               <button
@@ -1088,12 +1065,12 @@ export default function App() {
                             ))}
                           </p>
                         ) : (
-                          <p className="mt-1 text-amber-300/90">{t('fieldNotFound.noSimilar')}</p>
+                          <p className="mt-1 text-amber-900">{t('fieldNotFound.noSimilar')}</p>
                         )}
                       </>
                     )}
                   </div>
-                  <button type="button" onClick={() => setFieldFeedback(null)} className="text-amber-400 hover:text-amber-200 shrink-0">✕</button>
+                  <button type="button" onClick={() => setFieldFeedback(null)} className="text-amber-800 hover:text-amber-950 shrink-0">✕</button>
                 </div>
               )}
 

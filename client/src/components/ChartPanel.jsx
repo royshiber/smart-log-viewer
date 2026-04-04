@@ -1,4 +1,4 @@
-import { useMemo, useState, useRef, useEffect } from 'react';
+import { useMemo, useState, useRef } from 'react';
 import Plot from 'react-plotly.js';
 import { useTranslation } from 'react-i18next';
 import { getFieldLabel } from '../utils/fieldLabels';
@@ -13,19 +13,6 @@ export function ChartPanel({ series, onTimeSelect, selectedTime }) {
   const { t, i18n } = useTranslation();
   const [contextMenu, setContextMenu] = useState(null);
   const lastHoverRef = useRef(null);
-
-  useEffect(() => {
-    if (!series?.length) setContextMenu(null);
-  }, [series?.length]);
-
-  useEffect(() => {
-    if (!contextMenu) return;
-    const onKey = (e) => {
-      if (e.key === 'Escape') setContextMenu(null);
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [contextMenu]);
 
   const traces = useMemo(() => {
     if (!series || series.length === 0) return [];
@@ -49,10 +36,10 @@ export function ChartPanel({ series, onTimeSelect, selectedTime }) {
     const n = series?.length || 0;
     const useMultiAxis = n > 1;
     const baseY = {
-      gridcolor: '#30363d',
-      linecolor: '#30363d',
-      tickfont: { color: '#8b949e' },
-      titlefont: { color: '#8b949e' }
+      gridcolor: '#c2c6d4',
+      linecolor: '#727783',
+      tickfont: { color: '#424752' },
+      titlefont: { color: '#424752' }
     };
     const yaxes = { yaxis: { ...baseY } };
     if (useMultiAxis) {
@@ -70,17 +57,17 @@ export function ChartPanel({ series, onTimeSelect, selectedTime }) {
       margin: { t: 40, r: useMultiAxis ? 80 : 60, b: 60, l: 60 },
       xaxis: {
         title: t('chart.time'),
-        gridcolor: '#30363d',
-        linecolor: '#30363d',
-        tickfont: { color: '#8b949e' },
-        titlefont: { color: '#8b949e' }
+        gridcolor: '#c2c6d4',
+        linecolor: '#727783',
+        tickfont: { color: '#424752' },
+        titlefont: { color: '#424752' }
       },
       ...yaxes,
       showlegend: true,
-      legend: { x: 1, y: 1, xanchor: 'right', font: { color: '#8b949e' } },
-      paper_bgcolor: '#0d1117',
-      plot_bgcolor: '#161b22',
-      font: { color: '#8b949e', size: 12 },
+      legend: { x: 1, y: 1, xanchor: 'right', font: { color: '#424752' } },
+      paper_bgcolor: '#f7f9fc',
+      plot_bgcolor: '#ffffff',
+      font: { color: '#424752', size: 12 },
       shapes: selectedTime != null ? [{
         type: 'line',
         x0: selectedTime,
@@ -88,7 +75,7 @@ export function ChartPanel({ series, onTimeSelect, selectedTime }) {
         y0: 0,
         y1: 1,
         yref: 'paper',
-        line: { color: '#58a6ff', width: 2, dash: 'dot' }
+        line: { color: '#00478d', width: 2, dash: 'dot' }
       }] : []
     };
   }, [t, selectedTime, series?.length]);
@@ -97,8 +84,8 @@ export function ChartPanel({ series, onTimeSelect, selectedTime }) {
 
   if (!series || series.length === 0) {
     return (
-      <div className="h-full w-full flex items-center justify-center bg-surfaceRaised rounded-lg border border-border">
-        <p className="text-gray-500">{t('chart.empty')}</p>
+      <div className="h-full w-full flex items-center justify-center bg-surfaceContainer border border-border aero-grid">
+        <p className="text-muted">{t('chart.empty')}</p>
       </div>
     );
   }
@@ -120,39 +107,33 @@ export function ChartPanel({ series, onTimeSelect, selectedTime }) {
 
   return (
     <div
-      className="flex-1 min-h-0 bg-surfaceRaised rounded-lg border border-border overflow-hidden relative"
+      className="isolate relative z-0 flex-1 min-h-0 overflow-hidden border border-border bg-surfaceContainer"
       onContextMenu={handleContextMenu}
     >
-      {/* Plotly uses high internal z-index; without pointer-events-none while menu is open, it steals clicks from the dismiss layer. */}
-      <div
-        className={`absolute inset-0 z-0 flex min-h-0 flex-col ${contextMenu ? 'pointer-events-none' : ''}`}
-      >
-        <Plot
-          data={traces}
-          layout={layout}
-          config={config}
-          className="min-h-0 flex-1 w-full"
-          style={{ width: '100%', height: '100%' }}
-          useResizeHandler
-          onHover={handleHover}
-        />
-      </div>
+      <Plot
+        data={traces}
+        layout={layout}
+        config={config}
+        className="w-full h-full"
+        style={{ width: '100%', height: '100%' }}
+        useResizeHandler
+        onHover={handleHover}
+      />
       {contextMenu && (
         <>
           <div
-            className="absolute inset-0 z-[12000] bg-transparent"
+            className="fixed inset-0 z-40"
             onClick={() => setContextMenu(null)}
-            onContextMenu={(e) => { e.preventDefault(); setContextMenu(null); }}
             aria-hidden
           />
           <div
-            className="fixed z-[12010] py-1 rounded-lg bg-surfaceRaised border border-border shadow-xl min-w-[140px]"
+            className="fixed z-50 py-1 bg-surfaceContainer border border-border shadow-xl min-w-[140px]"
             style={{ left: contextMenu.x, top: contextMenu.y }}
             dir={i18n.language === 'he' ? 'rtl' : 'ltr'}
           >
             <button
               type="button"
-              className="w-full px-3 py-2 text-left text-sm text-gray-200 hover:bg-surface rounded-t-lg"
+              className="w-full px-3 py-2 text-left text-sm text-onSurface hover:bg-surfaceRaised"
               onClick={handleShowOnMap}
             >
               {t('contextMenu.showOnMap')}

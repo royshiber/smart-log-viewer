@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+
+<html dir="rtl" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>DRONE_OS_V4 - TELEMETRY_STATION</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700;900&amp;family=Inter:wght@300;400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "inverse-primary": "#a9c7ff",
+                        "surface-variant": "#e0e3e6",
+                        "surface-tint": "#005db6",
+                        "on-secondary-fixed-variant": "#832700",
+                        "inverse-surface": "#2d3133",
+                        "on-surface": "#191c1e",
+                        "on-background": "#191c1e",
+                        "inverse-on-surface": "#eff1f4",
+                        "surface-container-lowest": "#ffffff",
+                        "on-tertiary": "#ffffff",
+                        "surface-container-high": "#e6e8eb",
+                        "surface-container": "#eceef1",
+                        "outline": "#727783",
+                        "on-surface-variant": "#424752",
+                        "primary": "#00478d",
+                        "primary-fixed": "#d6e3ff",
+                        "on-tertiary-fixed": "#071e27",
+                        "tertiary-container": "#4d626c",
+                        "secondary-fixed": "#ffdbcf",
+                        "surface-container-low": "#f2f4f7",
+                        "on-error-container": "#93000a",
+                        "surface": "#f7f9fc",
+                        "secondary-fixed-dim": "#ffb59c",
+                        "error-container": "#ffdad6",
+                        "error": "#ba1a1a",
+                        "tertiary-fixed-dim": "#b4cad6",
+                        "primary-fixed-dim": "#a9c7ff",
+                        "on-secondary-container": "#551600",
+                        "on-tertiary-container": "#c6dde9",
+                        "on-primary-fixed": "#001b3d",
+                        "outline-variant": "#c2c6d4",
+                        "on-tertiary-fixed-variant": "#354a53",
+                        "surface-bright": "#f7f9fc",
+                        "tertiary-fixed": "#cfe6f2",
+                        "surface-dim": "#d8dadd",
+                        "surface-container-highest": "#e0e3e6",
+                        "on-primary-fixed-variant": "#00468c",
+                        "primary-container": "#005eb8",
+                        "tertiary": "#354a54",
+                        "on-primary-container": "#c8daff",
+                        "background": "#f7f9fc",
+                        "on-error": "#ffffff",
+                        "on-primary": "#ffffff",
+                        "on-secondary": "#ffffff",
+                        "secondary": "#ab3600",
+                        "secondary-container": "#fe5e1e",
+                        "on-secondary-fixed": "#390c00"
+                    },
+                    fontFamily: {
+                        "headline": ["Space Grotesk"],
+                        "body": ["Inter"],
+                        "label": ["Space Grotesk"]
+                    },
+                    borderRadius: {"DEFAULT": "0rem", "lg": "0rem", "xl": "0rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>.material-symbols-outlined {
+    font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24
+    }
+.grain-texture {
+    background-image: url(https://lh3.googleusercontent.com/aida-public/AB6AXuAXrNWAZGG7V9izEpMGI2zSSXyFn_tokc_QJBzUPJimjt88mFOFzodnfh8G0MIiADQ10KZRJQo9OC2CYsBX8KTarwwq-uU_xDEDlnPK6xjIc00gfkJMs49rdk_rFUJdciolo_NujXz3IX1XMaXFYtoTyU2EPNfLkfUHUcKw5tsi055azhVoW5fYcSwAx6brwqVRtsduUCawFtRS1zdM7pLSx81KXjGYKQRc7wFKZ5nb7tRldGySjFl7k7CB21KXYc1axPOagDEHAY8);
+    opacity: 0.02
+    }
+.glass-panel {
+    background: rgba(242, 244, 247, 0.7);
+    backdrop-filter: blur(12px)
+    }</style>
+</head>
+<body class="bg-surface font-body text-on-surface select-none overflow-hidden">
+<!-- TOP NAVIGATION BAR -->
+<header class="bg-slate-50 dark:bg-slate-900 flex justify-between items-center w-full px-6 h-14 rtl:flex-row-reverse fixed top-0 z-50">
+<div class="flex items-center gap-8">
+<span class="text-xl font-black tracking-widest text-[#00478d] dark:text-[#005eb8] font-headline">DRONE_OS_V4</span>
+<nav class="hidden md:flex gap-6 items-center h-full">
+<a class="font-['Space_Grotesk'] tracking-tighter uppercase text-xs font-bold text-slate-500 hover:text-slate-700 transition-colors duration-150" href="#">SENSORS</a>
+<a class="font-['Space_Grotesk'] tracking-tighter uppercase text-xs font-bold text-slate-500 hover:text-slate-700 transition-colors duration-150" href="#">UAV_STATUS</a>
+<a class="font-['Space_Grotesk'] tracking-tighter uppercase text-xs font-bold text-[#00478d] border-b-2 border-[#00478d] pb-1" href="#">NETWORK</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<div class="bg-surface-container-highest px-3 py-1.5 flex items-center gap-2">
+<span class="material-symbols-outlined text-sm" data-icon="search">search</span>
+<input class="bg-transparent border-none text-[10px] font-label focus:ring-0 uppercase tracking-widest w-32" placeholder="QUERY_ID..." type="text"/>
+</div>
+<div class="flex gap-2">
+<button class="p-2 hover:bg-slate-200/50 transition-colors duration-150 scale-95 active:opacity-80">
+<span class="material-symbols-outlined" data-icon="settings_input_component">settings_input_component</span>
+</button>
+<button class="p-2 hover:bg-slate-200/50 transition-colors duration-150 scale-95 active:opacity-80">
+<span class="material-symbols-outlined" data-icon="notifications_active">notifications_active</span>
+</button>
+<button class="p-2 hover:bg-slate-200/50 transition-colors duration-150 scale-95 active:opacity-80">
+<span class="material-symbols-outlined" data-icon="account_circle">account_circle</span>
+</button>
+</div>
+</div>
+</header>
+<!-- SIDE NAVIGATION BAR -->
+<aside class="bg-[#f2f4f7] dark:bg-slate-950 flex flex-col h-screen fixed right-0 top-0 z-40 w-64 border-l-0 rtl:right-0 rtl:left-auto">
+<div class="p-6 pt-20 border-b border-outline-variant/10">
+<div class="flex items-center gap-3 mb-4">
+<div class="w-10 h-10 bg-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-white" data-icon="operator">account_circle</span>
+</div>
+<div>
+<h3 class="font-headline font-bold text-xs tracking-widest text-primary">ALPHA_STATION</h3>
+<p class="font-label text-[10px] text-slate-500">COORD: 34.0522 N</p>
+</div>
+</div>
+</div>
+<nav class="flex-1 mt-4">
+<a class="group flex items-center gap-4 px-6 py-4 text-slate-500 hover:bg-[#e0e3e6] transition-all duration-75 cursor-crosshair" href="#">
+<span class="material-symbols-outlined text-lg" data-icon="tune">tune</span>
+<span class="font-['Space_Grotesk'] text-[10px] font-bold tracking-[0.05rem] uppercase">TUNING</span>
+</a>
+<a class="group flex items-center gap-4 px-6 py-4 text-slate-500 hover:bg-[#e0e3e6] transition-all duration-75 cursor-crosshair" href="#">
+<span class="material-symbols-outlined text-lg" data-icon="precision_manufacturing">precision_manufacturing</span>
+<span class="font-['Space_Grotesk'] text-[10px] font-bold tracking-[0.05rem] uppercase">ARDUPILOT</span>
+</a>
+<a class="group flex items-center gap-4 px-6 py-4 bg-[#e0e3e6] text-[#00478d] border-r-4 border-r-[#00478d] cursor-crosshair" href="#">
+<span class="material-symbols-outlined text-lg" data-icon="settings_input_antenna">settings_input_antenna</span>
+<span class="font-['Space_Grotesk'] text-[10px] font-bold tracking-[0.05rem] uppercase">TELEMETRY</span>
+</a>
+<a class="group flex items-center gap-4 px-6 py-4 text-slate-500 hover:bg-[#e0e3e6] transition-all duration-75 cursor-crosshair" href="#">
+<span class="material-symbols-outlined text-lg" data-icon="settings_system_daydream">settings_system_daydream</span>
+<span class="font-['Space_Grotesk'] text-[10px] font-bold tracking-[0.05rem] uppercase">SYSTEM</span>
+</a>
+</nav>
+<div class="p-6">
+<button class="w-full py-4 bg-secondary text-white font-headline font-black text-xs tracking-[0.2rem] uppercase scale-95 active:opacity-80 transition-transform">
+                EMERGENCY_STOP
+            </button>
+</div>
+</aside>
+<!-- MAIN CONTENT CANVAS -->
+<main class="mr-64 pt-14 h-screen overflow-y-auto bg-surface relative">
+<div class="grain-texture absolute inset-0 pointer-events-none"></div>
+<div class="p-8 max-w-7xl mx-auto space-y-8">
+<!-- PAGE HEADER -->
+<div class="flex justify-between items-end border-b border-outline-variant/20 pb-4">
+<div>
+<h1 class="font-headline text-3xl font-black tracking-tight text-primary">TELEMETRY_DASHBOARD</h1>
+<p class="font-label text-[10px] tracking-widest text-slate-400 mt-1 uppercase">Live Stream • ALPHA_STATION_01 • Session: 492-X</p>
+</div>
+<div class="flex gap-4">
+<div class="flex flex-col items-end">
+<span class="font-label text-[10px] text-slate-400 uppercase">System Integrity</span>
+<span class="font-headline font-bold text-primary text-xl tracking-tighter">99.98%</span>
+</div>
+</div>
+</div>
+<!-- BENTO GRID TELEMETRY CARDS -->
+<div class="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-12 gap-4">
+<!-- Connection Status -->
+<div class="lg:col-span-3 bg-surface-container-low p-4 flex flex-col justify-between border-r-4 border-primary">
+<div class="flex justify-between items-start">
+<span class="font-label text-[10px] font-bold tracking-widest text-slate-500 uppercase">Connection Status</span>
+<span class="material-symbols-outlined text-primary text-sm" data-icon="wifi">wifi</span>
+</div>
+<div class="mt-4">
+<span class="font-headline text-2xl font-bold text-on-surface uppercase tracking-tight">DUMMY</span>
+<div class="flex items-center gap-2 mt-1">
+<div class="w-2 h-2 bg-primary animate-pulse"></div>
+<span class="font-label text-[10px] text-primary uppercase">Active Uplink</span>
+</div>
+</div>
+</div>
+<!-- Vision Confidence -->
+<div class="lg:col-span-3 bg-surface-container-lowest p-4 flex flex-col justify-between">
+<div class="flex justify-between items-start">
+<span class="font-label text-[10px] font-bold tracking-widest text-slate-500 uppercase">Vision Confidence</span>
+<span class="material-symbols-outlined text-slate-400 text-sm" data-icon="visibility">visibility</span>
+</div>
+<div class="mt-4">
+<div class="flex items-baseline gap-2">
+<span class="font-headline text-4xl font-black text-on-surface">73</span>
+<span class="font-headline text-lg font-bold text-slate-400">%</span>
+</div>
+<div class="w-full bg-surface-container h-1 mt-2">
+<div class="bg-primary h-full w-[73%]"></div>
+</div>
+</div>
+</div>
+<!-- Auto Abort -->
+<div class="lg:col-span-3 bg-secondary-fixed p-4 flex flex-col justify-between border-r-4 border-secondary">
+<div class="flex justify-between items-start">
+<span class="font-label text-[10px] font-bold tracking-widest text-on-secondary-fixed uppercase">Auto Abort</span>
+<span class="material-symbols-outlined text-secondary text-sm" data-icon="warning" style="font-variation-settings: 'FILL' 1;">warning</span>
+</div>
+<div class="mt-4">
+<span class="font-headline text-2xl font-bold text-on-secondary-container uppercase tracking-tighter">ARMED</span>
+<p class="font-label text-[10px] text-secondary-container mt-1 uppercase font-bold">Countdown: 0s</p>
+</div>
+</div>
+<!-- Heartbeat -->
+<div class="lg:col-span-3 bg-surface-container-lowest p-4 flex flex-col justify-between">
+<div class="flex justify-between items-start">
+<span class="font-label text-[10px] font-bold tracking-widest text-slate-500 uppercase">Heartbeat</span>
+<span class="material-symbols-outlined text-primary text-sm" data-icon="favorite" style="font-variation-settings: 'FILL' 1;">favorite</span>
+</div>
+<div class="mt-4 flex items-center gap-4">
+<div class="flex-1 h-8 flex items-end gap-[2px]">
+<div class="w-1 bg-primary/20 h-4"></div>
+<div class="w-1 bg-primary/40 h-6"></div>
+<div class="w-1 bg-primary/20 h-3"></div>
+<div class="w-1 bg-primary h-8"></div>
+<div class="w-1 bg-primary/60 h-5"></div>
+<div class="w-1 bg-primary/30 h-4"></div>
+</div>
+<span class="font-headline text-xl font-bold text-on-surface">122<span class="text-[10px] ml-1 text-slate-400">BPM</span></span>
+</div>
+</div>
+<!-- Takeoff Readiness -->
+<div class="lg:col-span-4 bg-primary-fixed p-6 flex flex-col justify-center items-center gap-4">
+<span class="font-label text-[10px] font-black tracking-[0.2rem] text-on-primary-fixed-variant uppercase">Takeoff Readiness</span>
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-full border-4 border-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" data-icon="flight_takeoff">flight_takeoff</span>
+</div>
+<span class="font-headline text-4xl font-black text-on-primary-fixed tracking-widest">READY</span>
+</div>
+<p class="font-label text-[10px] text-on-primary-fixed-variant opacity-60">ALL SYSTEMS NOMINAL</p>
+</div>
+<!-- Metadata Row -->
+<div class="lg:col-span-4 bg-surface-container p-6 space-y-4">
+<div class="flex justify-between border-b border-outline-variant/30 pb-2">
+<span class="font-label text-[10px] text-slate-500 uppercase">Last Refresh</span>
+<span class="font-label text-[10px] font-bold text-on-surface uppercase">0.04s AGO</span>
+</div>
+<div class="flex justify-between border-b border-outline-variant/30 pb-2">
+<span class="font-label text-[10px] text-slate-500 uppercase">Events Count</span>
+<span class="font-label text-[10px] font-bold text-on-surface uppercase">1,244 PROC</span>
+</div>
+<div class="flex justify-between border-b border-outline-variant/30 pb-2">
+<span class="font-label text-[10px] text-slate-500 uppercase">Data Throughput</span>
+<span class="font-label text-[10px] font-bold text-on-surface uppercase">42.8 MB/S</span>
+</div>
+</div>
+<!-- Secondary Visualizer -->
+<div class="lg:col-span-4 bg-surface-container-highest p-4 relative overflow-hidden group">
+<div class="relative z-10 flex flex-col h-full justify-between">
+<span class="font-label text-[10px] font-bold text-primary uppercase tracking-widest">Signal_Map</span>
+<div class="grid grid-cols-6 gap-2 opacity-60">
+<div class="h-8 bg-primary"></div>
+<div class="h-12 bg-primary-container"></div>
+<div class="h-6 bg-primary"></div>
+<div class="h-14 bg-primary-container"></div>
+<div class="h-4 bg-primary"></div>
+<div class="h-10 bg-primary-container"></div>
+</div>
+</div>
+<div class="absolute inset-0 bg-primary/5 group-hover:bg-primary/10 transition-colors"></div>
+</div>
+</div>
+<!-- TERRAIN MAP NAVIGATION SECTION -->
+<section class="space-y-4">
+<div class="flex justify-between items-center">
+<h2 class="font-headline font-bold text-xs tracking-widest text-primary uppercase">Terrain Map Navigation</h2>
+<div class="flex gap-2">
+<button class="px-3 py-1 bg-surface-container-high font-label text-[10px] font-bold text-slate-600 hover:bg-surface-container-highest uppercase">Sat_View</button>
+<button class="px-3 py-1 bg-primary text-white font-label text-[10px] font-bold hover:opacity-90 uppercase">Topo_View</button>
+</div>
+</div>
+<div class="relative h-96 w-full bg-slate-200 overflow-hidden">
+<img alt="Top-down satellite view of rugged mountainous terrain with contour line overlays and tactical data markers" class="w-full h-full object-cover grayscale opacity-80" data-alt="Top-down satellite view of rugged mountainous terrain with contour line overlays and tactical data markers" data-location="Northern Alps" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAaCh2kXNuuR0QtUbI5APakxmhXiEkoyQVfvJgnW8vyhr6Dn9LLpN6iW03NvU5RjSXGHTwyWM1728iz1OlDjl4qpXG8AzCEkjtKZjwnpy-mLtbPi9nwn25Tgzitt6u6AS6FD1HliYgVVFrpsURbmWqfDQOcbxbn71ztlaPvPdvFZTyhajbU11PVNd6b94T0X15oCxu4G6oXO0TGl9-vnAyLnAto1a17v_Pt7pHvdyUr0J4No1WeexefI42nDhZ3fqnEl8Ykc1PuDvc"/>
+<!-- HUD OVERLAY ON MAP -->
+<div class="absolute inset-0 p-6 flex flex-col justify-between pointer-events-none">
+<div class="flex justify-between">
+<div class="p-4 glass-panel border border-primary/20">
+<span class="font-label text-[10px] text-primary font-bold uppercase block mb-1">Target_Vector</span>
+<span class="font-headline text-2xl font-black text-on-surface">244.5° NW</span>
+</div>
+<div class="p-4 glass-panel border border-primary/20 flex flex-col gap-2">
+<div class="flex items-center gap-4 justify-between">
+<span class="font-label text-[10px] text-slate-500 uppercase">Altitude</span>
+<span class="font-label text-[10px] font-bold text-on-surface">1,400 M</span>
+</div>
+<div class="flex items-center gap-4 justify-between">
+<span class="font-label text-[10px] text-slate-500 uppercase">Ground Speed</span>
+<span class="font-label text-[10px] font-bold text-on-surface">88 KM/H</span>
+</div>
+</div>
+</div>
+<div class="flex justify-center items-center">
+<div class="w-16 h-16 border-2 border-primary/40 rounded-full flex items-center justify-center animate-pulse">
+<div class="w-1 h-1 bg-primary rounded-full"></div>
+<div class="absolute w-20 h-[1px] bg-primary/20 rotate-45"></div>
+<div class="absolute w-20 h-[1px] bg-primary/20 -rotate-45"></div>
+</div>
+</div>
+<div class="flex justify-between items-end">
+<div class="font-label text-[10px] text-on-surface bg-surface-container-low/90 p-2 border border-outline-variant/20 uppercase">
+                                Lat: 45.122 // Long: 6.128 // HDG: 012
+                            </div>
+<div class="flex gap-2">
+<button class="p-2 glass-panel border border-primary/20 pointer-events-auto hover:bg-primary hover:text-white transition-colors">
+<span class="material-symbols-outlined" data-icon="add">add</span>
+</button>
+<button class="p-2 glass-panel border border-primary/20 pointer-events-auto hover:bg-primary hover:text-white transition-colors">
+<span class="material-symbols-outlined" data-icon="remove">remove</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</section>
+</div>
+</main>
+<!-- FLOATING ACTION OVERLAY (REPLACING FAB FOR TACTICAL CONTEXT) -->
+<div class="fixed bottom-8 left-8 z-50 flex flex-col gap-2">
+<button class="bg-primary text-white p-4 shadow-xl flex items-center gap-3 scale-100 hover:scale-105 active:scale-95 transition-transform">
+<span class="material-symbols-outlined" data-icon="play_arrow" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+<span class="font-headline font-bold text-xs tracking-widest uppercase">INIT_MISSION</span>
+</button>
+<button class="bg-surface-container-highest text-on-surface p-4 border border-outline-variant/30 flex items-center gap-3 scale-100 hover:scale-105 active:scale-95 transition-transform">
+<span class="material-symbols-outlined" data-icon="save">save</span>
+<span class="font-headline font-bold text-xs tracking-widest uppercase">LOG_SNAP</span>
+</button>
+</div>
+</body></html>

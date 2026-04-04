@@ -10,11 +10,7 @@ export function VehicleLogsScreen({ vehicle, onFile, onFiles, loading, progress,
   const isRtl = i18n.language === 'he';
 
   useEffect(() => {
-    if (!vehicle?.id) {
-      setLogsLoading(false);
-      setLogs([]);
-      return;
-    }
+    if (!vehicle?.id) return;
     setLogsLoading(true);
     getLogs(vehicle.id)
       .then((l) => { setLogs(l); setLogsLoading(false); })
@@ -26,38 +22,22 @@ export function VehicleLogsScreen({ vehicle, onFile, onFiles, loading, progress,
     setLogs((prev) => prev.filter((l) => l.id !== id));
   };
 
-  if (!vehicle?.id) {
-    return (
-      <div className="flex-1 flex flex-col bg-figmaBg overflow-hidden items-center justify-center gap-4 p-8" dir={isRtl ? 'rtl' : 'ltr'}>
-        <p className="text-center text-gray-300 text-sm max-w-md">{t('vehicle.missingState')}</p>
-        <button
-          type="button"
-          onClick={onBack}
-          className="text-accent text-sm font-medium hover:underline"
-        >
-          {t('comparison.back')}
-        </button>
-      </div>
-    );
-  }
-
   return (
-    <div className="flex-1 flex flex-col bg-figmaBg overflow-hidden" dir={isRtl ? 'rtl' : 'ltr'}>
-      {/* Header */}
-      <div className="shrink-0 flex items-center gap-4 px-5 py-4 border-b border-white/[0.08]">
+    <div className="flex-1 flex flex-col bg-surface overflow-hidden aero-grid" dir={isRtl ? 'rtl' : 'ltr'}>
+      <div className="shrink-0 flex items-center gap-4 px-6 py-4 border-b border-border bg-surfaceContainerLow">
         <button
           type="button"
           onClick={onBack}
-          className="text-white/80 hover:text-white text-[56px] leading-none px-2 shrink-0"
+          className="text-muted hover:text-accent text-3xl font-label font-bold leading-none px-2 shrink-0 border border-transparent hover:border-border transition-colors"
           aria-label={t('landing.closePicker')}
         >
           {isRtl ? '→' : '←'}
         </button>
         {vehicle?.photo ? (
-          <img src={vehicle.photo} alt="" className="w-16 h-16 rounded-xl object-cover shrink-0 border border-white/20" />
+          <img src={vehicle.photo} alt="" className="w-14 h-14 object-cover shrink-0 border border-border" />
         ) : (
-          <div className="w-16 h-16 rounded-xl bg-white/10 shrink-0 flex items-center justify-center border border-white/20">
-            <svg viewBox="0 0 48 48" className="w-10 h-10 opacity-60" fill="none">
+          <div className="w-14 h-14 shrink-0 flex items-center justify-center border border-border bg-surfaceRaised">
+            <svg viewBox="0 0 48 48" className="w-9 h-9 opacity-70" fill="none">
               <ellipse cx="24" cy="24" rx="4" ry="12" fill="#b2dfdb" />
               <path d="M20 22 L4 30 L6 34 L20 27Z" fill="#80cbc4" />
               <path d="M28 22 L44 30 L42 34 L28 27Z" fill="#80cbc4" />
@@ -67,13 +47,16 @@ export function VehicleLogsScreen({ vehicle, onFile, onFiles, loading, progress,
             </svg>
           </div>
         )}
-        <h2 className="text-xl font-semibold text-white truncate">{vehicle?.name}</h2>
+        <div className="min-w-0">
+          <p className="font-label font-bold text-[10px] tracking-[0.15em] text-muted uppercase">
+            {t('logs.vehicleHeader', 'פלטפורמה')}
+          </p>
+          <h2 className="text-xl font-headline font-bold text-onSurface truncate tracking-tight">{vehicle?.name}</h2>
+        </div>
       </div>
 
-      {/* Content: DropZone (left) + log list (right) — side by side, full height */}
       <div className={`flex-1 min-h-0 flex ${isRtl ? 'flex-row-reverse' : 'flex-row'}`}>
-        {/* Left: DropZone */}
-        <div className="w-[58%] flex flex-col p-6 border-e border-white/[0.08] min-h-0">
+        <div className="w-[58%] flex flex-col p-6 border-e border-border min-h-0 bg-surfaceContainer/40">
           <DropZone
             onFile={onFile}
             onFiles={onFiles}
@@ -83,38 +66,40 @@ export function VehicleLogsScreen({ vehicle, onFile, onFiles, loading, progress,
             className="flex-1 min-h-0"
           />
           {error && (
-            <div className="mt-3 p-3 rounded-lg bg-red-500/15 text-red-300 text-sm text-center border border-red-500/30" role="alert">
+            <div className="mt-3 p-3 border border-red-300 bg-red-50 text-red-900 text-sm text-center" role="alert">
               {error}
             </div>
           )}
         </div>
 
-        {/* Right: Saved logs — scrollable list */}
-        <div className="w-[42%] flex flex-col p-6 min-h-0">
-          <div className="flex-1 min-h-0 overflow-y-auto rounded-lg border border-white/10">
+        <div className="w-[42%] flex flex-col p-6 min-h-0 bg-surface">
+          <p className="font-label font-bold text-[10px] tracking-[0.15em] text-muted uppercase mb-2">
+            {t('logs.savedFlights', 'לוגים שמורים')}
+          </p>
+          <div className="flex-1 min-h-0 overflow-y-auto border border-border bg-surfaceContainer">
             {logsLoading ? (
-              <p className="px-4 py-3 text-gray-500 text-sm">{t('common.loading')}</p>
+              <p className="px-4 py-3 text-muted text-sm">{t('common.loading')}</p>
             ) : logs.length === 0 ? (
-              <p className="px-4 py-3 text-gray-500 text-sm">{t('logs.empty')}</p>
+              <p className="px-4 py-3 text-muted text-sm">{t('logs.empty')}</p>
             ) : (
-              <ul className="divide-y divide-white/[0.06]">
+              <ul className="divide-y divide-border">
                 {logs.map((log) => (
-                  <li key={log.id} className="flex items-center gap-2 px-3 hover:bg-white/[0.04] transition-colors">
+                  <li key={log.id} className="flex items-center gap-2 px-2 hover:bg-surfaceRaised transition-colors">
                     <button
                       type="button"
                       onClick={() => onLoadLog(log)}
                       disabled={loading}
                       className="flex-1 py-3 text-start disabled:opacity-50 flex flex-col gap-0.5 min-w-0"
                     >
-                      <span className="text-white/90 text-sm truncate">{log.displayName}</span>
+                      <span className="text-onSurface text-sm font-medium truncate">{log.displayName}</span>
                       {log.originalName && (
-                        <span className="text-xs text-white/40 truncate">{log.originalName}</span>
+                        <span className="text-xs text-muted truncate">{log.originalName}</span>
                       )}
                     </button>
                     <button
                       type="button"
                       onClick={() => handleDelete(log.id)}
-                      className="shrink-0 w-7 h-7 flex items-center justify-center rounded text-white/30 hover:text-red-400 hover:bg-red-500/10 transition-colors text-sm"
+                      className="shrink-0 w-8 h-8 flex items-center justify-center text-muted hover:text-red-700 hover:bg-red-50 transition-colors text-sm"
                       title={t('logs.delete', 'מחק לוג')}
                     >
                       ✕

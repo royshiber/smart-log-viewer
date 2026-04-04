@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+
+<html dir="rtl" lang="he"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-secondary-container": "#551600",
+              "surface-bright": "#f7f9fc",
+              "on-primary-container": "#c8daff",
+              "surface-variant": "#e0e3e6",
+              "on-surface-variant": "#424752",
+              "tertiary-fixed-dim": "#b4cad6",
+              "surface-dim": "#d8dadd",
+              "outline-variant": "#c2c6d4",
+              "on-primary-fixed-variant": "#00468c",
+              "tertiary-fixed": "#cfe6f2",
+              "secondary-fixed-dim": "#ffb59c",
+              "secondary": "#ab3600",
+              "on-secondary-fixed": "#390c00",
+              "error-container": "#ffdad6",
+              "tertiary": "#354a54",
+              "secondary-container": "#fe5e1e",
+              "on-primary-fixed": "#001b3d",
+              "surface": "#f7f9fc",
+              "error": "#ba1a1a",
+              "on-tertiary": "#ffffff",
+              "surface-container-highest": "#e0e3e6",
+              "on-surface": "#191c1e",
+              "inverse-primary": "#a9c7ff",
+              "on-tertiary-container": "#c6dde9",
+              "primary": "#00478d",
+              "outline": "#727783",
+              "secondary-fixed": "#ffdbcf",
+              "on-secondary": "#ffffff",
+              "surface-container-low": "#f2f4f7",
+              "primary-fixed": "#d6e3ff",
+              "surface-container": "#eceef1",
+              "inverse-on-surface": "#eff1f4",
+              "on-background": "#191c1e",
+              "on-error": "#ffffff",
+              "on-tertiary-fixed": "#071e27",
+              "inverse-surface": "#2d3133",
+              "surface-container-lowest": "#ffffff",
+              "on-error-container": "#93000a",
+              "tertiary-container": "#4d626c",
+              "on-primary": "#ffffff",
+              "primary-container": "#005eb8",
+              "on-tertiary-fixed-variant": "#354a53",
+              "primary-fixed-dim": "#a9c7ff",
+              "surface-container-high": "#e6e8eb",
+              "on-secondary-fixed-variant": "#832700",
+              "background": "#f7f9fc",
+              "surface-tint": "#005db6"
+            },
+            fontFamily: {
+              "headline": ["Space Grotesk"],
+              "body": ["Inter"],
+              "label": ["Space Grotesk"]
+            },
+            borderRadius: {"DEFAULT": "0px", "lg": "0px", "xl": "0px", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .technical-grid {
+            background-image: radial-gradient(#c2c6d4 0.5px, transparent 0.5px);
+            background-size: 20px 20px;
+        }
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            background: transparent;
+            cursor: pointer;
+        }
+        input[type="range"]::-webkit-slider-runnable-track {
+            background: #eceef1;
+            height: 4px;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            background-color: #00478d;
+            height: 16px;
+            width: 4px;
+            margin-top: -6px;
+        }
+        .grain-texture {
+            position: relative;
+        }
+        .grain-texture::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.03;
+            pointer-events: none;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
+    </style>
+</head>
+<body class="bg-surface font-body text-on-surface flex h-screen overflow-hidden grain-texture">
+<!-- SIDE NAV BAR (ANCHOR) -->
+<aside class="flex flex-col h-full border-l border-outline-variant/20 rtl w-64 bg-surface-container-low">
+<div class="p-6 border-b border-outline-variant/10">
+<div class="text-lg font-bold text-primary font-headline tracking-tighter uppercase">STRATOS_V1</div>
+<div class="text-[10px] font-bold font-label text-outline tracking-widest mt-1">OPERATOR_042</div>
+</div>
+<nav class="flex-1 py-4 overflow-y-auto">
+<div class="px-3 space-y-1">
+<a class="flex items-center gap-4 px-4 py-3 bg-primary text-white font-label font-bold text-[11px] tracking-[0.05rem] uppercase translate-x-1 transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="tune">tune</span>
+<span>TUNING</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 text-tertiary hover:bg-surface-container-highest font-label font-bold text-[11px] tracking-[0.05rem] uppercase transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="flight_takeoff">flight_takeoff</span>
+<span>ARDUPILOT</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 text-tertiary hover:bg-surface-container-highest font-label font-bold text-[11px] tracking-[0.05rem] uppercase transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="settings_input_component">settings_input_component</span>
+<span>TELEMETRY</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 text-tertiary hover:bg-surface-container-highest font-label font-bold text-[11px] tracking-[0.05rem] uppercase transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="terminal">terminal</span>
+<span>SYSTEM</span>
+</a>
+</div>
+</nav>
+<div class="p-4 border-t border-outline-variant/10">
+<button class="w-full bg-surface-container-highest py-3 px-4 font-label font-bold text-[11px] tracking-[0.05rem] uppercase text-primary hover:bg-surface-variant transition-colors flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-sm" data-icon="upload">upload</span>
+                IMPORT JSON
+            </button>
+<div class="mt-4 flex items-center gap-3 px-4 py-2 opacity-60">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+<span class="font-label font-bold text-[11px] tracking-[0.05rem]">LOGOUT</span>
+</div>
+</div>
+</aside>
+<main class="flex-1 flex flex-col min-w-0 overflow-hidden technical-grid">
+<!-- TOP APP BAR -->
+<header class="flex justify-between items-center w-full px-6 h-16 bg-surface-container-low border-b-0">
+<div class="flex items-center gap-6">
+<div class="text-xl font-black text-primary tracking-tighter font-headline">AERO_FLIGHT_CTRL</div>
+<nav class="hidden md:flex items-center gap-4">
+<span class="text-primary border-b-2 border-primary py-5 font-label font-bold text-[10px] tracking-widest">84% ACTIVE</span>
+<span class="text-outline py-5 font-label font-bold text-[10px] tracking-widest">GPS: LOCKED</span>
+<span class="text-outline py-5 font-label font-bold text-[10px] tracking-widest">SAT: 12</span>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<button class="bg-primary text-on-primary px-6 py-2 font-label font-bold text-[10px] tracking-widest uppercase hover:opacity-90 active:scale-[0.99] transition-all">
+                    SAVE PROFILE
+                </button>
+<button class="bg-surface-container-highest text-primary px-6 py-2 font-label font-bold text-[10px] tracking-widest uppercase hover:bg-surface-variant transition-all">
+                    EXPORT JSON
+                </button>
+<div class="h-6 w-px bg-outline-variant/20 mx-2"></div>
+<span class="material-symbols-outlined text-outline cursor-pointer hover:text-primary transition-colors" data-icon="settings">settings</span>
+<span class="material-symbols-outlined text-outline cursor-pointer hover:text-primary transition-colors" data-icon="help">help</span>
+</div>
+</header>
+<!-- DASHBOARD CONTENT -->
+<div class="flex-1 overflow-y-auto p-8 space-y-8">
+<!-- EMERGENCY CONTROLS -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<button class="group relative flex items-center justify-between bg-white border border-outline-variant/20 p-6 overflow-hidden">
+<div class="relative z-10 flex flex-col items-start text-right">
+<span class="font-label font-bold text-[12px] tracking-[0.1rem] text-primary">STATUS: PRE-FLIGHT</span>
+<span class="font-headline font-bold text-3xl text-primary tracking-tighter">LAUNCH / TAKEOFF</span>
+</div>
+<div class="relative z-10 w-16 h-16 flex items-center justify-center bg-primary text-white">
+<span class="material-symbols-outlined text-3xl" data-icon="rocket_launch">rocket_launch</span>
+</div>
+<div class="absolute inset-0 bg-primary opacity-0 group-hover:opacity-5 transition-opacity"></div>
+</button>
+<button class="group relative flex items-center justify-between bg-white border border-outline-variant/20 p-6 overflow-hidden">
+<div class="relative z-10 flex flex-col items-start text-right">
+<span class="font-label font-bold text-[12px] tracking-[0.1rem] text-secondary">CRITICAL OVERRIDE</span>
+<span class="font-headline font-bold text-3xl text-secondary tracking-tighter">EMERGENCY ABORT</span>
+</div>
+<div class="relative z-10 w-16 h-16 flex items-center justify-center bg-secondary text-white">
+<span class="material-symbols-outlined text-3xl" data-icon="emergency_home">emergency_home</span>
+</div>
+<div class="absolute inset-0 bg-secondary opacity-0 group-hover:opacity-5 transition-opacity"></div>
+</button>
+</div>
+<!-- PARAMETERS GRID -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-1">
+<!-- PARAMETER CARD TEMPLATE REPEATED 11 TIMES -->
+<!-- 1 -->
+<div class="bg-surface-container-lowest border border-outline-variant/10 p-5 flex flex-col gap-4">
+<div class="flex justify-between items-start">
+<div class="flex flex-col">
+<span class="text-[10px] font-bold text-outline font-label tracking-widest">PARAM_001</span>
+<h3 class="font-headline font-bold text-sm tracking-tight">גובה הפעלת Vision</h3>
+</div>
+<div class="flex gap-2">
+<span class="material-symbols-outlined text-outline text-lg cursor-pointer hover:text-primary transition-colors" data-icon="info">info</span>
+<span class="material-symbols-outlined text-outline text-lg cursor-pointer hover:text-primary transition-colors" data-icon="lock_open">lock_open</span>
+</div>
+</div>
+<div class="flex items-end justify-between">
+<span class="text-3xl font-headline font-light text-primary">2.5<span class="text-xs font-bold text-outline ml-1">M</span></span>
+<div class="w-full px-4 mb-2">
+<input class="w-full" max="10" min="0" step="0.1" type="range" value="2.5"/>
+</div>
+</div>
+</div>
+<!-- 2 -->
+<div class="bg-surface-container-lowest border border-outline-variant/10 p-5 flex flex-col gap-4">
+<div class="flex justify-between items-start">
+<div class="flex flex-col">
+<span class="text-[10px] font-bold text-outline font-label tracking-widest">PARAM_002</span>
+<h3 class="font-headline font-bold text-sm tracking-tight">משך זמן מנוע</h3>
+</div>
+<div class="flex gap-2">
+<span class="material-symbols-outlined text-outline text-lg cursor-pointer" data-icon="info">info</span>
+<span class="material-symbols-outlined text-outline text-lg cursor-pointer" data-icon="lock">lock</span>
+</div>
+</div>
+<div class="flex items-end justify-between">
+<span class="text-3xl font-headline font-light text-primary">120<span class="text-xs font-bold text-outline ml-1">SEC</span></span>
+<div class="w-full px-4 mb-2">
+<input class="w-full" max="300" min="0" step="1" type="range" value="120"/>
+</div>
+</div>
+</div>
+<!-- 3 -->
+<div class="bg-surface-container-lowest border border-outline-variant/10 p-5 flex flex-col gap-4">
+<div class="flex justify-between items-start">
+<div class="flex flex-col">
+<span class="text-[10px] font-bold text-outline font-label tracking-widest">PARAM_003</span>
+<h3 class="font-headline font-bold text-sm tracking-tight">זווית הרמת אף</h3>
+</div>
+<div class="flex gap-2">
+<span class="material-symbols-outlined text-outline text-lg cursor-pointer" data-icon="info">info</span>
+<span class="material-symbols-outlined text-outline text-lg cursor-pointer" data-icon="lock_open">lock_open</span>
+</div>
+</div>
+<div class="flex items-end justify-between">
+<span class="text-3xl font-headline font-light text-primary">15<span class="text-xs font-bold text-outline ml-1">DEG</span></span>
+<div class="w-full px-4 mb-2">
+<input class="w-full" max="45" min="-45" step="1" type="range" value="15"/>
+</div>
+</div>
+</div>
+<!-- 4 -->
+<div class="bg-surface-container-lowest border border-outline-variant/10 p-5 flex flex-col gap-4">
+<div class="flex justify-between items-start">
+<div class="flex flex-col">
+<span class="text-[10px] font-bold text-outline font-label tracking-widest">PARAM_004</span>
+<h3 class="font-headline font-bold text-sm tracking-tight">גובה זיהוי לייזר</h3>
+</div>
+<div class="flex gap-2">
+<span class="material-symbols-outlined text-outline text-lg cursor-pointer" data-icon="info">info</span>
+<span class="material-symbols-outlined text-outline text-lg cursor-pointer" data-icon="lock">lock</span>
+</div>
+</div>
+<div class="flex items-end justify-between">
+<span class="text-3xl font-headline font-light text-primary">45.0<span class="text-xs font-bold text-outline ml-1">M</span></span>
+<div class="w-full px-4 mb-2">
+<input class="w-full" max="100" min="0" step="0.5" type="range" value="45"/>
+</div>
+</div>
+</div>
+<!-- 5 -->
+<div class="bg-surface-container-lowest border border-outline-variant/10 p-5 flex flex-col gap-4">
+<div class="flex justify-between items-start">
+<div class="flex flex-col">
+<span class="text-[10px] font-bold text-outline font-label tracking-widest">PARAM_005</span>
+<h3 class="font-headline font-bold text-sm tracking-tight">גובה ציפה</h3>
+</div>
+<div class="flex gap-2">
+<span class="material-symbols-outlined text-outline text-lg cursor-pointer" data-icon="info">info</span>
+<span class="material-symbols-outlined text-outline text-lg cursor-pointer" data-icon="lock_open">lock_open</span>
+</div>
+</div>
+<div class="flex items-end justify-between">
+<span class="text-3xl font-headline font-light text-primary">1.2<span class="text-xs font-bold text-outline ml-1">M</span></span>
+<div class="w-full px-4 mb-2">
+<input class="w-full" max="5" min="0" step="0.1" type="range" value="1.2"/>
+</div>
+</div>
+</div>
+<!-- 6 -->
+<div class="bg-surface-container-lowest border border-outline-variant/10 p-5 flex flex-col gap-4">
+<div class="flex justify-between items-start">
+<div class="flex flex-col">
+<span class="text-[10px] font-bold text-outline font-label tracking-widest">PARAM_006</span>
+<h3 class="font-headline font-bold text-sm tracking-tight">שקיעה מותרת</h3>
+</div>
+<div class="flex gap-2">
+<span class="material-symbols-outlined text-outline text-lg cursor-pointer" data-icon="info">info</span>
+<span class="material-symbols-outlined text-outline text-lg cursor-pointer" data-icon="lock_open">lock_open</span>
+</div>
+</div>
+<div class="flex items-end justify-between">
+<span class="text-3xl font-headline font-light text-primary">0.4<span class="text-xs font-bold text-outline ml-1">M/S</span></span>
+<div class="w-full px-4 mb-2">
+<input class="w-full" max="2" min="0" step="0.01" type="range" value="0.4"/>
+</div>
+</div>
+</div>
+<!-- 7 -->
+<div class="bg-surface-container-lowest border border-outline-variant/10 p-5 flex flex-col gap-4">
+<div class="flex justify-between items-start">
+<div class="flex flex-col">
+<span class="text-[10px] font-bold text-outline font-label tracking-widest">PARAM_007</span>
+<h3 class="font-headline font-bold text-sm tracking-tight">מהירות גישה</h3>
+</div>
+<div class="flex gap-2">
+<span class="material-symbols-outlined text-outline text-lg cursor-pointer" data-icon="info">info</span>
+<span class="material-symbols-outlined text-outline text-lg cursor-pointer" data-icon="lock">lock</span>
+</div>
+</div>
+<div class="flex items-end justify-between">
+<span class="text-3xl font-headline font-light text-primary">18.5<span class="text-xs font-bold text-outline ml-1">KNT</span></span>
+<div class="w-full px-4 mb-2">
+<input class="w-full" max="40" min="5" step="0.5" type="range" value="18.5"/>
+</div>
+</div>
+</div>
+<!-- 8 -->
+<div class="bg-surface-container-lowest border border-outline-variant/10 p-5 flex flex-col gap-4">
+<div class="flex justify-between items-start">
+<div class="flex flex-col">
+<span class="text-[10px] font-bold text-outline font-label tracking-widest">PARAM_008</span>
+<h3 class="font-headline font-bold text-sm tracking-tight">Yaw Align Gain</h3>
+</div>
+<div class="flex gap-2">
+<span class="material-symbols-outlined text-outline text-lg cursor-pointer" data-icon="info">info</span>
+<span class="material-symbols-outlined text-outline text-lg cursor-pointer" data-icon="lock_open">lock_open</span>
+</div>
+</div>
+<div class="flex items-end justify-between">
+<span class="text-3xl font-headline font-light text-primary">0.85</span>
+<div class="w-full px-4 mb-2">
+<input class="w-full" max="2" min="0" step="0.05" type="range" value="0.85"/>
+</div>
+</div>
+</div>
+<!-- 9 -->
+<div class="bg-surface-container-lowest border border-outline-variant/10 p-5 flex flex-col gap-4">
+<div class="flex justify-between items-start">
+<div class="flex flex-col">
+<span class="text-[10px] font-bold text-outline font-label tracking-widest">PARAM_009</span>
+<h3 class="font-headline font-bold text-sm tracking-tight">Cross Track Gain</h3>
+</div>
+<div class="flex gap-2">
+<span class="material-symbols-outlined text-outline text-lg cursor-pointer" data-icon="info">info</span>
+<span class="material-symbols-outlined text-outline text-lg cursor-pointer" data-icon="lock_open">lock_open</span>
+</div>
+</div>
+<div class="flex items-end justify-between">
+<span class="text-3xl font-headline font-light text-primary">1.12</span>
+<div class="w-full px-4 mb-2">
+<input class="w-full" max="5" min="0" step="0.01" type="range" value="1.12"/>
+</div>
+</div>
+</div>
+<!-- 10 -->
+<div class="bg-surface-container-lowest border border-outline-variant/10 p-5 flex flex-col gap-4">
+<div class="flex justify-between items-start">
+<div class="flex flex-col">
+<span class="text-[10px] font-bold text-outline font-label tracking-widest">PARAM_010</span>
+<h3 class="font-headline font-bold text-sm tracking-tight">סף מינימום לתיקון</h3>
+</div>
+<div class="flex gap-2">
+<span class="material-symbols-outlined text-outline text-lg cursor-pointer" data-icon="info">info</span>
+<span class="material-symbols-outlined text-outline text-lg cursor-pointer" data-icon="lock">lock</span>
+</div>
+</div>
+<div class="flex items-end justify-between">
+<span class="text-3xl font-headline font-light text-primary">0.05<span class="text-xs font-bold text-outline ml-1">ERR</span></span>
+<div class="w-full px-4 mb-2">
+<input class="w-full" max="1" min="0" step="0.01" type="range" value="0.05"/>
+</div>
+</div>
+</div>
+<!-- 11 -->
+<div class="bg-surface-container-lowest border border-outline-variant/10 p-5 flex flex-col gap-4">
+<div class="flex justify-between items-start">
+<div class="flex flex-col">
+<span class="text-[10px] font-bold text-outline font-label tracking-widest">PARAM_011</span>
+<h3 class="font-headline font-bold text-sm tracking-tight">הטיה מקסימלית</h3>
+</div>
+<div class="flex gap-2">
+<span class="material-symbols-outlined text-outline text-lg cursor-pointer" data-icon="info">info</span>
+<span class="material-symbols-outlined text-outline text-lg cursor-pointer" data-icon="lock_open">lock_open</span>
+</div>
+</div>
+<div class="flex items-end justify-between">
+<span class="text-3xl font-headline font-light text-primary">35<span class="text-xs font-bold text-outline ml-1">DEG</span></span>
+<div class="w-full px-4 mb-2">
+<input class="w-full" max="60" min="0" step="1" type="range" value="35"/>
+</div>
+</div>
+</div>
+<!-- EMPTY SLOT / TELEMETRY OVERVIEW -->
+<div class="bg-primary-container/10 border border-primary/20 p-5 flex items-center justify-center">
+<div class="text-center">
+<span class="material-symbols-outlined text-4xl text-primary" data-icon="analytics">analytics</span>
+<div class="mt-2 font-label font-bold text-[10px] tracking-widest text-primary uppercase">SYSTEM_READY</div>
+</div>
+</div>
+</div>
+</div>
+<!-- FOOTER STATUS BAR -->
+<footer class="h-10 bg-surface-container-highest border-t border-outline-variant/10 flex items-center px-6 gap-8">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 bg-primary animate-pulse"></div>
+<span class="text-[9px] font-bold font-label tracking-widest text-primary">LINK_ESTABLISHED</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="text-[9px] font-bold font-label tracking-widest text-outline">LAT: 32.0853° N</span>
+<span class="text-[9px] font-bold font-label tracking-widest text-outline">LNG: 34.7818° E</span>
+</div>
+<div class="mr-auto flex items-center gap-4">
+<span class="text-[9px] font-bold font-label tracking-widest text-outline">TX: 4.2KB/S</span>
+<span class="text-[9px] font-bold font-label tracking-widest text-outline">RX: 12.8KB/S</span>
+</div>
+</footer>
+</main>
+</body></html>

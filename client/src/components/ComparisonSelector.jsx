@@ -63,7 +63,7 @@ export function ComparisonSelector({ vehicles, selectedVehicleId, comparisons, o
   };
 
   const btnClass =
-    'flex items-center justify-center gap-2 w-full min-h-[52px] px-3 py-2 rounded-xl bg-surfaceRaised border border-border text-sm text-gray-200 hover:border-accent/50 hover:text-accent transition-all shadow-sm';
+    'flex items-center justify-center gap-2 w-full min-h-[52px] px-3 py-2 border bg-surfaceContainer border-border text-sm text-onSurface hover:border-accent hover:text-accent transition-all';
 
   return (
     <div className="relative w-full" ref={panelRef}>
@@ -74,7 +74,7 @@ export function ComparisonSelector({ vehicles, selectedVehicleId, comparisons, o
 
       {open && (
         <div
-          className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/65"
+          className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-onSurface/35 backdrop-blur-sm"
           onClick={() => setOpen(false)}
           role="presentation"
         >
@@ -90,7 +90,7 @@ export function ComparisonSelector({ vehicles, selectedVehicleId, comparisons, o
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                className="text-gray-400 hover:text-gray-100 px-2 py-1 rounded-lg hover:bg-surface text-lg leading-none"
+                className="text-muted hover:text-onSurface px-2 py-1 border border-transparent hover:border-border text-lg leading-none"
                 aria-label={t('landing.closePicker')}
               >
                 ✕
@@ -101,7 +101,7 @@ export function ComparisonSelector({ vehicles, selectedVehicleId, comparisons, o
               {step === 'vehicles' ? (
                 <>
                   {otherVehicles.length === 0 ? (
-                    <p className="px-4 py-6 text-gray-500 text-sm text-center">{t('vehicle.noVehicles')}</p>
+                    <p className="px-4 py-6 text-muted text-sm text-center">{t('vehicle.noVehicles')}</p>
                   ) : (
                     <ul className="py-2">
                       {otherVehicles.map((v) => (
@@ -109,12 +109,12 @@ export function ComparisonSelector({ vehicles, selectedVehicleId, comparisons, o
                           <button
                             type="button"
                             onClick={() => handleVehiclePick(v)}
-                            className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-200 hover:bg-surface transition-colors text-start"
+                            className="w-full flex items-center gap-3 px-4 py-3 text-sm text-onSurface hover:bg-surfaceRaised transition-colors text-start"
                           >
                             {v.photo ? (
-                              <img src={v.photo} alt="" className="w-9 h-9 rounded-lg object-cover shrink-0 border border-border" />
+                              <img src={v.photo} alt="" className="w-9 h-9 object-cover shrink-0 border border-border" />
                             ) : (
-                              <div className="w-9 h-9 rounded-lg bg-white/10 shrink-0 flex items-center justify-center text-sm border border-border">✈</div>
+                              <div className="w-9 h-9 shrink-0 flex items-center justify-center text-sm border border-border bg-surfaceRaised">✈</div>
                             )}
                             <span className="truncate font-medium">{v.name}</span>
                           </button>
@@ -133,12 +133,12 @@ export function ComparisonSelector({ vehicles, selectedVehicleId, comparisons, o
                     >
                       ← {t('comparison.back')}
                     </button>
-                    <span className="text-xs text-gray-500 truncate">{pickedVehicle?.name}</span>
+                    <span className="text-xs text-muted truncate">{pickedVehicle?.name}</span>
                   </div>
                   {logsLoading ? (
-                    <p className="px-4 py-6 text-gray-500 text-sm text-center">{t('common.loading')}</p>
+                    <p className="px-4 py-6 text-muted text-sm text-center">{t('common.loading')}</p>
                   ) : logs.length === 0 ? (
-                    <p className="px-4 py-6 text-gray-500 text-sm text-center">{t('comparison.noLogs')}</p>
+                    <p className="px-4 py-6 text-muted text-sm text-center">{t('comparison.noLogs')}</p>
                   ) : (
                     <ul className="py-2">
                       {logs.map((log) => (
@@ -146,7 +146,7 @@ export function ComparisonSelector({ vehicles, selectedVehicleId, comparisons, o
                           <button
                             type="button"
                             onClick={() => handleLogPick(log)}
-                            className="w-full px-4 py-3 text-sm text-gray-200 hover:bg-surface transition-colors text-start truncate border-b border-border/40"
+                            className="w-full px-4 py-3 text-sm text-onSurface hover:bg-surfaceRaised transition-colors text-start truncate border-b border-border"
                           >
                             {log.displayName}
                           </button>
@@ -165,21 +165,21 @@ export function ComparisonSelector({ vehicles, selectedVehicleId, comparisons, o
         {comparisons.map((comp, i) => (
           <div
             key={comp.id}
-            className="flex items-center gap-2 w-full min-h-[52px] px-3 py-2 rounded-xl border shadow-sm shrink-0"
-            style={{ borderColor: `${COMP_COLORS[i % COMP_COLORS.length]}80`, background: `${COMP_COLORS[i % COMP_COLORS.length]}14` }}
+            className="flex items-center gap-2 w-full min-h-[52px] px-3 py-2 border shadow-sm shrink-0 bg-surfaceContainer"
+            style={{ borderColor: `${COMP_COLORS[i % COMP_COLORS.length]}80`, background: `${COMP_COLORS[i % COMP_COLORS.length]}12` }}
           >
-            <div className="w-12 h-12 rounded-lg bg-white/10 flex items-center justify-center shrink-0 border border-border/50">
+            <div className="w-12 h-12 flex items-center justify-center shrink-0 border border-border bg-surfaceRaised">
               <div className="w-3 h-3 rounded-full" style={{ background: COMP_COLORS[i % COMP_COLORS.length] }} />
             </div>
             <div className="min-w-0 flex-1">
-              <div className="text-sm text-gray-100 truncate text-center leading-tight">{comp.vehicleName}</div>
-              <div className="text-xs text-gray-400 truncate text-center leading-tight">{comp.logName}</div>
+              <div className="text-sm text-onSurface truncate text-center leading-tight font-medium">{comp.vehicleName}</div>
+              <div className="text-xs text-muted truncate text-center leading-tight">{comp.logName}</div>
             </div>
-            {comp.loading && <span className="text-gray-500">{t('common.loading')}</span>}
+            {comp.loading && <span className="text-muted">{t('common.loading')}</span>}
             <button
               type="button"
               onClick={() => onRemove(comp.id)}
-              className="text-gray-400 hover:text-red-400 shrink-0 leading-none ms-auto"
+              className="text-muted hover:text-red-600 shrink-0 leading-none ms-auto"
               title={t('comparison.remove')}
             >
               ✕

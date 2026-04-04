@@ -29,6 +29,9 @@ Thumbs.db
 # Debug
 debug-*.log
 
+# Local path to your real Vision Landing Console (copy from vision-landing-console-home.EXAMPLE.txt)
+vision-landing-console-home.txt
+
 # Optional
 *.tgz
 .npm

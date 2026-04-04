@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>AERO_COMMAND_V1 | FLIGHT_LOGS</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "on-primary-fixed": "#001b3d",
+                        "on-primary-container": "#c8daff",
+                        "secondary-container": "#fe5e1e",
+                        "secondary": "#ab3600",
+                        "on-primary-fixed-variant": "#00468c",
+                        "on-secondary-container": "#551600",
+                        "surface-container": "#eceef1",
+                        "on-error": "#ffffff",
+                        "on-tertiary-container": "#c6dde9",
+                        "on-secondary": "#ffffff",
+                        "secondary-fixed-dim": "#ffb59c",
+                        "surface-container-high": "#e6e8eb",
+                        "error": "#ba1a1a",
+                        "tertiary": "#354a54",
+                        "primary-container": "#005eb8",
+                        "on-secondary-fixed-variant": "#832700",
+                        "tertiary-fixed": "#cfe6f2",
+                        "tertiary-container": "#4d626c",
+                        "on-tertiary": "#ffffff",
+                        "on-error-container": "#93000a",
+                        "primary": "#00478d",
+                        "on-primary": "#ffffff",
+                        "inverse-on-surface": "#eff1f4",
+                        "on-tertiary-fixed-variant": "#354a53",
+                        "inverse-surface": "#2d3133",
+                        "surface-variant": "#e0e3e6",
+                        "primary-fixed-dim": "#a9c7ff",
+                        "surface-container-low": "#f2f4f7",
+                        "tertiary-fixed-dim": "#b4cad6",
+                        "surface-bright": "#f7f9fc",
+                        "secondary-fixed": "#ffdbcf",
+                        "surface": "#f7f9fc",
+                        "inverse-primary": "#a9c7ff",
+                        "outline": "#727783",
+                        "on-secondary-fixed": "#390c00",
+                        "surface-dim": "#d8dadd",
+                        "on-tertiary-fixed": "#071e27",
+                        "surface-container-lowest": "#ffffff",
+                        "on-surface-variant": "#424752",
+                        "background": "#f7f9fc",
+                        "outline-variant": "#c2c6d4",
+                        "on-background": "#191c1e",
+                        "surface-container-highest": "#e0e3e6",
+                        "surface-tint": "#005db6",
+                        "primary-fixed": "#d6e3ff",
+                        "on-surface": "#191c1e",
+                        "error-container": "#ffdad6"
+                    },
+                    fontFamily: {
+                        "headline": ["Space Grotesk"],
+                        "body": ["Inter"],
+                        "label": ["Space Grotesk"]
+                    },
+                    borderRadius: { "DEFAULT": "0px", "lg": "0px", "xl": "0px", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .grain-texture {
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+            opacity: 0.02;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body class="bg-surface font-body text-on-surface selection:bg-primary-fixed selection:text-on-primary-fixed">
+<!-- SIDE NAV BAR (FROM JSON) -->
+<aside class="fixed left-0 top-0 h-full flex flex-col z-40 bg-slate-100 dark:bg-slate-950 docked left-0 h-full w-64 border-r-0 tonal-layering using bg-slate-200 dark:bg-slate-800 flat no shadows">
+<div class="p-6 flex flex-col gap-1 border-b border-outline-variant/10">
+<h1 class="text-blue-900 dark:text-white font-black font-headline tracking-tighter text-xl">STRATOS_NODE</h1>
+<p class="font-['Space_Grotesk'] font-bold text-[11px] tracking-wider uppercase text-blue-900 dark:text-blue-500">OPERATIONAL_STATE: ACTIVE</p>
+</div>
+<nav class="flex-1 mt-6 px-0">
+<div class="space-y-1">
+<a class="group flex items-center px-6 py-4 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-900 transition-all duration-150 ease-in-out" href="#">
+<span class="material-symbols-outlined mr-4" data-icon="tune">tune</span>
+<span class="font-['Space_Grotesk'] font-bold text-[11px] tracking-wider uppercase">TUNING</span>
+</a>
+<a class="group flex items-center px-6 py-4 bg-blue-900 text-white dark:bg-blue-600 rounded-none border-l-4 border-orange-600 transition-all duration-150 ease-in-out" href="#">
+<span class="material-symbols-outlined mr-4" data-icon="缓慢_flight">flight</span>
+<span class="font-['Space_Grotesk'] font-bold text-[11px] tracking-wider uppercase">FLIGHT_FLOW</span>
+</a>
+<a class="group flex items-center px-6 py-4 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-900 transition-all duration-150 ease-in-out" href="#">
+<span class="material-symbols-outlined mr-4" data-icon="speed">speed</span>
+<span class="font-['Space_Grotesk'] font-bold text-[11px] tracking-wider uppercase">TELEMETRY</span>
+</a>
+<a class="group flex items-center px-6 py-4 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-900 transition-all duration-150 ease-in-out" href="#">
+<span class="material-symbols-outlined mr-4" data-icon="settings_remote">settings_remote</span>
+<span class="font-['Space_Grotesk'] font-bold text-[11px] tracking-wider uppercase">SYSTEM_STATUS</span>
+</a>
+</div>
+</nav>
+<div class="mt-auto p-4 border-t border-outline-variant/10">
+<div class="flex items-center gap-3 p-2 mb-4 bg-surface-container-high">
+<div class="w-8 h-8 bg-primary flex items-center justify-center text-white font-bold text-xs">P1</div>
+<div>
+<p class="font-label text-[10px] text-on-surface-variant leading-none">IDENTIFIER</p>
+<p class="font-headline font-bold text-xs uppercase">Pilot Identifier 01</p>
+</div>
+</div>
+<div class="flex flex-col gap-1">
+<a class="flex items-center px-4 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined text-sm mr-2" data-icon="help_center">help_center</span>
+<span class="font-['Space_Grotesk'] font-bold text-[10px] tracking-wider uppercase">SUPPORT</span>
+</a>
+<a class="flex items-center px-4 py-2 text-secondary hover:bg-secondary-fixed transition-colors" href="#">
+<span class="material-symbols-outlined text-sm mr-2" data-icon="logout">logout</span>
+<span class="font-['Space_Grotesk'] font-bold text-[10px] tracking-wider uppercase">LOGOUT</span>
+</a>
+</div>
+</div>
+</aside>
+<!-- MAIN CONTENT AREA -->
+<main class="ml-64 min-h-screen flex flex-col relative">
+<!-- TOP APP BAR (FROM JSON) -->
+<header class="sticky top-0 z-30 bg-slate-50 dark:bg-slate-900 h-14 flex justify-between items-center w-full px-6 docked full-width border-b-0 flat no shadows">
+<div class="flex items-center gap-4">
+<span class="text-lg font-bold tracking-tighter text-blue-900 dark:text-white font-headline">AERO_COMMAND_V1</span>
+<div class="bg-slate-200 dark:bg-slate-800 h-6 w-[1px]"></div>
+<nav class="flex gap-6">
+<a class="text-blue-700 dark:text-blue-400 border-b-2 border-blue-700 font-['Space_Grotesk'] uppercase tracking-widest text-[10px] font-bold h-14 flex items-center" href="#">LOG_CENTER</a>
+<a class="text-slate-500 dark:text-slate-400 font-['Space_Grotesk'] uppercase tracking-widest text-[10px] font-bold h-14 flex items-center hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors" href="#">ANALYSIS</a>
+<a class="text-slate-500 dark:text-slate-400 font-['Space_Grotesk'] uppercase tracking-widest text-[10px] font-bold h-14 flex items-center hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors" href="#">ARCHIVE</a>
+</nav>
+</div>
+<div class="flex items-center gap-2">
+<button class="p-2 text-slate-500 hover:bg-slate-200 transition-colors duration-75 scale-95"><span class="material-symbols-outlined" data-icon="settings_input_component">settings_input_component</span></button>
+<button class="p-2 text-slate-500 hover:bg-slate-200 transition-colors duration-75 scale-95"><span class="material-symbols-outlined" data-icon="sensors">sensors</span></button>
+<button class="p-2 text-slate-500 hover:bg-slate-200 transition-colors duration-75 scale-95"><span class="material-symbols-outlined" data-icon="battery_charging_full">battery_charging_full</span></button>
+<button class="p-2 text-slate-500 hover:bg-slate-200 transition-colors duration-75 scale-95"><span class="material-symbols-outlined" data-icon="signal_cellular_connected_no_internet_4_bar">signal_cellular_connected_no_internet_4_bar</span></button>
+</div>
+</header>
+<div class="flex-1 p-8 overflow-y-auto no-scrollbar max-w-[1400px] mx-auto w-full">
+<!-- BENTO GRID LAYOUT -->
+<div class="grid grid-cols-12 gap-6 items-start">
+<!-- UPLOAD MODULE -->
+<section class="col-span-12 lg:col-span-4 bg-surface-container-lowest relative overflow-hidden">
+<div class="grain-texture absolute inset-0"></div>
+<div class="bg-surface-container-highest p-4 flex justify-between items-center">
+<h2 class="font-label font-bold text-[11px] tracking-wider uppercase text-on-surface">DATA_INGESTION_MODULE</h2>
+<span class="text-[9px] font-mono text-primary font-bold">READY_FOR_UPLOAD</span>
+</div>
+<div class="p-6">
+<div class="border-2 border-dashed border-outline-variant/30 p-8 flex flex-col items-center justify-center text-center gap-4 hover:border-primary transition-colors cursor-pointer group">
+<span class="material-symbols-outlined text-4xl text-outline group-hover:text-primary transition-colors" data-icon="upload_file">upload_file</span>
+<div>
+<p class="font-headline font-bold text-sm">DROP ARDUPILOT / JETSON LOGS</p>
+<p class="font-body text-[11px] text-outline mt-1">SUPPORTED: .BIN, .ULOG, .JSON_TELEMETRY</p>
+</div>
+<button class="bg-primary text-on-primary px-6 py-2 font-label text-[11px] font-bold tracking-widest uppercase hover:opacity-90 transition-opacity">SELECT_FILES</button>
+</div>
+<div class="mt-8 space-y-4">
+<h3 class="font-label font-bold text-[10px] tracking-widest text-on-surface-variant uppercase">PENDING_QUEUE</h3>
+<div class="bg-surface-container-low p-3 flex items-center justify-between">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary text-lg" data-icon="description">description</span>
+<div>
+<p class="font-headline font-bold text-[11px]">FLIGHT_302_JETSON.BIN</p>
+<p class="font-body text-[9px] text-outline">12.4 MB | ARDUPILOT_V4.2</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-xs text-outline cursor-pointer hover:text-error" data-icon="close">close</span>
+</div>
+</div>
+</div>
+</section>
+<!-- SESSION SELECTION & NOTES -->
+<section class="col-span-12 lg:col-span-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+<!-- Session Picker -->
+<div class="bg-surface-container-lowest">
+<div class="bg-surface-container-highest p-4">
+<h2 class="font-label font-bold text-[11px] tracking-wider uppercase text-on-surface">FLIGHT_SESSION_INDEX</h2>
+</div>
+<div class="divide-y divide-outline-variant/10 overflow-hidden">
+<div class="p-4 bg-primary-fixed/30 border-l-4 border-primary">
+<div class="flex justify-between items-start mb-2">
+<p class="font-headline font-bold text-xs">LOG_SESSION_ALPHA_99</p>
+<span class="bg-primary text-on-primary text-[8px] px-2 py-0.5 font-bold uppercase">ACTIVE</span>
+</div>
+<div class="grid grid-cols-2 gap-2 text-[10px] font-mono text-on-surface-variant">
+<span>COORD: 34.0522° N</span>
+<span>TIME: 14:22:05 UTC</span>
+<span>DUR: 00:42:15</span>
+<span>SAT: 18_FIXED</span>
+</div>
+</div>
+<div class="p-4 hover:bg-surface-container-low cursor-pointer transition-colors">
+<div class="flex justify-between items-start mb-2">
+<p class="font-headline font-bold text-xs">LOG_SESSION_SIGMA_12</p>
+<span class="bg-surface-container-highest text-on-surface-variant text-[8px] px-2 py-0.5 font-bold uppercase">ARCHIVED</span>
+</div>
+<p class="text-[10px] font-mono text-outline">COORD: 34.1205° N | DUR: 01:15:00</p>
+</div>
+<div class="p-4 hover:bg-surface-container-low cursor-pointer transition-colors">
+<div class="flex justify-between items-start mb-2">
+<p class="font-headline font-bold text-xs">LOG_SESSION_DELTA_04</p>
+<span class="bg-surface-container-highest text-on-surface-variant text-[8px] px-2 py-0.5 font-bold uppercase">ARCHIVED</span>
+</div>
+<p class="text-[10px] font-mono text-outline">COORD: 33.9510° N | DUR: 00:18:22</p>
+</div>
+</div>
+</div>
+<!-- Session Notes -->
+<div class="bg-surface-container-lowest flex flex-col">
+<div class="bg-surface-container-highest p-4">
+<h2 class="font-label font-bold text-[11px] tracking-wider uppercase text-on-surface">MISSION_ANNOTATIONS</h2>
+</div>
+<div class="p-6 flex-1 flex flex-col gap-4">
+<div class="flex-1 space-y-4">
+<div class="space-y-1">
+<label class="font-label text-[10px] font-bold uppercase text-outline">SESSION_COMMANDER</label>
+<input class="w-full bg-surface-container-low border-none focus:ring-1 focus:ring-primary p-3 font-mono text-xs" type="text" value="C_ARCHER_01"/>
+</div>
+<div class="space-y-1 flex-1">
+<label class="font-label text-[10px] font-bold uppercase text-outline">OBSERVATIONAL_DATA</label>
+<textarea class="w-full bg-surface-container-low border-none focus:ring-1 focus:ring-primary p-3 font-body text-xs min-h-[150px] resize-none" placeholder="Enter session technical notes here...">Terrain scan initiated at T+05:00. LiDAR payload reported stable calibration. Anomaly detected in sector 7-G; possible interference from local RF source. Pilot successfully executed manual override at T+38:12 to bypass geo-fence limitation.</textarea>
+</div>
+</div>
+<button class="w-full bg-secondary text-on-secondary py-3 font-label text-[11px] font-bold tracking-widest uppercase hover:opacity-90 transition-opacity">COMMIT_SESSION_LOGS</button>
+</div>
+</div>
+</section>
+<!-- TERRAIN SCAN MAP SECTION -->
+<section class="col-span-12 bg-surface-container-lowest">
+<div class="bg-surface-container-highest p-4 flex justify-between items-center">
+<div class="flex items-center gap-4">
+<h2 class="font-label font-bold text-[11px] tracking-wider uppercase text-on-surface">TERRAIN_PROFILER_V3</h2>
+<div class="flex gap-2">
+<span class="bg-primary-container text-on-primary-container text-[9px] px-2 font-bold flex items-center gap-1"><span class="w-1.5 h-1.5 bg-primary-fixed rounded-full"></span> LIDAR_ACTIVE</span>
+<span class="bg-surface-container-high text-on-surface-variant text-[9px] px-2 font-bold flex items-center">BATHYMETRY: OFF</span>
+</div>
+</div>
+<div class="flex gap-4">
+<span class="font-mono text-[10px] text-outline">LAYER_STACK: [GRID_88, GEO_MARKERS, HEATMAP_V4]</span>
+<span class="material-symbols-outlined text-lg cursor-pointer hover:text-primary" data-icon="fullscreen">fullscreen</span>
+</div>
+</div>
+<div class="h-[400px] relative bg-slate-200 group overflow-hidden">
+<!-- Simulated Map Image -->
+<img alt="Topographic terrain scan" class="w-full h-full object-cover opacity-60 grayscale mix-blend-multiply" data-alt="high-altitude grayscale topographic terrain scan with digital grid overlay and neon cyan coordinate markers and elevation lines" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBvkTSfggUiRHN00eeleTN7k-x5BHmfaBYkGpMo7R6Cc-wEJHRHc5PkvA3KjiNI0MuYaYdbyzhGUg7fQx4jCKPbTGAti0exs7vdNPbw0CiJUsjCjMKxb46gxpn5-xrI3RjFpudsRIYfux5Na2E8NWIDL_nZwpPgVherofdAXHzHsc1OwlVFJp1dK1q6jNRKNb29dG_06AE7nJFpqqV0doL8VSHIO1d2HTrVcmy3aG_gNaNxLv3kXKdBfFGzaQcogqmk80gV43nBaoU"/>
+<!-- Coordinate Overlays (CSS Generated) -->
+<div class="absolute inset-0 pointer-events-none p-4">
+<div class="absolute top-4 left-4 font-mono text-[9px] text-primary bg-white/80 p-1 px-2">NW_ANCHOR: 34.0522° N, 118.2437° W</div>
+<div class="absolute bottom-4 right-4 font-mono text-[9px] text-primary bg-white/80 p-1 px-2">SE_ANCHOR: 34.0411° N, 118.2321° W</div>
+<!-- Tactical Grid Lines -->
+<div class="absolute inset-0 border-[0.5px] border-primary/20 flex flex-col justify-between">
+<div class="h-[1px] w-full bg-primary/10"></div>
+<div class="h-[1px] w-full bg-primary/10"></div>
+<div class="h-[1px] w-full bg-primary/10"></div>
+<div class="h-[1px] w-full bg-primary/10"></div>
+</div>
+<div class="absolute inset-0 border-[0.5px] border-primary/20 flex justify-between">
+<div class="w-[1px] h-full bg-primary/10"></div>
+<div class="w-[1px] h-full bg-primary/10"></div>
+<div class="w-[1px] h-full bg-primary/10"></div>
+<div class="w-[1px] h-full bg-primary/10"></div>
+</div>
+<!-- Marker -->
+<div class="absolute top-1/2 left-1/3 w-8 h-8 -mt-4 -ml-4">
+<div class="absolute inset-0 border border-secondary animate-ping opacity-75"></div>
+<div class="absolute inset-2 border-2 border-secondary bg-secondary/20"></div>
+<div class="absolute -top-6 -left-4 font-mono text-[8px] font-bold text-secondary whitespace-nowrap bg-white px-1">ANOMALY_07G</div>
+</div>
+</div>
+<!-- Map Controls Floating -->
+<div class="absolute bottom-6 left-6 flex flex-col gap-2">
+<button class="bg-white p-2 shadow-xl hover:bg-surface-container-high"><span class="material-symbols-outlined text-lg" data-icon="add">add</span></button>
+<button class="bg-white p-2 shadow-xl hover:bg-surface-container-high"><span class="material-symbols-outlined text-lg" data-icon="remove">remove</span></button>
+</div>
+<div class="absolute top-6 right-6 flex flex-col gap-2">
+<button class="bg-primary text-white p-3 font-label text-[10px] font-bold tracking-widest uppercase flex items-center gap-2">
+<span class="material-symbols-outlined text-sm" data-icon="layers">layers</span>
+                                CONTOUR_TOGGLE
+                            </button>
+<button class="bg-white text-on-surface p-3 font-label text-[10px] font-bold tracking-widest uppercase flex items-center gap-2 shadow-lg">
+<span class="material-symbols-outlined text-sm" data-icon="gps_fixed">gps_fixed</span>
+                                RE_CENTER
+                            </button>
+</div>
+</div>
+<div class="bg-surface-container p-3 flex justify-between font-mono text-[9px] text-on-surface-variant">
+<span>LAT: 34.0522° | LONG: -118.2437° | ELEV: 1,422M</span>
+<span>SATELLITE_LOCK: 18_SV | DOP: 0.85</span>
+</div>
+</section>
+</div>
+</div>
+<!-- FOOTER STATUS BAR -->
+<footer class="h-8 bg-slate-900 text-slate-400 flex items-center px-6 justify-between font-mono text-[9px]">
+<div class="flex gap-6">
+<span class="flex items-center gap-2"><span class="w-1.5 h-1.5 bg-green-500 rounded-full"></span> SYSTEM_ONLINE</span>
+<span class="flex items-center gap-2"><span class="w-1.5 h-1.5 bg-blue-500 rounded-full"></span> NODE_A_SYNCED</span>
+</div>
+<div class="flex gap-6">
+<span>LOCAL_TIME: 14:45:22 UTC-8</span>
+<span>DATA_RATE: 45.2 MB/S</span>
+<span class="text-white">ENCRYPTION: AES-256-GCM</span>
+</div>
+</footer>
+</main>
+</body></html>

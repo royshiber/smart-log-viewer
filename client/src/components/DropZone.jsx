@@ -59,16 +59,16 @@ export function DropZone({ onFile, onFiles, disabled, loading, progress, classNa
 
   const baseClasses = compact
     ? `
-        border border-dotted rounded-lg p-5 text-center cursor-pointer
+        border border-dotted p-5 text-center cursor-pointer
         transition-all duration-200 select-none
-        bg-transparent border-white/35
-        ${drag ? 'border-figmaAccent bg-white/5' : 'hover:border-white/55'}
+        bg-transparent border-border
+        ${drag ? 'border-accent bg-accent/5' : 'hover:border-accent/60'}
       `
     : `
-        border-2 border-dashed rounded-xl p-10 text-center cursor-pointer
+        border-2 border-dashed p-10 text-center cursor-pointer aero-grid
         transition-all duration-200 select-none
-        bg-surfaceRaised border-border
-        ${drag ? 'border-accent bg-accent/10 scale-[1.02]' : 'hover:border-accent/60'}
+        bg-surfaceContainer border-border
+        ${drag ? 'border-accent bg-accent/5 scale-[1.01]' : 'hover:border-accent/70'}
       `;
 
   return (
@@ -90,20 +90,20 @@ export function DropZone({ onFile, onFiles, disabled, loading, progress, classNa
       <div className={`flex flex-col items-center justify-center h-full ${compact ? 'gap-2' : 'gap-6'}`}>
         {!compact && <PlaneIcon />}
         <div>
-          <p className={compact ? 'text-sm text-white/90 leading-snug' : 'text-2xl font-semibold text-gray-200'}>
+          <p className={compact ? 'text-sm text-onSurface leading-snug font-medium' : 'text-xl font-headline font-semibold text-onSurface'}>
             {loading ? t('dropZone.parsing') : t('dropZone.prompt')}
           </p>
-          <p className={compact ? 'text-xs text-white/45 mt-1' : 'text-base text-gray-400 mt-2'}>.bin</p>
+          <p className={compact ? 'text-xs text-muted mt-1' : 'text-sm text-muted mt-2'}>.bin</p>
         </div>
         {loading && (
           <div className="w-full max-w-xs">
-            <div className={`h-2 ${compact ? 'bg-white/10' : 'bg-surface'} rounded-full overflow-hidden`}>
+            <div className={`h-2 ${compact ? 'bg-surfaceRaised' : 'bg-surfaceRaised'} overflow-hidden border border-border`}>
               <div
-                className="h-full bg-accentGreen transition-all duration-300"
+                className="h-full bg-accent transition-all duration-300"
                 style={{ width: `${progress}%` }}
               />
             </div>
-            <p className={`${compact ? 'text-xs text-white/50' : 'text-sm text-gray-500'} mt-2`}>{Math.round(progress)}%</p>
+            <p className={`${compact ? 'text-xs text-muted' : 'text-sm text-muted'} mt-2`}>{Math.round(progress)}%</p>
           </div>
         )}
       </div>

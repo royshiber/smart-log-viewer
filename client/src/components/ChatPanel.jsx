@@ -139,12 +139,12 @@ export function ChatPanel({
 
   return (
     <div
-      className="flex flex-col h-full bg-surfaceRaised border-l border-border"
+      className="flex flex-col h-full bg-surfaceContainerLow border-l border-border"
       dir={dir}
       style={{ width: widthPx, minWidth: widthMinPx, maxWidth: widthMaxPx, flexShrink: 0 }}
     >
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-2 border-b border-border bg-surface shrink-0">
+      <div className="flex items-center justify-between px-4 py-2 border-b border-border bg-surfaceContainer shrink-0">
         <div className="flex items-center gap-3 min-w-0">
           <h2 className="text-sm font-semibold text-accent shrink-0">{t('chat.title')}</h2>
           <span
@@ -157,7 +157,7 @@ export function ChatPanel({
             aria-label={geminiStatus.reason}
           />
           {activeTab === 'map' && (
-            <span className="text-xs text-gray-500 bg-surface/60 px-2 py-0.5 rounded-full border border-border shrink-0">
+            <span className="text-xs text-muted bg-surfaceRaised px-2 py-0.5 border border-border shrink-0">
               {t('map.mapMode', 'מצב מפה')}
             </span>
           )}
@@ -179,7 +179,7 @@ export function ChatPanel({
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-3 space-y-3">
         {(!messages || messages.length === 0) && (
-          <p className="text-gray-500 text-xs">
+          <p className="text-muted text-xs">
             {activeTab === 'map' ? t('map.chatEmpty') : t('chat.empty')}
           </p>
         )}
@@ -191,7 +191,7 @@ export function ChatPanel({
                   ? 'bg-accent/20 text-accent'
                   : m.error
                     ? 'bg-red-500/20 text-red-400'
-                    : 'bg-surface border border-border text-gray-200'
+                    : 'bg-surfaceContainer border border-border text-onSurface'
               } ${m.streaming ? 'opacity-80' : ''}`}
             >
               {m.text}
@@ -209,7 +209,7 @@ export function ChatPanel({
                 className={`mt-1 text-xs px-2 py-0.5 rounded border transition-colors ${
                   savedIds.has(i)
                     ? 'border-green-600 text-green-500 cursor-default'
-                    : 'border-border text-gray-500 hover:border-accent hover:text-accent cursor-pointer'
+                    : 'border-border text-muted hover:border-accent hover:text-accent cursor-pointer'
                 }`}
               >
                 {savedIds.has(i) ? t('map.commandSaved') : t('map.saveCommand')}
@@ -219,7 +219,7 @@ export function ChatPanel({
         ))}
         {loading && (
           <div className="flex justify-start">
-            <div className="px-3 py-2 rounded-lg bg-surface border border-border text-gray-500 text-xs">
+            <div className="px-3 py-2 border bg-surfaceContainer border-border text-muted text-xs">
               {t('common.loading')}
             </div>
           </div>
@@ -236,12 +236,12 @@ export function ChatPanel({
             onChange={(e) => setInput(e.target.value)}
             placeholder={activeTab === 'map' ? t('map.chatPlaceholder') : t('chat.placeholder')}
             disabled={loading}
-            className="flex-1 px-3 py-1.5 rounded-lg bg-surface border border-border text-gray-200 placeholder-gray-500 text-sm focus:outline-none focus:ring-2 focus:ring-accent/50"
+            className="flex-1 px-3 py-1.5 bg-surfaceContainer border border-border text-onSurface placeholder-muted text-sm focus:outline-none focus:ring-2 focus:ring-accent/35"
           />
           <button
             type="submit"
             disabled={!input.trim() || loading}
-            className="px-3 py-1.5 bg-accent text-surface font-medium rounded-lg hover:bg-accent/90 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+            className="px-3 py-1.5 bg-accent text-white font-label font-bold text-xs uppercase tracking-wider hover:bg-accent/90 disabled:opacity-50 disabled:cursor-not-allowed border border-accent"
           >
             {t('chat.send')}
           </button>

@@ -23,7 +23,7 @@ export function MapChatPanel({ onSend, messages = [], loading = false, onSave, e
 
   return (
     <div
-      className={`flex flex-col min-h-0 bg-surfaceRaised ${embedded ? 'flex-1' : 'fixed inset-y-0 right-0 w-96 max-w-[90vw] border-l border-border shadow-xl z-50'}`}
+      className={`flex flex-col min-h-0 bg-surfaceContainerLow ${embedded ? 'flex-1' : 'fixed inset-y-0 right-0 w-96 max-w-[90vw] border-l border-border shadow-xl z-50'}`}
       dir={dir}
     >
       <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-surface">
@@ -32,7 +32,7 @@ export function MapChatPanel({ onSend, messages = [], loading = false, onSave, e
           <button
             type="button"
             onClick={onClose}
-            className="p-1 rounded hover:bg-surfaceRaised text-gray-400 hover:text-gray-200"
+            className="p-1 hover:bg-surfaceRaised text-muted hover:text-onSurface"
             aria-label="Close"
           >
             ✕
@@ -42,7 +42,7 @@ export function MapChatPanel({ onSend, messages = [], loading = false, onSave, e
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.length === 0 && (
-          <p className="text-gray-500 text-sm">{t('map.chatEmpty')}</p>
+          <p className="text-muted text-sm">{t('map.chatEmpty')}</p>
         )}
         {messages.map((m, i) => (
           <div
@@ -54,8 +54,8 @@ export function MapChatPanel({ onSend, messages = [], loading = false, onSave, e
                 m.role === 'user'
                   ? 'bg-accent/20 text-accent'
                   : m.error
-                    ? 'bg-red-500/20 text-red-400'
-                    : 'bg-surface border border-border text-gray-200'
+                    ? 'bg-red-50 text-red-800 border border-red-200'
+                    : 'bg-surfaceContainer border border-border text-onSurface'
               }`}
             >
               {m.text}
@@ -71,7 +71,7 @@ export function MapChatPanel({ onSend, messages = [], loading = false, onSave, e
                 className={`mt-1 text-xs px-2 py-0.5 rounded border transition-colors ${
                   savedIds.has(i)
                     ? 'border-green-600 text-green-500 cursor-default'
-                    : 'border-border text-gray-500 hover:border-accent hover:text-accent cursor-pointer'
+                    : 'border-border text-muted hover:border-accent hover:text-accent cursor-pointer'
                 }`}
               >
                 {savedIds.has(i) ? t('map.commandSaved') : t('map.saveCommand')}
@@ -81,7 +81,7 @@ export function MapChatPanel({ onSend, messages = [], loading = false, onSave, e
         ))}
         {loading && (
           <div className="flex justify-start">
-            <div className="px-3 py-2 rounded-lg bg-surface border border-border text-gray-500 text-sm">
+            <div className="px-3 py-2 border bg-surfaceContainer border-border text-muted text-sm">
               {t('common.loading')}
             </div>
           </div>
@@ -97,12 +97,12 @@ export function MapChatPanel({ onSend, messages = [], loading = false, onSave, e
             onChange={(e) => setInput(e.target.value)}
             placeholder={t('map.chatPlaceholder')}
             disabled={loading}
-            className="flex-1 px-4 py-2 rounded-lg bg-surface border border-border text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-accent/50"
+            className="flex-1 px-4 py-2 bg-surfaceContainer border border-border text-onSurface placeholder-muted focus:outline-none focus:ring-2 focus:ring-accent/35"
           />
           <button
             type="submit"
             disabled={!input.trim() || loading}
-            className="px-4 py-2 bg-accent text-surface font-medium rounded-lg hover:bg-accent/90 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-4 py-2 bg-accent text-white font-medium border border-accent hover:bg-accent/90 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {t('chat.send')}
           </button>

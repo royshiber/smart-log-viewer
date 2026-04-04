@@ -58,17 +58,17 @@ export function VehicleCard({ vehicle, selected, onClick, onRename, onPhotoChang
         onClick={onClick}
         onContextMenu={handleContextMenu}
         title={vehicle.name}
-        className={`relative flex flex-col items-center cursor-pointer select-none rounded-lg p-1 transition-all group
+        className={`relative flex flex-col items-center cursor-pointer select-none p-1 transition-all group border border-transparent
           ${selected
-            ? 'ring-2 ring-accent bg-accent/10'
-            : 'hover:bg-surface/60 hover:ring-1 hover:ring-border'
+            ? 'ring-2 ring-accent bg-accent/10 border-border'
+            : 'hover:bg-surfaceRaised hover:border-border'
           }`}
         style={{ width: size || 72 }}
       >
         <div
-          className={`rounded-lg overflow-hidden flex items-center justify-center border
-            ${selected ? 'border-accent/60' : 'border-border'}`}
-          style={{ width: (size || 72) - 16, height: (size || 72) - 16, background: '#0d1117' }}
+          className={`overflow-hidden flex items-center justify-center border
+            ${selected ? 'border-accent' : 'border-border'}`}
+          style={{ width: (size || 72) - 16, height: (size || 72) - 16, background: '#eceef1' }}
         >
           {vehicle.photo ? (
             <img src={vehicle.photo} alt={vehicle.name} className="w-full h-full object-cover" />
@@ -85,7 +85,7 @@ export function VehicleCard({ vehicle, selected, onClick, onRename, onPhotoChang
           )}
         </div>
         {/* Name */}
-        <span className="mt-1 text-xl text-center text-gray-300 truncate w-full px-0.5 leading-tight">
+        <span className="mt-1 text-xl text-center text-onSurface truncate w-full px-0.5 leading-tight font-headline font-semibold">
           {vehicle.name}
         </span>
       </div>
@@ -94,20 +94,20 @@ export function VehicleCard({ vehicle, selected, onClick, onRename, onPhotoChang
       {menu && (
         <div
           ref={menuRef}
-          className="fixed z-[9999] bg-surfaceRaised border border-border rounded-lg shadow-xl py-1 min-w-[140px]"
+          className="fixed z-[9999] bg-surfaceContainer border border-border shadow-xl py-1 min-w-[140px]"
           style={{ top: menu.y, left: menu.x }}
         >
           <button
             type="button"
             onClick={handleRename}
-            className="w-full text-right px-4 py-2 text-sm text-gray-200 hover:bg-surface/80 flex items-center gap-2"
+            className="w-full text-right px-4 py-2 text-sm text-onSurface hover:bg-surfaceRaised flex items-center gap-2"
           >
             ✏️ {t('vehicle.rename', 'שנה שם')}
           </button>
           <button
             type="button"
             onClick={handlePhotoClick}
-            className="w-full text-right px-4 py-2 text-sm text-gray-200 hover:bg-surface/80 flex items-center gap-2"
+            className="w-full text-right px-4 py-2 text-sm text-onSurface hover:bg-surfaceRaised flex items-center gap-2"
           >
             🖼️ {t('vehicle.setPhoto', 'הוסף תמונה')}
           </button>
@@ -115,7 +115,7 @@ export function VehicleCard({ vehicle, selected, onClick, onRename, onPhotoChang
           <button
             type="button"
             onClick={handleDelete}
-            className="w-full text-right px-4 py-2 text-sm text-red-400 hover:bg-red-500/10 flex items-center gap-2"
+            className="w-full text-right px-4 py-2 text-sm text-red-700 hover:bg-red-50 flex items-center gap-2"
           >
             🗑️ {t('vehicle.delete', 'מחק כטב"ם')}
           </button>

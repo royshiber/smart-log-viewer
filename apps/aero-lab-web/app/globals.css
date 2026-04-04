@@ -1,0 +1,21 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/**
+ * Why: grain + glass utilities match Stitch export inline <style> in 06-extended-telemetry-style.html.
+ * What: global layer hooks for backgrounds and overlays.
+ */
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+.grain-texture {
+  background-image: url(https://lh3.googleusercontent.com/aida-public/AB6AXuAXrNWAZGG7V9izEpMGI2zSSXyFn_tokc_QJBzUPJimjt88mFOFzodnfh8G0MIiADQ10KZRJQo9OC2CYsBX8KTarwwq-uU_xDEDlnPK6xjIc00gfkJMs49rdk_rFUJdciolo_NujXz3IX1XMaXFYtoTyU2EPNfLkfUHUcKw5tsi055azhVoW5fYcSwAx6brwqVRtsduUCawFtRS1zdM7pLSx81KXjGYKQRc7wFKZ5nb7tRldGySjFl7k7CB21KXYc1axPOagDEHAY8);
+  opacity: 0.02;
+}
+
+.glass-panel {
+  background: rgba(242, 244, 247, 0.7);
+  backdrop-filter: blur(12px);
+}

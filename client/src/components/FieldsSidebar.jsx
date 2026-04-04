@@ -39,11 +39,11 @@ export function FieldsSidebar({ fields, selected, onChange, defaultCollapsed = t
 
   if (collapsed) {
     return (
-      <div className="h-full flex flex-col bg-surfaceRaised border-r border-border w-10 shrink-0">
+      <div className="h-full flex flex-col bg-surfaceContainerLow border-r border-border w-10 shrink-0">
         <button
           type="button"
           onClick={() => setCollapsed(false)}
-          className="p-2 w-full flex items-center justify-center text-gray-500 hover:text-accent hover:bg-surface border-b border-border h-10"
+          className="p-2 w-full flex items-center justify-center text-muted hover:text-accent hover:bg-surfaceRaised border-b border-border h-10"
           title={t('fields.select')}
           aria-label={t('fields.select')}
         >
@@ -61,12 +61,12 @@ export function FieldsSidebar({ fields, selected, onChange, defaultCollapsed = t
           placeholder={t('fields.search')}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="flex-1 px-3 py-2 rounded bg-surface border border-border text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-accent/50 text-sm"
+          className="flex-1 px-3 py-2 bg-surfaceContainer border border-border text-onSurface placeholder-muted focus:outline-none focus:ring-2 focus:ring-accent/35 text-sm"
         />
         <button
           type="button"
           onClick={() => setCollapsed(true)}
-          className="ml-1 px-2 py-1 text-gray-500 hover:text-gray-200"
+          className="ml-1 px-2 py-1 text-muted hover:text-onSurface"
           aria-label="Collapse"
         >
           −
@@ -82,17 +82,17 @@ export function FieldsSidebar({ fields, selected, onChange, defaultCollapsed = t
               {items.map(({ full, field }) => (
                 <label
                   key={full}
-                  className="flex items-start gap-2 px-2 py-1 rounded hover:bg-surface cursor-pointer text-sm text-gray-300"
+                  className="flex items-start gap-2 px-2 py-1 hover:bg-surfaceRaised cursor-pointer text-sm text-onSurface"
                 >
                   <input
                     type="checkbox"
                     checked={selected.includes(full)}
                     onChange={() => toggle(full)}
-                    className="rounded border-border accent-accent"
+                    className="border-border accent-accent"
                   />
                   <span className="min-w-0">
-                    <span className="block truncate text-gray-200">{getFieldLabel(full, i18n.language)}</span>
-                    <span className="block truncate text-xs text-gray-500">{full || field}</span>
+                    <span className="block truncate text-onSurface">{getFieldLabel(full, i18n.language)}</span>
+                    <span className="block truncate text-xs text-muted">{full || field}</span>
                   </span>
                 </label>
               ))}

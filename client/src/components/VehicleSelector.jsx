@@ -27,14 +27,14 @@ export function VehicleSelector({ selectedId, onSelect, onVehiclesChange }) {
     });
   };
 
-  if (loading) return <span className="text-gray-500 text-sm">{t('common.loading')}</span>;
+  if (loading) return <span className="text-muted text-sm">{t('common.loading')}</span>;
 
   return (
     <div className="flex items-center gap-2">
       <select
         value={selectedId || ''}
         onChange={(e) => onSelect(e.target.value || null)}
-        className="px-3 py-1.5 rounded bg-surface border border-border text-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-accent/50 min-w-[140px]"
+        className="px-3 py-1.5 bg-surfaceContainer border border-border text-onSurface text-sm focus:outline-none focus:ring-2 focus:ring-accent/35 min-w-[140px]"
       >
         <option value="">{t('vehicle.select')}</option>
         {vehicles.map((v) => (

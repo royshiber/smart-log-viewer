@@ -56,7 +56,7 @@ export function FlightLogsCompareSelector({
   };
 
   const btnClass =
-    'flex items-center justify-center gap-2 w-full min-h-[52px] px-3 py-2 rounded-xl bg-surfaceRaised border border-border text-sm text-gray-200 hover:border-accent/50 hover:text-accent transition-all shadow-sm';
+    'flex items-center justify-center gap-2 w-full min-h-[52px] px-3 py-2 border bg-surfaceContainer border-border text-sm text-onSurface hover:border-accent hover:text-accent transition-all';
 
   return (
     <div className="relative w-full">
@@ -73,24 +73,24 @@ export function FlightLogsCompareSelector({
 
       {open && (
         <div
-          className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/65"
+          className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-onSurface/35 backdrop-blur-sm"
           onClick={() => setOpen(false)}
           role="presentation"
         >
           <div
-            className="w-full max-w-md max-h-[min(80vh,520px)] rounded-xl bg-surfaceRaised border border-border shadow-2xl overflow-hidden flex flex-col"
+            className="w-full max-w-md max-h-[min(80vh,520px)] bg-surfaceContainer border border-border shadow-2xl overflow-hidden flex flex-col"
             onClick={(e) => e.stopPropagation()}
             dir={isRtl ? 'rtl' : 'ltr'}
           >
             <div className="px-4 py-3 border-b border-border flex items-center justify-between gap-2 shrink-0">
               <div>
                 <h3 className="text-sm font-semibold text-accent">{t('comparison.addFlightLogs')}</h3>
-                <p className="text-xs text-gray-500 mt-0.5">{t('comparison.flightLogsSubtitle')}</p>
+                <p className="text-xs text-muted mt-0.5">{t('comparison.flightLogsSubtitle')}</p>
               </div>
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                className="text-gray-400 hover:text-gray-100 px-2 py-1 rounded-lg hover:bg-surface text-lg leading-none shrink-0"
+                className="text-muted hover:text-onSurface px-2 py-1 border border-transparent hover:border-border text-lg leading-none shrink-0"
                 aria-label={t('landing.closePicker')}
               >
                 ✕
@@ -98,16 +98,16 @@ export function FlightLogsCompareSelector({
             </div>
 
             {atLimit && (
-              <p className="px-4 py-2 text-xs text-amber-400 bg-amber-500/10 border-b border-amber-500/20">
+              <p className="px-4 py-2 text-xs text-amber-900 bg-amber-50 border-b border-amber-200">
                 {t('comparison.maxComparisons', { count: MAX_EXTRA })}
               </p>
             )}
 
             <div className="flex-1 min-h-0 overflow-y-auto">
               {loading ? (
-                <p className="px-4 py-6 text-gray-500 text-sm text-center">{t('common.loading')}</p>
+                <p className="px-4 py-6 text-muted text-sm text-center">{t('common.loading')}</p>
               ) : logs.length === 0 ? (
-                <p className="px-4 py-6 text-gray-500 text-sm text-center">{t('comparison.noSavedLogsForVehicle')}</p>
+                <p className="px-4 py-6 text-muted text-sm text-center">{t('comparison.noSavedLogsForVehicle')}</p>
               ) : (
                 <ul className="py-2">
                   {logs.map((log) => {
@@ -120,17 +120,17 @@ export function FlightLogsCompareSelector({
                           type="button"
                           disabled={disabled}
                           onClick={() => handlePick(log)}
-                          className={`w-full px-4 py-3 text-sm text-start border-b border-border/40 transition-colors ${
+                          className={`w-full px-4 py-3 text-sm text-start border-b border-border transition-colors ${
                             added || isMain
-                              ? 'text-gray-600 cursor-default'
+                              ? 'text-muted cursor-default'
                               : atLimit
-                                ? 'text-gray-600 cursor-not-allowed'
-                                : 'text-gray-200 hover:bg-surface'
+                                ? 'text-muted cursor-not-allowed'
+                                : 'text-onSurface hover:bg-surfaceRaised'
                           }`}
                         >
                           <span className="font-medium block truncate">{log.displayName}</span>
                           {log.originalName && (
-                            <span className="text-xs text-gray-500 truncate block">{log.originalName}</span>
+                            <span className="text-xs text-muted truncate block">{log.originalName}</span>
                           )}
                           {isMain && (
                             <span className="text-xs text-accent/80 mt-0.5">{t('comparison.isMainChartLog')}</span>

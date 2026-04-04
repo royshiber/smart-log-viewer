@@ -1,17 +1,48 @@
 const API_BASE = '/api';
 
 /**
+ * Why: capture client-side transport/runtime evidence for Gemini calls.
+ * What: emits lightweight debug events to the session collector endpoint.
+ */
+function debugLog(runId, hypothesisId, location, message, data = {}) {
+  // #region agent log
+  fetch('http://127.0.0.1:7634/ingest/2a4c37c4-9528-4a94-88f0-8ea23ce2aa2e', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': 'f30930' },
+    body: JSON.stringify({
+      sessionId: 'f30930',
+      runId,
+      hypothesisId,
+      location,
+      message,
+      data,
+      timestamp: Date.now(),
+    }),
+  }).catch(() => {});
+  // #endregion
+}
+
+/**
  * Stream chart analysis tokens via SSE.
  * onDelta(text) is called for each token chunk.
  * Returns the full assembled text when done.
  */
 export async function streamChatMessage(messages, context, onDelta) {
+  // #region agent log
+  debugLog('initial', 'H2', 'client/src/api/chat.js:streamChatMessage', 'Client stream call start', {
+    messageCount: Array.isArray(messages) ? messages.length : -1,
+    hasContext: Boolean(context),
+  });
+  // #endregion
   const res = await fetch(`${API_BASE}/chat/stream`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ messages, context }),
   });
   if (!res.ok) {
+    // #region agent log
+    debugLog('initial', 'H2', 'client/src/api/chat.js:streamChatMessage', 'Client stream HTTP not ok', { status: res.status });
+    // #endregion
     const err = await res.json().catch(() => ({}));
     throw new Error(err.error || res.statusText);
   }

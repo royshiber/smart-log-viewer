@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "on-primary-fixed": "#001b3d",
+                        "on-primary-container": "#c8daff",
+                        "secondary-container": "#fe5e1e",
+                        "secondary": "#ab3600",
+                        "on-primary-fixed-variant": "#00468c",
+                        "on-secondary-container": "#551600",
+                        "surface-container": "#eceef1",
+                        "on-error": "#ffffff",
+                        "on-tertiary-container": "#c6dde9",
+                        "on-secondary": "#ffffff",
+                        "secondary-fixed-dim": "#ffb59c",
+                        "surface-container-high": "#e6e8eb",
+                        "error": "#ba1a1a",
+                        "tertiary": "#354a54",
+                        "primary-container": "#005eb8",
+                        "on-secondary-fixed-variant": "#832700",
+                        "tertiary-fixed": "#cfe6f2",
+                        "tertiary-container": "#4d626c",
+                        "on-tertiary": "#ffffff",
+                        "on-error-container": "#93000a",
+                        "primary": "#00478d",
+                        "on-primary": "#ffffff",
+                        "inverse-on-surface": "#eff1f4",
+                        "on-tertiary-fixed-variant": "#354a53",
+                        "inverse-surface": "#2d3133",
+                        "surface-variant": "#e0e3e6",
+                        "primary-fixed-dim": "#a9c7ff",
+                        "surface-container-low": "#f2f4f7",
+                        "tertiary-fixed-dim": "#b4cad6",
+                        "surface-bright": "#f7f9fc",
+                        "secondary-fixed": "#ffdbcf",
+                        "surface": "#f7f9fc",
+                        "inverse-primary": "#a9c7ff",
+                        "outline": "#727783",
+                        "on-secondary-fixed": "#390c00",
+                        "surface-dim": "#d8dadd",
+                        "on-tertiary-fixed": "#071e27",
+                        "surface-container-lowest": "#ffffff",
+                        "on-surface-variant": "#424752",
+                        "background": "#f7f9fc",
+                        "outline-variant": "#c2c6d4",
+                        "on-background": "#191c1e",
+                        "surface-container-highest": "#e0e3e6",
+                        "surface-tint": "#005db6",
+                        "primary-fixed": "#d6e3ff",
+                        "on-surface": "#191c1e",
+                        "error-container": "#ffdad6"
+                    },
+                    fontFamily: {
+                        "headline": ["Space Grotesk"],
+                        "body": ["Inter"],
+                        "label": ["Space Grotesk"]
+                    },
+                    borderRadius: {"DEFAULT": "0px", "lg": "0px", "xl": "0px", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .grain-texture {
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+            opacity: 0.03;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body class="bg-surface font-body text-on-surface selection:bg-primary selection:text-white">
+<!-- TopAppBar -->
+<header class="fixed top-0 z-50 w-full bg-slate-50 dark:bg-slate-900 border-b-0 flex justify-between items-center px-6 h-14">
+<div class="flex items-center gap-4">
+<span class="text-lg font-bold tracking-tighter text-blue-900 dark:text-white font-headline">AERO_COMMAND_V1</span>
+<div class="bg-slate-200 dark:bg-slate-800 h-6 w-[1px]"></div>
+<span class="font-['Space_Grotesk'] uppercase tracking-widest text-[10px] font-bold text-blue-900 dark:text-blue-400">MISSION_CONTROL</span>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex gap-4">
+<span class="material-symbols-outlined text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors p-1 cursor-pointer" data-icon="settings_input_component">settings_input_component</span>
+<span class="material-symbols-outlined text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors p-1 cursor-pointer" data-icon="sensors">sensors</span>
+<span class="material-symbols-outlined text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors p-1 cursor-pointer" data-icon="battery_charging_full" style="font-variation-settings: 'FILL' 1;">battery_charging_full</span>
+<span class="material-symbols-outlined text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors p-1 cursor-pointer" data-icon="signal_cellular_connected_no_internet_4_bar">signal_cellular_connected_no_internet_4_bar</span>
+</div>
+<div class="hidden md:flex gap-4">
+<span class="font-label text-[10px] font-bold text-blue-700 dark:text-blue-400 border-b-2 border-blue-700 uppercase tracking-widest cursor-pointer">SYSTEM_STATUS</span>
+<span class="font-label text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest cursor-pointer hover:text-blue-700">TELEMETRY</span>
+</div>
+</div>
+</header>
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-0 h-full flex flex-col z-40 w-64 bg-slate-100 dark:bg-slate-950 transition-all duration-150 ease-in-out pt-14">
+<div class="p-6 flex flex-col gap-1">
+<div class="flex items-center gap-3 mb-4">
+<div class="w-10 h-10 bg-blue-900 flex items-center justify-center">
+<span class="material-symbols-outlined text-white" data-icon="rocket_launch">rocket_launch</span>
+</div>
+<div>
+<h2 class="text-blue-900 dark:text-white font-black font-headline text-sm tracking-tight">STRATOS_NODE</h2>
+<p class="font-['Space_Grotesk'] font-bold text-[9px] tracking-wider uppercase text-blue-900 dark:text-blue-500">OPERATIONAL_STATE: ACTIVE</p>
+</div>
+</div>
+</div>
+<nav class="flex-1 flex flex-col">
+<a class="flex items-center gap-4 px-6 py-4 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-900 transition-all font-label text-[11px] font-bold tracking-wider uppercase" href="#">
+<span class="material-symbols-outlined" data-icon="tune">tune</span>
+                TUNING
+            </a>
+<a class="flex items-center gap-4 px-6 py-4 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-900 transition-all font-label text-[11px] font-bold tracking-wider uppercase" href="#">
+<span class="material-symbols-outlined" data-icon="flight">flight</span>
+                FLIGHT_FLOW
+            </a>
+<a class="flex items-center gap-4 px-6 py-4 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-900 transition-all font-label text-[11px] font-bold tracking-wider uppercase" href="#">
+<span class="material-symbols-outlined" data-icon="speed">speed</span>
+                TELEMETRY
+            </a>
+<a class="flex items-center gap-4 px-6 py-4 bg-blue-900 text-white dark:bg-blue-600 border-l-4 border-orange-600 font-label text-[11px] font-bold tracking-wider uppercase" href="#">
+<span class="material-symbols-outlined" data-icon="settings_remote">settings_remote</span>
+                SYSTEM_STATUS
+            </a>
+</nav>
+<div class="mt-auto border-t border-slate-200 dark:border-slate-800">
+<a class="flex items-center gap-4 px-6 py-4 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800 transition-all font-label text-[11px] font-bold tracking-wider uppercase" href="#">
+<span class="material-symbols-outlined" data-icon="help_center">help_center</span>
+                SUPPORT
+            </a>
+<a class="flex items-center gap-4 px-6 py-4 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800 transition-all font-label text-[11px] font-bold tracking-wider uppercase" href="#">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+                LOGOUT
+            </a>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="ml-64 pt-14 min-h-screen relative">
+<div class="grain-texture absolute inset-0 z-0"></div>
+<div class="p-8 relative z-10 flex flex-col gap-8">
+<!-- Real-time Monitoring Bento Grid -->
+<section class="grid grid-cols-1 md:grid-cols-4 gap-px bg-outline-variant/20">
+<!-- CPU Load -->
+<div class="bg-surface-container-lowest p-6 flex flex-col gap-4">
+<div class="flex justify-between items-start">
+<span class="font-label text-[10px] font-bold tracking-widest text-tertiary uppercase">CPU_CORE_LOAD</span>
+<span class="text-primary font-headline font-bold text-xl">42%</span>
+</div>
+<div class="h-12 flex items-end gap-[2px]">
+<div class="bg-primary w-full h-[20%]"></div>
+<div class="bg-primary w-full h-[35%]"></div>
+<div class="bg-primary w-full h-[25%]"></div>
+<div class="bg-primary w-full h-[45%]"></div>
+<div class="bg-primary w-full h-[60%]"></div>
+<div class="bg-primary w-full h-[42%]"></div>
+<div class="bg-primary w-full h-[38%]"></div>
+<div class="bg-primary w-full h-[42%]"></div>
+</div>
+<div class="flex justify-between text-[9px] font-label font-bold text-outline">
+<span>0ms</span>
+<span>AVG_FREQ: 2.1GHz</span>
+</div>
+</div>
+<!-- RAM Usage -->
+<div class="bg-surface-container-lowest p-6 flex flex-col gap-4">
+<div class="flex justify-between items-start">
+<span class="font-label text-[10px] font-bold tracking-widest text-tertiary uppercase">MEM_ALLOCATION</span>
+<span class="text-primary font-headline font-bold text-xl">6.4GB</span>
+</div>
+<div class="h-2 w-full bg-surface-container overflow-hidden">
+<div class="h-full bg-primary" style="width: 78%;"></div>
+</div>
+<div class="flex justify-between text-[9px] font-label font-bold text-outline">
+<span>TOTAL: 8.0GB</span>
+<span>SWAP: 1.2GB</span>
+</div>
+</div>
+<!-- Temperature -->
+<div class="bg-surface-container-lowest p-6 flex flex-col gap-4">
+<div class="flex justify-between items-start">
+<span class="font-label text-[10px] font-bold tracking-widest text-tertiary uppercase">THERMAL_STATE</span>
+<span class="text-secondary font-headline font-bold text-xl">64°C</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="flex-1 h-1 bg-surface-container">
+<div class="h-full bg-secondary" style="width: 64%;"></div>
+</div>
+<span class="text-[9px] font-label font-bold text-secondary uppercase">WARNING</span>
+</div>
+<div class="text-[9px] font-label font-bold text-outline uppercase">
+                        FAN_SPEED: 4200_RPM
+                    </div>
+</div>
+<!-- Link Quality -->
+<div class="bg-surface-container-lowest p-6 flex flex-col gap-4">
+<div class="flex justify-between items-start">
+<span class="font-label text-[10px] font-bold tracking-widest text-tertiary uppercase">LINK_INTEGRITY</span>
+<span class="text-primary font-headline font-bold text-xl">98%</span>
+</div>
+<div class="flex gap-1 h-8 items-end">
+<div class="w-1 h-full bg-primary"></div>
+<div class="w-1 h-full bg-primary"></div>
+<div class="w-1 h-full bg-primary"></div>
+<div class="w-1 h-3/4 bg-primary"></div>
+<div class="w-1 h-full bg-primary"></div>
+</div>
+<div class="text-[9px] font-label font-bold text-outline uppercase">
+                        LATENCY: 14MS | PKT_LOSS: 0.01%
+                    </div>
+</div>
+</section>
+<!-- Center Tactical Map View -->
+<section class="h-[450px] bg-surface-container-high relative overflow-hidden group">
+<img alt="Tactical Terrain Map" class="w-full h-full object-cover mix-blend-multiply opacity-80" data-alt="Top-down tactical satellite view of rugged mountain terrain with high-contrast topographic contours and military-style interface overlays" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBjsMIu0_wpDk3hELm1SSdrX2XeYjteZ2_fYNGVAq0sWzfS1vfF7hKZdgrzuJvtB_XPYOCY1c4NBYpTeOXo7clxplvSPpwsAC4EHs6MnRpx9obYO5vhZ05rx03D52DZRU7VgszVbcMEjVZFOetUtO1KDgguqJK4eYzVBJoPSPxb5a5J-3npKEqLt97bgUkLZRclftJKc8bn1gu4aMUyV8SAfGfu06rkrNcGLMXC-EHZGswMuFCkGeCtOz6S-hC4WfmjzwuxMDtpz-8"/>
+<!-- Map Overlays -->
+<div class="absolute inset-0 flex flex-col pointer-events-none">
+<div class="p-4 flex justify-between">
+<div class="bg-primary/90 text-white px-3 py-1 font-label text-[10px] font-bold tracking-widest flex items-center gap-2">
+<span class="w-2 h-2 bg-secondary animate-pulse rounded-full"></span>
+                            LIVE_FEED_STRATOS_01
+                        </div>
+<div class="bg-black/40 backdrop-blur-md text-white px-3 py-1 font-label text-[10px] font-bold tracking-widest">
+                            COORD: 34.0522° N, 118.2437° W
+                        </div>
+</div>
+<div class="mt-auto p-4 flex justify-between items-end">
+<div class="flex flex-col gap-2">
+<div class="bg-black/20 p-3 border-l-2 border-primary backdrop-blur-sm">
+<p class="text-white font-label text-[9px] font-bold">ALTITUDE: 12,400 FT</p>
+<p class="text-white font-label text-[9px] font-bold">VELOCITY: 420 KTS</p>
+<p class="text-white font-label text-[9px] font-bold">HEADING: 284° NW</p>
+</div>
+</div>
+<div class="w-32 h-32 border-2 border-white/20 relative flex items-center justify-center">
+<div class="absolute w-full h-[1px] bg-white/40"></div>
+<div class="absolute h-full w-[1px] bg-white/40"></div>
+<div class="w-4 h-4 border border-secondary rotate-45"></div>
+<span class="absolute top-2 left-1/2 -translate-x-1/2 text-[8px] text-white font-bold">N</span>
+</div>
+</div>
+</div>
+<!-- Grid Pattern Over Map -->
+<div class="absolute inset-0 pointer-events-none" style="background-image: radial-gradient(circle, #000 0.5px, transparent 0.5px); background-size: 24px 24px; opacity: 0.1;"></div>
+</section>
+<!-- Bottom Logs and Kernel Section -->
+<section class="grid grid-cols-1 md:grid-cols-3 gap-8">
+<!-- Critical Process Logs -->
+<div class="md:col-span-2 bg-surface-container-low flex flex-col">
+<div class="bg-surface-container-high px-4 py-2 flex justify-between items-center">
+<span class="font-label text-[10px] font-bold tracking-widest text-primary uppercase">CRITICAL_PROCESS_LOGS</span>
+<div class="flex gap-2">
+<span class="w-2 h-2 bg-green-500 rounded-full"></span>
+<span class="font-label text-[8px] font-bold text-outline">STREAMING_ACTIVE</span>
+</div>
+</div>
+<div class="p-4 font-mono text-[11px] leading-relaxed text-tertiary-container overflow-y-auto h-48 bg-white/50">
+<p><span class="text-outline">[14:22:01]</span> <span class="text-primary font-bold">INFO:</span> Kernel-LTS branch identified: 5.15.0-101-generic</p>
+<p><span class="text-outline">[14:22:04]</span> <span class="text-primary font-bold">INFO:</span> GPU initialisation sequence complete. CUDA 11.4 active.</p>
+<p><span class="text-outline">[14:22:08]</span> <span class="text-secondary font-bold">WARN:</span> Thermal throttle threshold approaching on NVENC_0.</p>
+<p><span class="text-outline">[14:22:15]</span> <span class="text-primary font-bold">INFO:</span> Telemetry sync established with SAT_LINK_GAMMA.</p>
+<p><span class="text-outline">[14:22:19]</span> <span class="text-primary font-bold">INFO:</span> Buffer flush successful. Latency corrected.</p>
+<p><span class="text-outline">[14:22:25]</span> <span class="text-error font-bold">ERROR:</span> Handshake timeout on UART_CH_2. Retrying...</p>
+<p><span class="text-outline">[14:22:26]</span> <span class="text-primary font-bold">INFO:</span> Handshake re-established on UART_CH_2.</p>
+</div>
+</div>
+<!-- Kernel & System Specs -->
+<div class="bg-surface-container-lowest p-6 flex flex-col gap-6">
+<div>
+<span class="font-label text-[10px] font-bold tracking-widest text-outline uppercase block mb-3">HARDWARE_SIGNATURE</span>
+<div class="space-y-2">
+<div class="flex justify-between border-b border-outline-variant/10 pb-1">
+<span class="text-[11px] font-label text-tertiary">KERNEL_VERSION</span>
+<span class="text-[11px] font-body font-bold">5.15.0-TEGRA</span>
+</div>
+<div class="flex justify-between border-b border-outline-variant/10 pb-1">
+<span class="text-[11px] font-label text-tertiary">ARCHITECTURE</span>
+<span class="text-[11px] font-body font-bold">AARCH64</span>
+</div>
+<div class="flex justify-between border-b border-outline-variant/10 pb-1">
+<span class="text-[11px] font-label text-tertiary">U_TIME</span>
+<span class="text-[11px] font-body font-bold">142:22:04</span>
+</div>
+<div class="flex justify-between border-b border-outline-variant/10 pb-1">
+<span class="text-[11px] font-label text-tertiary">MODULE_ID</span>
+<span class="text-[11px] font-body font-bold">JETSON_AGX_ORIN</span>
+</div>
+</div>
+</div>
+<button class="w-full bg-primary text-white py-3 font-label text-[10px] font-bold tracking-widest uppercase hover:bg-primary-container transition-colors flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-sm" data-icon="refresh">refresh</span>
+                        REBOOT_SYSTEM_NODE
+                    </button>
+</div>
+</section>
+</div>
+</main>
+<!-- Contextual FAB (Hidden on detail pages but useful here for quick capture/action) -->
+<button class="fixed bottom-8 right-8 w-14 h-14 bg-secondary text-white shadow-2xl flex items-center justify-center hover:scale-105 transition-transform z-50">
+<span class="material-symbols-outlined" data-icon="emergency_share" style="font-variation-settings: 'FILL' 1;">emergency_share</span>
+</button>
+</body></html>

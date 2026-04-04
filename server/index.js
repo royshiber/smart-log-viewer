@@ -8,6 +8,7 @@ import { dirname, join } from 'path';
 
 import './tools/mapTools.js';
 import { toPromptList } from './tools/registry.js';
+import { MLRS_ASSISTANT_KNOWLEDGE } from './mlrsAssistantKnowledge.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -20,6 +21,28 @@ const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
 const model = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
 const fallbackModel = 'gemini-2.5-flash-lite';
 const ai = apiKey ? new GoogleGenAI({ apiKey }) : null;
+
+/**
+ * Why: collect runtime evidence for Gemini failures without crashing flow.
+ * What: sends compact debug payloads to the active debug collector endpoint.
+ */
+function debugLog(runId, hypothesisId, location, message, data = {}) {
+  // #region agent log
+  fetch('http://127.0.0.1:7634/ingest/2a4c37c4-9528-4a94-88f0-8ea23ce2aa2e', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': 'f30930' },
+    body: JSON.stringify({
+      sessionId: 'f30930',
+      runId,
+      hypothesisId,
+      location,
+      message,
+      data,
+      timestamp: Date.now(),
+    }),
+  }).catch(() => {});
+  // #endregion
+}
 
 /** responseSchema for unified-chat: text reply + JS code string + short intent */
 const UNIFIED_SCHEMA = {
@@ -64,7 +87,65 @@ async function callGemini(prompt, config = {}) {
 
 app.get('/api/health', (_, res) => res.json({ ok: true }));
 
+/**
+ * Why: mLRS Configurator (Vite :3020) needs Gemini with project-specific knowledge + live log tail.
+ * What: Non-streaming JSON { text }; uses same API key as chart chat; prompt is isolated from log-analyst persona.
+ */
+app.post('/api/mlrs-chat', async (req, res) => {
+  const { messages, context } = req.body;
+  if (!apiKey?.trim()) {
+    return res.status(500).json({ error: 'GEMINI_API_KEY not configured. Add it to server/.env' });
+  }
+  try {
+    const history = Array.isArray(messages) ? messages : [];
+    const lastMsg = history[history.length - 1] || {};
+    const userText = lastMsg.text || '';
+    const historyBlock =
+      history.length > 1
+        ? history
+            .slice(0, -1)
+            .map((m) => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.text}`)
+            .join('\n')
+        : '';
+    const live = context?.live || {};
+    const logTail = String(context?.logTail || '').slice(-14000);
+    const prompt = `You are an expert on the mLRS open-source radio link (olliw42 / MatekSys). Answer in the same language as the user (Hebrew or English).
+
+Use the REFERENCE below as authoritative. When suggesting CLI commands, always use the exact syntax from CLI.md (semicolon terminator). Remind the user to run pstore; after parameter changes and to power-cycle if PARAMETERS.md requires it.
+
+REFERENCE:
+${MLRS_ASSISTANT_KNOWLEDGE}
+
+LIVE SESSION (JSON — may be empty):
+${JSON.stringify(live, null, 2)}
+
+RECENT DESKTOP CLI LOG (tail, may be empty):
+"""
+${logTail}
+"""
+
+${historyBlock ? `Previous conversation:\n${historyBlock}\n\n` : ''}User: ${userText}`;
+    const response = await callGemini(prompt);
+    res.json({ text: response?.text ?? '' });
+  } catch (err) {
+    let errMsg = err.message || 'Gemini API error';
+    if (errMsg.includes('API key not valid') || errMsg.includes('API_KEY_INVALID')) {
+      errMsg =
+        'מפתח API לא תקין. הוסף GEMINI_API_KEY ב-server/.env (או קבל מפתח מ-Google AI Studio).';
+    }
+    console.error('mLRS chat error:', err);
+    res.status(500).json({ error: errMsg });
+  }
+});
+
 app.get('/api/gemini-status', async (_, res) => {
+  // #region agent log
+  debugLog('initial', 'H1', 'server/index.js:/api/gemini-status', 'Gemini status requested', {
+    hasApiKey: Boolean(apiKey?.trim()),
+    model,
+    hasAiClient: Boolean(ai),
+  });
+  // #endregion
   if (!apiKey?.trim()) {
     return res.json({ ok: false, reason: 'GEMINI_API_KEY is missing in server environment' });
   }
@@ -74,6 +155,14 @@ app.get('/api/gemini-status', async (_, res) => {
 /** Chart analysis - SSE streaming for immediate token-by-token display */
 app.post('/api/chat/stream', async (req, res) => {
   const { messages, context } = req.body;
+  // #region agent log
+  debugLog('initial', 'H2', 'server/index.js:/api/chat/stream', 'Stream endpoint hit', {
+    hasApiKey: Boolean(apiKey?.trim()),
+    hasAiClient: Boolean(ai),
+    messageCount: Array.isArray(messages) ? messages.length : -1,
+    hasContext: Boolean(context),
+  });
+  // #endregion
   if (!apiKey?.trim()) {
     return res.status(500).json({ error: 'GEMINI_API_KEY not configured. Add it to server/.env' });
   }
@@ -116,9 +205,22 @@ ${historyBlock ? `Previous conversation:\n${historyBlock}\n\n` : ''}User: ${user
     let stream;
     try {
       stream = await ai.models.generateContentStream({ model, contents: prompt });
+      // #region agent log
+      debugLog('initial', 'H3', 'server/index.js:generateContentStream', 'Primary model stream started', { model });
+      // #endregion
     } catch (e) {
+      // #region agent log
+      debugLog('initial', 'H4', 'server/index.js:generateContentStream', 'Primary model failed; attempting fallback', {
+        model,
+        fallbackModel,
+        error: e?.message || 'unknown',
+      });
+      // #endregion
       if (model !== fallbackModel) {
         stream = await ai.models.generateContentStream({ model: fallbackModel, contents: prompt });
+        // #region agent log
+        debugLog('initial', 'H4', 'server/index.js:generateContentStream', 'Fallback model stream started', { fallbackModel });
+        // #endregion
       } else throw e;
     }
 
@@ -128,6 +230,12 @@ ${historyBlock ? `Previous conversation:\n${historyBlock}\n\n` : ''}User: ${user
     send({ done: true });
     res.end();
   } catch (err) {
+    // #region agent log
+    debugLog('initial', 'H5', 'server/index.js:/api/chat/stream catch', 'Stream request failed', {
+      error: err?.message || 'unknown',
+      name: err?.name || 'Error',
+    });
+    // #endregion
     let errMsg = err.message || 'Gemini API error';
     if (errMsg.includes('API_KEY_INVALID') || errMsg.includes('API key not valid')) {
       errMsg = 'המפתח לא תקין. קבל מפתח חדש מ־https://aistudio.google.com/apikey והדבק ב־server/.env (בלי מרכאות)';

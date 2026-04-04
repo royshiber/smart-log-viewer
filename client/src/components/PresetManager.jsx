@@ -1,16 +1,47 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getChartPresets, saveChartPreset, getMapPresets, saveMapPreset } from '../db/logsDb';
 
+/**
+ * Close preset dropdown on Escape or pointer-down outside the menu (no fullscreen backdrop).
+ * Full-screen transparent overlays fight Plotly z-stacking and can block the whole app on
+ * some browsers / touch devices when events do not reach the overlay.
+ */
 export function ChartPresetManager({ selectedFields, fieldColors, onApply }) {
   const { t } = useTranslation();
   const [presets, setPresets] = useState([]);
   const [selectedPresetId, setSelectedPresetId] = useState(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const presetMenuRef = useRef(null);
 
   useEffect(() => {
     getChartPresets().then(setPresets);
   }, []);
+
+  useEffect(() => {
+    if (!dropdownOpen) return undefined;
+    const onKey = (e) => {
+      if (e.key === 'Escape') setDropdownOpen(false);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [dropdownOpen]);
+
+  useEffect(() => {
+    if (!dropdownOpen) return undefined;
+    const down = (e) => {
+      const el = presetMenuRef.current;
+      if (el && e.target instanceof Node && !el.contains(e.target)) {
+        setDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', down, true);
+    document.addEventListener('touchstart', down, true);
+    return () => {
+      document.removeEventListener('mousedown', down, true);
+      document.removeEventListener('touchstart', down, true);
+    };
+  }, [dropdownOpen]);
 
   const handleApply = (p) => {
     onApply(p.selectedFields, p.fieldColors);
@@ -48,34 +79,31 @@ export function ChartPresetManager({ selectedFields, fieldColors, onApply }) {
 
   return (
     <div className="flex items-center gap-2 flex-wrap">
-      <div className="relative">
+      <div className="relative" ref={presetMenuRef}>
         <button
           type="button"
           onClick={() => setDropdownOpen((o) => !o)}
-          className="px-2 py-1 rounded text-xs border border-border text-gray-400 hover:text-gray-200"
+          className="px-2 py-1 rounded text-xs border border-border text-muted hover:text-onSurface"
         >
           {t('preset.myPresets')} ▾
         </button>
         {dropdownOpen && (
-          <>
-            <span className="fixed inset-0 z-10" onClick={() => setDropdownOpen(false)} aria-hidden />
-            <div className="absolute left-0 top-full mt-1 z-20 min-w-[180px] py-1 rounded bg-surfaceRaised border border-border shadow-xl">
-              {presets.length === 0 ? (
-                <p className="px-3 py-2 text-gray-500 text-sm">{t('logs.empty')}</p>
-              ) : (
-                presets.map((p) => (
-                  <button
-                    key={p.id}
-                    type="button"
-                    onClick={() => handleApply(p)}
-                    className={`w-full text-left px-3 py-1.5 text-sm hover:bg-surface ${selectedPresetId === p.id ? 'text-accent' : 'text-gray-300'}`}
-                  >
-                    {p.name}
-                  </button>
-                ))
-              )}
-            </div>
-          </>
+          <div className="absolute left-0 top-full z-50 mt-1 min-w-[180px] rounded border border-border bg-surfaceRaised py-1 shadow-xl">
+            {presets.length === 0 ? (
+              <p className="px-3 py-2 text-sm text-muted">{t('logs.empty')}</p>
+            ) : (
+              presets.map((p) => (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => handleApply(p)}
+                  className={`w-full px-3 py-1.5 text-left text-sm hover:bg-surface ${selectedPresetId === p.id ? 'text-accent' : 'text-onSurface'}`}
+                >
+                  {p.name}
+                </button>
+              ))
+            )}
+          </div>
         )}
       </div>
       <button
@@ -88,14 +116,14 @@ export function ChartPresetManager({ selectedFields, fieldColors, onApply }) {
       <button
         type="button"
         onClick={handleSave}
-        className="px-2 py-1 rounded text-xs border border-border text-gray-400 hover:text-gray-200"
+        className="px-2 py-1 rounded text-xs border border-border text-muted hover:text-onSurface"
       >
         {t('preset.save')}
       </button>
       <button
         type="button"
         onClick={handleSaveAs}
-        className="px-2 py-1 rounded text-xs border border-border text-gray-400 hover:text-gray-200"
+        className="px-2 py-1 rounded text-xs border border-border text-muted hover:text-onSurface"
       >
         {t('preset.saveAs')}
       </button>
@@ -108,10 +136,36 @@ export function MapPresetManager({ pathColorConfig, onApply }) {
   const [presets, setPresets] = useState([]);
   const [selectedPresetId, setSelectedPresetId] = useState(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const presetMenuRef = useRef(null);
 
   useEffect(() => {
     getMapPresets().then(setPresets);
   }, []);
+
+  useEffect(() => {
+    if (!dropdownOpen) return undefined;
+    const onKey = (e) => {
+      if (e.key === 'Escape') setDropdownOpen(false);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [dropdownOpen]);
+
+  useEffect(() => {
+    if (!dropdownOpen) return undefined;
+    const down = (e) => {
+      const el = presetMenuRef.current;
+      if (el && e.target instanceof Node && !el.contains(e.target)) {
+        setDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', down, true);
+    document.addEventListener('touchstart', down, true);
+    return () => {
+      document.removeEventListener('mousedown', down, true);
+      document.removeEventListener('touchstart', down, true);
+    };
+  }, [dropdownOpen]);
 
   const handleApply = (p) => {
     onApply(p.pathColorConfig);
@@ -148,34 +202,31 @@ export function MapPresetManager({ pathColorConfig, onApply }) {
 
   return (
     <div className="flex items-center gap-2 flex-wrap">
-      <div className="relative">
+      <div className="relative" ref={presetMenuRef}>
         <button
           type="button"
           onClick={() => setDropdownOpen((o) => !o)}
-          className="px-2 py-1 rounded text-xs border border-border text-gray-400 hover:text-gray-200"
+          className="px-2 py-1 rounded text-xs border border-border text-muted hover:text-onSurface"
         >
           {t('preset.myPresets')} ▾
         </button>
         {dropdownOpen && (
-          <>
-            <span className="fixed inset-0 z-10" onClick={() => setDropdownOpen(false)} aria-hidden />
-            <div className="absolute left-0 top-full mt-1 z-20 min-w-[180px] py-1 rounded bg-surfaceRaised border border-border shadow-xl">
-              {presets.length === 0 ? (
-                <p className="px-3 py-2 text-gray-500 text-sm">{t('logs.empty')}</p>
-              ) : (
-                presets.map((p) => (
-                  <button
-                    key={p.id}
-                    type="button"
-                    onClick={() => handleApply(p)}
-                    className={`w-full text-left px-3 py-1.5 text-sm hover:bg-surface ${selectedPresetId === p.id ? 'text-accent' : 'text-gray-300'}`}
-                  >
-                    {p.name}
-                  </button>
-                ))
-              )}
-            </div>
-          </>
+          <div className="absolute left-0 top-full z-50 mt-1 min-w-[180px] rounded border border-border bg-surfaceRaised py-1 shadow-xl">
+            {presets.length === 0 ? (
+              <p className="px-3 py-2 text-sm text-muted">{t('logs.empty')}</p>
+            ) : (
+              presets.map((p) => (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => handleApply(p)}
+                  className={`w-full px-3 py-1.5 text-left text-sm hover:bg-surface ${selectedPresetId === p.id ? 'text-accent' : 'text-onSurface'}`}
+                >
+                  {p.name}
+                </button>
+              ))
+            )}
+          </div>
         )}
       </div>
       <button
@@ -188,14 +239,14 @@ export function MapPresetManager({ pathColorConfig, onApply }) {
       <button
         type="button"
         onClick={handleSave}
-        className="px-2 py-1 rounded text-xs border border-border text-gray-400 hover:text-gray-200"
+        className="px-2 py-1 rounded text-xs border border-border text-muted hover:text-onSurface"
       >
         {t('preset.save')}
       </button>
       <button
         type="button"
         onClick={handleSaveAs}
-        className="px-2 py-1 rounded text-xs border border-border text-gray-400 hover:text-gray-200"
+        className="px-2 py-1 rounded text-xs border border-border text-muted hover:text-onSurface"
       >
         {t('preset.saveAs')}
       </button>

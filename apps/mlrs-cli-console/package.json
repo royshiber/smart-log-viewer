@@ -1,0 +1,17 @@
+{
+  "name": "mlrs-cli-console",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "bridge": "node server/tcp-ws-bridge.mjs",
+    "dev": "vite --port 3020 --host localhost",
+    "dev:wifi": "concurrently -n bridge,vite -c blue,green \"node server/tcp-ws-bridge.mjs\" \"vite --port 3020 --host localhost\"",
+    "build": "vite build",
+    "preview": "vite preview --port 3020 --host localhost"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2",
+    "vite": "^5.4.11",
+    "ws": "^8.18.0"
+  }
+}

@@ -1,0 +1,374 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vision Landing Console</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+    <link rel="icon" href="./icon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="./styles.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+    <script src="https://cdn.jsdelivr.net/npm/leaflet-rotate@0.2.8/dist/leaflet-rotate.js" crossorigin=""></script>
+  </head>
+  <body>
+    <header class="topbar">
+      <div>
+        <h1>Vision Landing Console</h1>
+        <p class="subtitle">ממשק ניסוי מהיר לנחיתה מבוססת מצלמה</p>
+      </div>
+      <div class="topbar-right">
+        <div class="confidence-hud" title="רמת ביטחון נחיתה לפי תמונה">
+          <span>רמת ביטחון נחיתה לפי תמונה</span>
+          <div class="confidence-track"><div id="liveConfidenceBar" class="confidence-fill"></div></div>
+          <strong id="liveConfidenceText">--%</strong>
+        </div>
+        <div class="confidence-hud" title="הפרש מיקום Vision מול GPS">
+          <span>הפרש Vision מול GPS</span>
+          <strong id="liveGpsVisionDelta">-- m</strong>
+        </div>
+        <button id="versionBtn" class="badge clickable" title="לחץ כדי לראות מה עודכן בגרסה">v1.02.34</button>
+      </div>
+    </header>
+
+    <main class="layout">
+      <nav class="tabs">
+        <button class="tab active" data-tab="control" title="כל פרמטרי הנחיתה, הניווט הוויזואלי והקושחה במקום אחד">מרכז פרמטרים</button>
+        <button class="tab" data-tab="recordings" title="הקלטות ולוגים תחת תחקור">תחקור</button>
+        <button class="tab" data-tab="processes" title="תרשים זרימת שלבי הנחיתה בזמן אמת">תהליכים</button>
+        <button class="tab" data-tab="telemetry" title="טלמטריה, סטטוסים ונתוני Jetson">טלמטריה וסטטוסים</button>
+        <button class="tab" data-tab="terrain" title="מפת טריין חזותי — אזורים מכוסים ומידע ניווט לפי תמונה">מפה טריין</button>
+        <button class="tab" data-tab="advisor" title="צ'אט ייעוץ מהיר על ביצועים ופרמטרים">יועץ ביצועים</button>
+      </nav>
+
+      <div id="controlSubtabsBar" class="control-subtabs-bar">
+        <div class="subtabs subtabs-wrap">
+          <button class="subtab active" data-subtab="landingParams">נחיתה</button>
+          <button class="subtab" data-subtab="abortParams">בטיחות ו-ABORT</button>
+          <button class="subtab" data-subtab="visionNavParams">ניווט לפי תמונה</button>
+          <button class="subtab" data-subtab="arduParams">ArduPilot</button>
+        </div>
+      </div>
+
+      <section id="control" class="panel visible">
+        <div class="panel-header">
+          <div class="actions">
+            <button id="saveProfileBtn" title="שומר את כל הערכים הנוכחיים לפרופיל מקומי">שמור פרופיל</button>
+            <button id="exportProfileBtn" title="מייצא את הפרופיל לקובץ JSON">ייצוא JSON</button>
+            <label class="file-btn">
+              <span>טעינת JSON</span>
+              <input id="importProfileInput" type="file" accept=".json,application/json" title="טוען פרופיל קיים מקובץ" />
+            </label>
+            <button type="button" id="visionConfigReadBtn" class="btn-secondary-lg" title="טוען מהשרת את פרופיל המסך ופרמטרי ArduPilot השמורים">📥 READ — מהשרת</button>
+            <button type="button" id="visionConfigWriteBtn" class="btn-primary-lg" title="שומר לשרת את פרופיל המסך ופרמטרי ArduPilot לעריכה">📤 WRITE — לשרת</button>
+            <span id="visionConfigStatus" class="vision-config-status action-status"></span>
+          </div>
+        </div>
+        <div id="landingParams" class="subpanel visible">
+          <div id="paramsGrid" class="params-grid"></div>
+        </div>
+        <div id="abortParams" class="subpanel">
+          <div id="abortGrid" class="params-grid"></div>
+        </div>
+        <div id="visionNavParams" class="subpanel">
+          <div id="visionNavGrid" class="params-grid"></div>
+        </div>
+        <div id="arduParams" class="subpanel">
+          <div class="ardu-cat-subtabs" id="arduCatSubtabs" role="tablist" aria-label="קטגוריות ArduPilot"></div>
+          <div id="arduParamFormPanels" class="ardu-param-form-panels"></div>
+          <div class="ardu-param-file-actions">
+            <button type="button" id="downloadParamBtn" class="btn-secondary-lg" title="הורדת קובץ .param לייבוא ל-Mission Planner">⬇ הורד .param</button>
+            <button type="button" id="applyToMpBtn" class="btn-secondary-lg" title="שולח לשרת ניסיון יישום (אם הוגדר)">שליחה ל-Mission Planner</button>
+          </div>
+          <pre id="mpOut" class="mp-out-hidden"></pre>
+        </div>
+        <pre id="configText" class="config-text-hidden" aria-hidden="true"></pre>
+      </section>
+
+      <section id="recordings" class="panel recordings-panel-flex">
+        <div class="panel-header">
+          <div class="tele-subtabs" role="tablist" aria-label="תתי טאבים תחקור">
+            <button type="button" class="tele-subtab active" id="debriefRecBtn">הקלטות</button>
+            <button type="button" class="tele-subtab" id="debriefLogsBtn">לוגים</button>
+          </div>
+          <div class="actions">
+            <label class="file-btn">
+              טען וידאו
+              <input id="videoInput" type="file" accept="video/*" title="טוען הקלטת טיסה להצגה" />
+            </label>
+            <span id="selectedRecordingLabel" class="flight-summary-inline">לוג נבחר: —</span>
+            <button id="annotationsToggleBtn" class="badge clickable" title="הפעל/כבה אנוטציות על הוידאו">אנוטציות: פועל</button>
+          </div>
+        </div>
+        <div class="recordings-layout">
+          <div class="video-column">
+            <div class="video-wrapper">
+              <video id="flightVideo" controls></video>
+              <canvas id="annotationCanvas"></canvas>
+              <div id="lockIndicator" class="lock-indicator no-lock">אין נעילה</div>
+            </div>
+            <div class="annotation-legend">
+              <span class="legend-item locked">■ ננעל</span>
+              <span class="legend-item searching">■ מחפש</span>
+              <span class="legend-item no-lock">■ אין נעילה</span>
+              <span id="annotConfidence" class="annot-confidence-inline">ביטחון: --%</span>
+            </div>
+            <input id="timelineRange" type="range" min="0" max="100" value="0" />
+          </div>
+          <div class="events-column">
+            <h3>אירועים סביב הזמן הנוכחי</h3>
+            <div id="eventsList" class="events-list"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="processes" class="panel">
+        <div class="panel-header">
+          <div class="actions">
+            <button id="processPrevBtn" title="חזרה לשלב קודם">שלב קודם</button>
+            <button id="processNextBtn" title="מעבר לשלב הבא">שלב הבא</button>
+          </div>
+        </div>
+        <div id="processFlow" class="process-flow"></div>
+      </section>
+
+      <section id="telemetry" class="panel">
+        <div class="telemetry-dashboard" aria-label="לוח טלמטריה וסטטוסים — ארבעה תחומים במסך אחד">
+          <div class="tele-dash-col" id="teleLink">
+            <header class="tele-dash-head">קישוריות</header>
+            <div class="telemetry-cards tele-dash-cards">
+              <article class="tele-card"><span>מצב קישור <span class="tele-q" title="מציין אם מתקבלים נתוני טלמטריה חיים מהמערכת">?</span></span><strong id="linkState">בודק...</strong></article>
+              <article class="tele-card"><span>רענון אחרון <span class="tele-q" title="זמן העדכון האחרון שהתקבל בלקוח">?</span></span><strong id="lastRefresh">-</strong></article>
+              <article class="tele-card"><span>אירועים <span class="tele-q" title="כמות אירועים זמינים בתצוגת האירועים">?</span></span><strong id="eventsCount">0</strong></article>
+              <article class="tele-card"><span>Vision Confidence <span class="tele-q" title="רמת הביטחון של זיהוי Vision בפריים האחרון">?</span></span><strong id="telemetryConfidence">--%</strong></article>
+              <article class="tele-card"><span>Auto Abort <span class="tele-q" title="מצב לוגיקת הביטול האוטומטי לפי ספי ביטחון">?</span></span><strong id="abortState">ממתין</strong></article>
+              <article class="tele-card"><span>סטטוס בטיחות <span class="tele-q" title="סטטוס בטיחות מחושב לפי תנאי הביטחון הפעילים">?</span></span><strong id="safetyState">ממתין</strong></article>
+              <article class="tele-card"><span>עיכוב Heartbeat <span class="tele-q" title="השהיה משוערת בין heartbeat מהכלי לבין התצוגה">?</span></span><strong id="heartbeatLatency">-</strong></article>
+              <article class="tele-card"><span>איכות קישור <span class="tele-q" title="אומדן איכות קישור מחושב מהחטאות heartbeat">?</span></span><strong id="linkQuality">-</strong></article>
+            </div>
+          </div>
+
+          <div class="tele-dash-col" id="teleVision">
+            <header class="tele-dash-head tele-dash-head--split">
+              <span>Vision <span class="tele-dash-sub">מצלמה → Jetson</span></span>
+              <span class="section-badge" id="visionLiveBadge">— אין חיבור</span>
+            </header>
+            <div class="telemetry-cards tele-dash-cards">
+              <article class="tele-card" data-vision-card><span>סטייה רוחבית <span class="tele-q" title="הפרש רוחבי בין נתיב התמונה לנתיב הטיסה, במטרים">?</span></span><strong id="visionLateralOffset">-</strong></article>
+              <article class="tele-card" data-vision-card><span>שגיאת כיוון <span class="tele-q" title="הפרש זווית הכיוון בין Vision לבין כיוון הייחוס">?</span></span><strong id="visionHeadingError">-</strong></article>
+              <article class="tele-card" data-vision-card><span>Vision Confidence <span class="tele-q" title="ביטחון הזיהוי של אלגוריתם הראייה בפריים האחרון">?</span></span><strong id="visionConfidence">-</strong></article>
+              <article class="tele-card" data-vision-card><span>גיל פריים <span class="tele-q" title="כמה זמן עבר מאז שהתקבל פריים Vision אחרון">?</span></span><strong id="visionFrameAge">-</strong></article>
+              <article class="tele-card" data-vision-card><span>פריימים שהתקבלו <span class="tele-q" title="מונה מצטבר של פריימי Vision שהתקבלו מהמערכת">?</span></span><strong id="visionFrameCount">0</strong></article>
+            </div>
+          </div>
+
+          <div class="tele-dash-col" id="teleSlam">
+            <header class="tele-dash-head tele-dash-head--split">
+              <span>SLAM / VIO</span>
+              <span class="section-badge">ניסיוני</span>
+            </header>
+            <p class="tele-dash-note">תנוחה מ-Jetson לניווט ללא GPS כשהזרם פעיל.</p>
+            <div class="telemetry-cards tele-dash-cards">
+              <article class="tele-card" data-slam-card><span>מיקום (X,Y,Z) <span class="tele-q" title="מיקום SLAM ביחס למסגרת המקומית של המפה">?</span></span><strong id="slamPos">לא פעיל</strong></article>
+              <article class="tele-card" data-slam-card><span>איכות מפה <span class="tele-q" title="מד איכות מפת SLAM שנבנית במהלך תנועה">?</span></span><strong id="slamQuality">-</strong></article>
+              <article class="tele-card" data-slam-card><span>Loop Closures <span class="tele-q" title="כמות סגירות לולאה שנמצאו לשיפור דיוק המפה">?</span></span><strong id="slamLoopClosures">-</strong></article>
+              <article class="tele-card" data-slam-card><span>גיל נתון <span class="tele-q" title="כמה זמן עבר מאז שדגימת SLAM אחרונה התקבלה">?</span></span><strong id="slamAge">לא פעיל</strong></article>
+            </div>
+          </div>
+
+          <div class="tele-dash-col" id="teleJetson">
+            <header class="tele-dash-head">מחשב Jetson</header>
+            <div class="jetson-status-bar jetson-status-bar--compact">
+              <div id="jetsonStatusDot" class="status-dot offline"></div>
+              <strong id="jetsonOnlineState">בודק...</strong>
+              <span id="jetsonLastSeen" class="jetson-last-seen">-</span>
+            </div>
+            <div class="telemetry-cards tele-dash-cards">
+              <article class="tele-card"><span>CPU Load <span class="tele-q" title="אחוז העומס המעבד הנוכחי במחשב Jetson">?</span></span><strong id="jetsonCpu">-</strong></article>
+              <article class="tele-card"><span>טמפרטורה <span class="tele-q" title="טמפרטורת העבודה המדווחת מה-Jetson">?</span></span><strong id="jetsonTemp">-</strong></article>
+              <article class="tele-card"><span>זיכרון RAM <span class="tele-q" title="אחוז שימוש זיכרון RAM ב-Jetson">?</span></span><strong id="jetsonMem">-</strong></article>
+              <article class="tele-card"><span>עיכוב Heartbeat <span class="tele-q" title="Latency בין heartbeat לשרת לבין התצוגה">?</span></span><strong id="heartbeatLatencyJetson">-</strong></article>
+              <article class="tele-card"><span>איכות קישור <span class="tele-q" title="אומדן איכות קישור על בסיס heartbeat">?</span></span><strong id="linkQualityJetson">-</strong></article>
+            </div>
+            <div class="tele-dash-jetson-foot">
+              <button type="button" id="jetsonRefreshBtn">⟳ רענן</button>
+              <p class="jetson-hint jetson-hint--dash" id="jetsonOut"></p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="flights" class="panel flights-panel">
+        <div class="panel-header">
+          <div class="tele-subtabs" role="tablist" aria-label="תתי טאבים תחקור">
+            <button type="button" class="tele-subtab" id="debriefRecBtn2">הקלטות</button>
+            <button type="button" class="tele-subtab active" id="debriefLogsBtn2">לוגים</button>
+          </div>
+        </div>
+
+        <!-- Upload row — prominent -->
+        <div class="log-upload-card">
+          <h3 class="log-upload-title">העלאת לוג חדש</h3>
+          <div class="log-upload-grid">
+            <div class="log-field-block">
+              <span class="log-field-label">טיסה</span>
+              <select id="flightSelect" class="log-flight-select" title="בחר טיסה לשיוך הלוג"></select>
+            </div>
+            <div class="log-field-block log-source-block">
+              <span class="log-field-label">מקור לוג</span>
+              <div class="log-source-pills" role="group" aria-label="מקור לוג">
+                <button type="button" class="log-source-pill active" data-log-source="ardupilot">ArduPilot</button>
+                <button type="button" class="log-source-pill" data-log-source="jetson">Jetson</button>
+                <button type="button" class="log-source-pill" data-log-source="auto">זיהוי אוטומטי</button>
+              </div>
+              <select id="logSourceSelect" class="log-source-select-hidden" aria-hidden="true" tabindex="-1">
+                <option value="ardupilot">ArduPilot</option>
+                <option value="jetson">Jetson</option>
+                <option value="auto">auto</option>
+              </select>
+            </div>
+            <div class="log-drop-zone" id="logDropZone">
+              <input id="logFileInput" class="log-file-input-native" type="file" accept=".bin,.log,.tlog,.csv,.txt" title="בחירת קובץ לוג" />
+              <div class="log-drop-inner">
+                <span class="log-drop-icon" aria-hidden="true">📄</span>
+                <p class="log-drop-text"><strong>גרור קובץ לוג לכאן</strong> או</p>
+                <button type="button" id="logPickFileBtn" class="log-pick-file-btn">בחר קובץ</button>
+                <p id="logFileNameDisplay" class="log-file-name-display">לא נבחר קובץ</p>
+              </div>
+            </div>
+            <div class="log-upload-actions">
+              <button type="button" id="pullLogsBtn" class="btn-pull-logs" title="מרענן את רשימת כל הלוגים מהשרת">⬇ משוך לוגים מהשרת</button>
+              <button type="button" id="uploadLogBtn" class="btn-primary-lg btn-upload-log" title="מעלה לוג, מסווג אוטומטית לפי תוכן">⬆ העלה לוג</button>
+            </div>
+          </div>
+          <p id="uploadLogStatus" class="upload-status-ok"></p>
+        </div>
+
+        <!-- All-logs history -->
+        <div class="panel-header" style="margin-top:16px">
+          <h3>כל הלוגים שהועלו</h3>
+          <button type="button" id="refreshAllLogsBtn" title="רענן רשימה">⟳ רענן</button>
+        </div>
+        <div id="allLogsTableWrap" class="logs-columns-wrap">
+          <div class="logs-col">
+            <h4>ArduPilot</h4>
+            <table class="logs-table">
+              <thead><tr><th>לוג</th><th>טיסה</th><th>פעולה</th></tr></thead>
+              <tbody id="allLogsArduTbody"></tbody>
+            </table>
+          </div>
+          <div class="logs-col">
+            <h4>Jetson</h4>
+            <table class="logs-table">
+              <thead><tr><th>לוג</th><th>טיסה</th><th>פעולה</th></tr></thead>
+              <tbody id="allLogsJetsonTbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Flight management -->
+        <details class="flight-manage" style="margin-top:16px">
+          <summary>ניהול טיסות והערות ▸</summary>
+          <div class="flight-form" style="margin-top:10px">
+            <div class="actions">
+              <button type="button" id="refreshFlightsBtn" title="רענון רשימת טיסות">רענן טיסות</button>
+            </div>
+            <div class="actions">
+              <input id="newFlightTitle" type="text" placeholder="כותרת לטיסה חדשה" />
+              <button type="button" id="createFlightBtn" title="יוצר רשומת טיסה">טיסה חדשה</button>
+            </div>
+            <label>חוות דעת / הערות (נשמרות למאגר)
+              <textarea id="flightNoteBody" placeholder="מה עבד, מה לא, רוח, תקלות…"></textarea>
+            </label>
+            <button type="button" id="saveFlightNoteBtn" title="שומר הערה לטיסה הנבחרת">שמור הערה</button>
+            <pre id="flightLogsOut">בחר טיסה ורענן.</pre>
+          </div>
+        </details>
+      </section>
+
+
+      <section id="terrain" class="panel">
+        <div class="terrain-info-bar">
+          <article class="tele-card"><span>אזורים מכוסים</span><strong id="terrainCellCount">0</strong></article>
+          <article class="tele-card"><span>שטח משוער</span><strong id="terrainAreaEst">0 m²</strong></article>
+          <article class="tele-card"><span>SLAM פעיל</span><strong id="terrainSlamStatus">לא</strong></article>
+          <article class="tele-card"><span>ניווט GPS-Free</span><strong id="terrainNavStatus">לא זמין</strong></article>
+          <div class="terrain-toolbar terrain-toolbar-inline" role="toolbar" aria-label="תצוגת מפה">
+            <span class="terrain-toolbar-label">שכבה:</span>
+            <button type="button" id="terrainLayerStreetBtn" class="terrain-layer-btn active" title="OpenStreetMap">מפת רחוב</button>
+            <button type="button" id="terrainLayerSatBtn" class="terrain-layer-btn" title="תצלום לווין (Esri)">לווין</button>
+            <button type="button" id="terrainMappedOnlyBtn" class="terrain-layer-btn terrain-mapped-toggle" title="רקע לבן — מוצגים רק אזורי כיסוי שהמצלמה מיפתה">רק אזורים ממופים</button>
+            <button type="button" id="terrainClearBtn" class="terrain-layer-btn" title="מנקה את כל כיסוי הטריין">✕ נקה</button>
+          </div>
+        </div>
+        <div class="terrain-map-shell">
+          <div id="terrainMapRotatable" class="terrain-map-rotatable">
+            <div id="terrainMap"></div>
+          </div>
+        </div>
+        <div class="terrain-alt-legend" aria-label="מקרא גובה מיפוי">
+          <div class="terrain-alt-legend-row">
+            <span class="terrain-alt-legend-title">מקרא גובה (AGL)</span>
+            <span class="terrain-alt-legend-hint">כחול נמוך · אדום גבוה</span>
+          </div>
+          <div class="terrain-alt-gradient" role="img" aria-hidden="true"></div>
+          <div class="terrain-alt-ticks"><span id="terrainAltTickMin">~5m</span><span id="terrainAltTickMid">~45m</span><span id="terrainAltTickMax">~90m+</span></div>
+        </div>
+        <details class="terrain-help-panel">
+          <summary>איך לקרוא את המפה</summary>
+          <p>המצלמה בונה מפה תלת-מימדית בזמן הטיסה (SLAM). כשהיא עוברת שוב על אזור מוכר, היא מזהה אותו ויכולה לקבוע את מיקומה בדיוק של פחות ממטר — גם ללא GPS.</p>
+          <p>צבע המעגלים משקף <strong>גובה מיפוי (AGL)</strong>: כחול/סגול נמוך, אדום גבוה. פופאפ על אזור מציג גובה, איכות ורדיוס.</p>
+          <p><strong>תצוגה:</strong> מפת רחוב / לווין. מצב ״רק אזורים ממופים״ מסתיר אריחים ומציג רק אזורי כיסוי.</p>
+        </details>
+      </section>
+
+      <section id="advisor" class="panel">
+        <h2>יועץ ביצועים</h2>
+        <p>יועץ מבוסס Gemini (אם הוגדר מפתח בשרת), עם הקשר פרמטרים, לוגים שמורים, ועדכוני קוד מ-GitHub Actions.</p>
+        <div class="advisor-layout compact">
+          <div id="advisorMessages" class="advisor-messages" aria-live="polite">
+            <div class="msg bot" data-static-welcome="1">שלום — אפשר לשאול או להקליט בקול. אם אין מפתח Gemini בשרת, תקבל תשובות כלליות מקומיות.</div>
+          </div>
+          <div class="advisor-flight-hint">
+            <label>מצב הקשר לצ׳אט
+              <select id="advisorFlightSelect">
+                <option value="__latest__">רק על הטיסה האחרונה</option>
+                <option value="__none__">ללא הקשר ספציפי</option>
+              </select>
+            </label>
+          </div>
+          <div class="advisor-input-row">
+            <button type="button" class="advisor-mic" id="advisorMicBtn" title="דיבור לטקסט (דפדפן)">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <rect x="9" y="2" width="6" height="12" rx="3"/>
+                <path d="M5 10a7 7 0 0 0 14 0"/>
+                <line x1="12" y1="19" x2="12" y2="22"/>
+                <line x1="8" y1="22" x2="16" y2="22"/>
+              </svg>
+            </button>
+            <input id="advisorInput" type="text" placeholder="למשל: יש לי נדנוד לפני הצפה, מה לשנות?" />
+            <button type="button" id="advisorSendBtn" title="שולח שאלה ליועץ">שלח</button>
+          </div>
+          <div id="advisorStatus" class="advisor-status">מוכן</div>
+        </div>
+      </section>
+    </main>
+
+    <div id="versionModal" class="modal hidden">
+      <div class="modal-card">
+        <div id="versionModalContent"><!-- filled by app.js VERSION_HISTORY --></div>
+        <button id="closeVersionModalBtn">סגור</button>
+      </div>
+    </div>
+
+    <div id="eventContextMenu" class="context-menu hidden">
+      <button data-action="inc">+ הגדל פרמטר קשור</button>
+      <button data-action="dec">- הקטן פרמטר קשור</button>
+      <button data-action="jump">קפוץ לזמן אירוע</button>
+    </div>
+
+    <script src="./app.js?v=1.02.34"></script>
+  </body>
+</html>

@@ -416,7 +416,7 @@ export function ReportsPanel({ fields, selectedFields, getTimeSeries, logDisplay
 
   if (!fields.length) {
     return (
-      <div className="flex-1 flex items-center justify-center text-gray-500 text-sm">
+      <div className="flex-1 flex items-center justify-center text-muted text-sm">
         {t('reports.noFields')}
       </div>
     );
@@ -427,7 +427,7 @@ export function ReportsPanel({ fields, selectedFields, getTimeSeries, logDisplay
       <div className="flex min-h-0 h-full w-full">
       <div className="flex-none flex flex-col border-e border-border p-4 min-h-0" style={{ width: csvPanelWidth, minWidth: effectiveMinPanelWidth, maxWidth: MAX_REPORT_PANEL_WIDTH }}>
         <h2 className="text-sm font-semibold text-accent mb-1">{t('reports.csvTitle')}</h2>
-        <p className="text-xs text-gray-500 mb-2">{t('reports.csvDesc')}</p>
+        <p className="text-xs text-muted mb-2">{t('reports.csvDesc')}</p>
         <div className="mb-2">
           <input
             type="range"
@@ -453,7 +453,7 @@ export function ReportsPanel({ fields, selectedFields, getTimeSeries, logDisplay
             {isRtl ? 'שמור פריסט CSV' : 'Save CSV preset'}
           </button>
           <select
-            className="flex-1 min-w-0 px-2 py-1 rounded bg-surface border border-border text-xs text-gray-200"
+            className="flex-1 min-w-0 px-2 py-1 rounded bg-surface border border-border text-xs text-onSurface"
             defaultValue=""
             onChange={(e) => {
               const p = csvPresets.find((x) => x.id === e.target.value);
@@ -467,7 +467,7 @@ export function ReportsPanel({ fields, selectedFields, getTimeSeries, logDisplay
           </select>
         </div>
 
-        <p className="text-xs text-gray-600 mb-1">{t('reports.csvChatHint')}</p>
+        <p className="text-xs text-muted mb-1">{t('reports.csvChatHint')}</p>
         <div className="flex gap-2 mb-3 shrink-0">
           <input
             type="text"
@@ -476,7 +476,7 @@ export function ReportsPanel({ fields, selectedFields, getTimeSeries, logDisplay
             onKeyDown={(e) => { if (e.key === 'Enter') applyCsvNaturalLanguage(); }}
             disabled={csvNlLoading}
             placeholder={t('reports.csvChatPlaceholder')}
-            className="flex-1 min-w-0 px-3 py-2 rounded-lg bg-surface border border-border text-gray-100 text-sm placeholder-gray-600 focus:outline-none focus:ring-1 focus:ring-accent/50"
+            className="flex-1 min-w-0 px-3 py-2 rounded-lg bg-surface border border-border text-onSurface text-sm placeholder-muted focus:outline-none focus:ring-1 focus:ring-accent/50"
           />
           <button
             type="button"
@@ -493,7 +493,7 @@ export function ReportsPanel({ fields, selectedFields, getTimeSeries, logDisplay
           value={csvSearch}
           onChange={(e) => setCsvSearch(e.target.value)}
           placeholder={t('reports.fieldSearch')}
-          className="w-full px-3 py-2 rounded-lg bg-surface border border-border text-gray-100 text-sm placeholder-gray-600 focus:outline-none focus:ring-1 focus:ring-accent/50 mb-2 shrink-0"
+          className="w-full px-3 py-2 rounded-lg bg-surface border border-border text-onSurface text-sm placeholder-muted focus:outline-none focus:ring-1 focus:ring-accent/50 mb-2 shrink-0"
         />
 
         {!wallClock && (
@@ -504,8 +504,8 @@ export function ReportsPanel({ fields, selectedFields, getTimeSeries, logDisplay
           <button type="button" onClick={() => setCsvChecked(fields.slice())} className="text-xs text-accent hover:underline">
             {t('reports.selectAll')}
           </button>
-          <span className="text-gray-600">·</span>
-          <button type="button" onClick={() => setCsvChecked([])} className="text-xs text-gray-400 hover:text-gray-200">
+          <span className="text-muted">·</span>
+          <button type="button" onClick={() => setCsvChecked([])} className="text-xs text-muted hover:text-onSurface">
             {t('reports.clearAll')}
           </button>
         </div>
@@ -520,8 +520,8 @@ export function ReportsPanel({ fields, selectedFields, getTimeSeries, logDisplay
                 className="accent-accent mt-0.5 shrink-0"
               />
               <span className="flex-1 min-w-0 text-xs">
-                <span className="text-gray-300 block truncate">{getFieldLabel(f, i18n.language)}</span>
-                <span className="text-gray-500 block truncate">{f}</span>
+                <span className="text-onSurface block truncate">{getFieldLabel(f, i18n.language)}</span>
+                <span className="text-muted block truncate">{f}</span>
                 <span className="text-accent/70">{getShortHeHint(f)}</span>
               </span>
             </label>
@@ -569,7 +569,7 @@ export function ReportsPanel({ fields, selectedFields, getTimeSeries, logDisplay
             {isRtl ? 'שמור פריסט PDF' : 'Save PDF preset'}
           </button>
           <select
-            className="flex-1 min-w-0 px-2 py-1 rounded bg-surface border border-border text-xs text-gray-200"
+            className="flex-1 min-w-0 px-2 py-1 rounded bg-surface border border-border text-xs text-onSurface"
             defaultValue=""
             onChange={(e) => {
               const p = pdfPresets.find((x) => x.id === e.target.value);
@@ -584,27 +584,27 @@ export function ReportsPanel({ fields, selectedFields, getTimeSeries, logDisplay
           </select>
         </div>
 
-        <label className="text-xs text-gray-400 mb-1">{t('reports.reportNameLabel')}</label>
+        <label className="text-xs text-muted mb-1">{t('reports.reportNameLabel')}</label>
         <input
           type="text"
           value={reportTitle}
           onChange={(e) => setReportTitle(e.target.value)}
-          className="px-3 py-2 rounded-lg bg-surface border border-border text-gray-100 text-sm placeholder-gray-600 focus:outline-none focus:ring-1 focus:ring-accent/50 mb-3"
+          className="px-3 py-2 rounded-lg bg-surface border border-border text-onSurface text-sm placeholder-muted focus:outline-none focus:ring-1 focus:ring-accent/50 mb-3"
           placeholder={logDisplayName || (isRtl ? 'שם הטיסה' : 'Flight name')}
         />
 
-        <label className="text-xs text-gray-400 mb-1">{t('reports.observationsLabel')}</label>
+        <label className="text-xs text-muted mb-1">{t('reports.observationsLabel')}</label>
         <textarea
           value={observations}
           onChange={(e) => setObservations(e.target.value)}
           rows={6}
-          className="flex-1 min-h-0 px-3 py-2 rounded-lg bg-surface border border-border text-gray-100 text-sm placeholder-gray-600 focus:outline-none focus:ring-1 focus:ring-accent/50 resize-none mb-4"
+          className="flex-1 min-h-0 px-3 py-2 rounded-lg bg-surface border border-border text-onSurface text-sm placeholder-muted focus:outline-none focus:ring-1 focus:ring-accent/50 resize-none mb-4"
           placeholder={t('reports.observationsPlaceholder')}
         />
 
-        <div className="text-xs text-gray-600 mb-3">
+        <div className="text-xs text-muted mb-3">
           {isRtl ? 'שדות בדוח:' : 'Fields in report:'}{' '}
-          <span className="text-gray-400">{reportFields.length ? reportFields.join(', ') : (isRtl ? 'אין שדות נבחרים' : 'No fields selected')}</span>
+          <span className="text-muted">{reportFields.length ? reportFields.join(', ') : (isRtl ? 'אין שדות נבחרים' : 'No fields selected')}</span>
         </div>
 
         <button

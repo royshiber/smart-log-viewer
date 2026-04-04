@@ -65,9 +65,9 @@ export function LogList({
       </div>
       <div className="flex-1 min-h-0 overflow-y-auto p-2" style={{ minHeight: '100px' }}>
         {loading ? (
-          <p className="text-gray-500 text-sm">{t('common.loading')}</p>
+          <p className="text-muted text-sm">{t('common.loading')}</p>
         ) : logs.length === 0 ? (
-          <p className="text-gray-500 text-sm">{t('logs.empty')}</p>
+          <p className="text-muted text-sm">{t('logs.empty')}</p>
         ) : (
           <ul className="space-y-0.5">
             {logs.map((log, idx) => (
@@ -83,7 +83,7 @@ export function LogList({
                   onClick={() => onLoad(log)}
                   onContextMenu={(e) => { e.preventDefault(); handleRename(log); }}
                   disabled={disabled}
-                  className="flex-1 min-w-0 text-start px-2 py-1.5 rounded text-sm text-gray-300 hover:bg-surface hover:text-gray-100 truncate disabled:opacity-50"
+                  className="flex-1 min-w-0 text-start px-2 py-1.5 text-sm text-onSurface hover:bg-surfaceRaised truncate disabled:opacity-50"
                   title={`${log.displayName}\n${t('logs.rename', 'שנה שם')} (לחץ ימין)`}
                 >
                   {log.displayName}
@@ -98,7 +98,7 @@ export function LogList({
                   className={`shrink-0 w-6 h-6 flex items-center justify-center rounded border border-border text-xs leading-none ${
                     mainLogId === log.id || visibleLogIds.includes(log.id)
                       ? 'text-accent border-accent/50'
-                      : 'text-gray-500 hover:text-accent'
+                      : 'text-muted hover:text-accent'
                   }`}
                   title={mainLogId === log.id ? (t('logs.mainVisible', 'לוג ראשי מוצג')) : (visibleLogIds.includes(log.id) ? t('logs.hideData', 'הסתר נתוני לוג') : t('logs.showData', 'הצג נתוני לוג'))}
                   aria-label={visibleLogIds.includes(log.id) ? t('logs.hideData', 'הסתר נתוני לוג') : t('logs.showData', 'הצג נתוני לוג')}
@@ -108,7 +108,7 @@ export function LogList({
                 <button
                   type="button"
                   onClick={(e) => handleDelete(e, log)}
-                  className="shrink-0 w-6 h-6 flex items-center justify-center rounded border border-border text-gray-500 hover:text-red-400 hover:border-red-500/50 text-xs leading-none"
+                  className="shrink-0 w-6 h-6 flex items-center justify-center border border-border text-muted hover:text-red-600 hover:border-red-300 text-xs leading-none"
                   title={t('logs.delete', 'מחק לוג')}
                   aria-label={t('logs.delete', 'מחק לוג')}
                 >

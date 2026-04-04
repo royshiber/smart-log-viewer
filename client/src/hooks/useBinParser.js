@@ -1,11 +1,4 @@
-import { startTransition, useCallback, useRef, useState } from 'react';
-
-function errorText(err) {
-  if (err == null) return 'Parse error';
-  if (typeof err === 'string') return err;
-  if (err instanceof Error) return err.message || String(err);
-  return String(err);
-}
+import { useCallback, useState } from 'react';
 
 export function useBinParser() {
   const [fields, setFields] = useState([]);
@@ -13,63 +6,38 @@ export function useBinParser() {
   const [progress, setProgress] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const workerRef = useRef(null);
 
   const parseFile = useCallback((arrayBuffer) => {
-    workerRef.current?.terminate();
-    workerRef.current = null;
-
     setLoading(true);
     setError(null);
     setProgress(0);
     setFields([]);
     setMessages({});
 
-    if (!(arrayBuffer instanceof ArrayBuffer) || arrayBuffer.byteLength === 0) {
-      setError(arrayBuffer instanceof ArrayBuffer ? 'File is empty' : 'Invalid file data');
-      setLoading(false);
-      return;
-    }
-
     const worker = new Worker(
       new URL('../parsers/binParser.worker.js', import.meta.url),
       { type: 'module' }
     );
-    workerRef.current = worker;
 
     worker.onmessage = (e) => {
       const { type, percent, fields: f, messages: m, error: err } = e.data;
       if (type === 'PROGRESS') setProgress(percent ?? 0);
       if (type === 'FIELDS') setFields(f ?? []);
       if (type === 'DONE') {
-        worker.terminate();
-        if (workerRef.current === worker) workerRef.current = null;
+        setMessages(m ?? {});
         setLoading(false);
-        if (err) setError(errorText(err));
-        const payload = m ?? {};
-        // Large `messages` makes React commit expensive; yield + transition keeps tab responsive.
-        requestAnimationFrame(() => {
-          startTransition(() => setMessages(payload));
-        });
+        if (err) setError(err);
+        worker.terminate();
       }
     };
 
-    worker.onerror = (ev) => {
-      const msg = ev.message || (ev.error && ev.error.message) || 'Worker failed to run (check console)';
-      setError(msg);
+    worker.onerror = (err) => {
+      setError(err.message || 'Parse error');
       setLoading(false);
       worker.terminate();
-      if (workerRef.current === worker) workerRef.current = null;
     };
 
-    try {
-      worker.postMessage(arrayBuffer, [arrayBuffer]);
-    } catch (e) {
-      setError(errorText(e) || 'Could not send file to parser (buffer may already be in use)');
-      setLoading(false);
-      worker.terminate();
-      if (workerRef.current === worker) workerRef.current = null;
-    }
+    worker.postMessage(arrayBuffer, [arrayBuffer]);
   }, []);
 
   const getTimeSeries = useCallback((fieldKey) => {
