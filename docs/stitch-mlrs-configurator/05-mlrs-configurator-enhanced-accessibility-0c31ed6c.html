@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>mLRS Configurator - Tactical Aviator</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Manrope:wght@300;400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-surface-variant": "#d5c4ae",
+                        "surface-container-high": "#272a2c",
+                        "surface-container-lowest": "#0c0f10",
+                        "outline": "#9e8e7a",
+                        "primary-container": "#f4af2a",
+                        "secondary-container": "#5f4415",
+                        "on-tertiary-fixed": "#40000c",
+                        "background": "#111416",
+                        "on-secondary-fixed": "#281900",
+                        "on-secondary-fixed-variant": "#5c4213",
+                        "secondary": "#e7c186",
+                        "primary-fixed-dim": "#ffba3b",
+                        "on-secondary-container": "#d8b379",
+                        "inverse-primary": "#7f5700",
+                        "surface-container-low": "#191c1e",
+                        "on-error-container": "#ffdad6",
+                        "on-error": "#690005",
+                        "tertiary": "#ffcbcc",
+                        "surface-tint": "#ffba3b",
+                        "primary": "#ffd087",
+                        "on-primary-container": "#664500",
+                        "tertiary-fixed": "#ffdada",
+                        "outline-variant": "#514534",
+                        "on-tertiary": "#680019",
+                        "inverse-on-surface": "#2e3133",
+                        "on-surface": "#e1e3e5",
+                        "on-primary-fixed-variant": "#604100",
+                        "surface": "#111416",
+                        "on-background": "#e1e3e5",
+                        "tertiary-fixed-dim": "#ffb3b5",
+                        "on-tertiary-fixed-variant": "#8b162b",
+                        "surface-dim": "#111416",
+                        "on-tertiary-container": "#921c2f",
+                        "surface-bright": "#373a3c",
+                        "secondary-fixed": "#ffdead",
+                        "surface-variant": "#323537",
+                        "primary-fixed": "#ffdead",
+                        "surface-container-highest": "#323537",
+                        "surface-container": "#1d2022",
+                        "tertiary-container": "#ffa3a7",
+                        "secondary-fixed-dim": "#e7c186",
+                        "on-primary": "#432c00",
+                        "error-container": "#93000a",
+                        "on-secondary": "#432c00",
+                        "error": "#ffb4ab",
+                        "on-primary-fixed": "#281900",
+                        "inverse-surface": "#e1e3e5"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Space Grotesk"],
+                        "body": ["Manrope"],
+                        "label": ["Space Grotesk"],
+                        "mono": ["JetBrains Mono"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        body { font-family: 'Manrope', sans-serif; font-size: 16px; }
+        .technical-title { font-family: 'Space Grotesk', sans-serif; }
+        .cli-text { font-family: 'JetBrains Mono', monospace; }
+        
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #111416; }
+        ::-webkit-scrollbar-thumb { background: #514534; border-radius: 3px; }
+        
+        .device-bezel {
+            box-shadow: inset 0 0 40px rgba(0,0,0,0.8), 0 20px 60px rgba(0,0,0,0.6);
+        }
+        .inner-glow {
+            box-shadow: inset 0 0 20px rgba(244, 175, 42, 0.08);
+        }
+        .form-radio {
+            width: 1.25rem;
+            height: 1.25rem;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface h-screen overflow-hidden select-none">
+<header class="bg-[#111416] border-b border-outline-variant/20 flex justify-between items-center w-full px-8 py-4 fixed top-0 z-50">
+<div class="flex items-center gap-8">
+<span class="text-2xl font-bold text-[#f4af2a] tracking-widest font-headline uppercase">mLRS Configurator</span>
+<nav class="hidden md:flex gap-10 items-center">
+<a class="text-[#f4af2a] border-b-2 border-[#f4af2a] pb-1 font-headline tracking-tighter uppercase text-base font-bold" href="#">Main</a>
+<a class="text-[#9aa0a6] hover:text-[#ffd087] font-headline tracking-tighter uppercase text-base transition-colors" href="#">Telemetry</a>
+<a class="text-[#9aa0a6] hover:text-[#ffd087] font-headline tracking-tighter uppercase text-base transition-colors" href="#">Binding</a>
+<a class="text-[#9aa0a6] hover:text-[#ffd087] font-headline tracking-tighter uppercase text-base transition-colors" href="#">Flash</a>
+</nav>
+</div>
+<div class="flex items-center gap-6">
+<span class="font-headline tracking-tighter uppercase text-sm text-[#9aa0a6]">v1.2.0</span>
+<button class="bg-primary-container text-on-primary-container px-6 py-2.5 rounded-lg font-headline font-black text-base hover:bg-primary transition-all flex items-center gap-2 shadow-lg shadow-primary/10">
+<span class="material-symbols-outlined text-xl">link</span>
+                Connect
+            </button>
+</div>
+</header>
+<main class="pt-20 h-screen flex overflow-hidden">
+<section class="flex-1 bg-surface flex flex-col p-8 items-center justify-center">
+<div class="device-bezel bg-surface-container-lowest w-full max-w-6xl h-full rounded-2xl p-6 flex flex-col relative overflow-hidden border border-outline-variant/30">
+<div class="lua-title-bar flex justify-between items-center mb-5 px-3">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary-container text-2xl">radio</span>
+<h1 class="technical-title text-primary-container text-lg font-bold tracking-tight">mLRS Configurator: Main Page</h1>
+</div>
+<span class="technical-title text-outline text-xs uppercase font-medium opacity-80">Ver: Lua 2026-03-20 · Desktop</span>
+</div>
+<div class="flex-1 bg-[#2b2e30] rounded-xl inner-glow overflow-hidden flex flex-col border border-outline-variant/20">
+<div class="conn-panel p-4 bg-[#35383b] border-b border-[#6d7379]/40 flex items-center justify-between gap-4">
+<div class="flex items-center gap-8">
+<label class="flex items-center gap-3 cursor-pointer group">
+<input checked="" class="form-radio bg-transparent border-primary text-primary focus:ring-0" name="conn" type="radio"/>
+<span class="text-sm font-headline font-bold text-on-surface uppercase flex items-center gap-1">
+<span class="material-symbols-outlined text-lg">usb</span> Serial
+                                </span>
+</label>
+<label class="flex items-center gap-3 cursor-pointer group">
+<input class="form-radio bg-transparent border-outline text-primary focus:ring-0" name="conn" type="radio"/>
+<span class="text-sm font-headline font-bold text-on-surface-variant uppercase flex items-center gap-1">
+<span class="material-symbols-outlined text-lg">wifi</span> WiFi Bridge
+                                </span>
+</label>
+</div>
+<div class="flex gap-3">
+<button class="px-5 py-2.5 bg-surface-container-highest hover:bg-primary-container hover:text-on-primary-container text-xs uppercase font-black transition-all rounded-lg flex items-center gap-2 border border-outline-variant/20" id="btn-serial">
+<span class="material-symbols-outlined text-sm font-bold">cable</span> Serial Connect
+                            </button>
+<button class="px-5 py-2.5 bg-surface-container-highest hover:bg-primary-container hover:text-on-primary-container text-xs uppercase font-black transition-all rounded-lg flex items-center gap-2 border border-outline-variant/20" id="btn-ws-connect">
+<span class="material-symbols-outlined text-sm font-bold">wifi_tethering</span> WiFi Connect
+                            </button>
+<button class="px-5 py-2.5 bg-error-container text-on-error-container text-xs uppercase font-black opacity-60 cursor-not-allowed rounded-lg flex items-center gap-2" id="btn-disconnect">
+<span class="material-symbols-outlined text-sm">link_off</span> Disconnect
+                            </button>
+<button class="px-5 py-2.5 bg-outline-variant/20 hover:bg-outline-variant text-xs uppercase font-black transition-all rounded-lg flex items-center gap-2" id="btn-clear">
+<span class="material-symbols-outlined text-sm">delete_sweep</span> Clear Log
+                            </button>
+</div>
+</div>
+<div class="lua-warn-row bg-[#3a3228] border-b border-[#7a6238] px-6 py-2.5 flex items-center gap-3">
+<span class="material-symbols-outlined text-[#f4af2a] text-xl" style="font-variation-settings: 'FILL' 1;">warning</span>
+<p class="text-sm text-[#ffd087] font-bold uppercase tracking-wider">Warning: Low voltage detected on Tx module. Check power source immediately.</p>
+</div>
+<div class="p-6 grid grid-cols-12 gap-8 flex-1 overflow-hidden">
+<div class="col-span-12 lg:col-span-4 flex flex-col gap-6">
+<div class="quick-settings bg-[#2a2d31] border border-[#f4af2a]/40 rounded-xl p-5 flex flex-col gap-4 shadow-xl" dir="rtl">
+<h3 class="text-sm font-black text-primary flex items-center gap-2 mb-1">
+<span class="material-symbols-outlined text-lg">settings_input_component</span>
+                                    הגדרות מהירות
+                                </h3>
+<div class="grid grid-cols-1 gap-3">
+<input class="w-full bg-surface-container-lowest border border-outline-variant/40 text-sm px-4 py-3 focus:border-primary-container outline-none transition-all rounded-lg placeholder:text-outline-variant" id="quick-param-id" placeholder="מזהה פרמטר (Param ID)" type="text"/>
+<input class="w-full bg-surface-container-lowest border border-outline-variant/40 text-sm px-4 py-3 focus:border-primary-container outline-none transition-all rounded-lg placeholder:text-outline-variant" id="quick-param-val" placeholder="ערך חדש (Value)" type="text"/>
+</div>
+<button class="w-full bg-primary-container text-on-primary-container py-3 text-sm font-black uppercase rounded-lg hover:shadow-xl hover:shadow-primary/30 transition-all active:scale-[0.98] flex items-center justify-center gap-2" id="btn-quick-send">
+<span class="material-symbols-outlined font-bold">send</span> שלח פקודה
+                                </button>
+</div>
+<div class="lua-menu-row flex flex-col gap-3">
+<button class="flex items-center justify-between px-5 py-4 bg-surface-container-low hover:bg-surface-container-highest transition-all group rounded-lg border border-outline-variant/10 shadow-sm">
+<span class="text-xs font-black uppercase text-on-surface-variant group-hover:text-primary transition-colors flex items-center gap-3">
+<span class="material-symbols-outlined">edit_square</span> Edit Tx Parameters
+                                    </span>
+<span class="material-symbols-outlined text-lg text-outline group-hover:text-primary">arrow_forward_ios</span>
+</button>
+<button class="flex items-center justify-between px-5 py-4 bg-surface-container-low hover:bg-surface-container-highest transition-all group rounded-lg border border-outline-variant/10 shadow-sm">
+<span class="text-xs font-black uppercase text-on-surface-variant group-hover:text-primary transition-colors flex items-center gap-3">
+<span class="material-symbols-outlined">settings_remote</span> Edit Rx Parameters
+                                    </span>
+<span class="material-symbols-outlined text-lg text-outline group-hover:text-primary">arrow_forward_ios</span>
+</button>
+<div class="grid grid-cols-2 gap-3 mt-2">
+<button class="bg-surface-container-low py-4 text-xs font-black uppercase tracking-widest text-on-surface-variant hover:text-primary hover:bg-surface-container-highest transition-all rounded-lg border border-outline-variant/10 flex flex-col items-center gap-1">
+<span class="material-symbols-outlined">save</span> Save
+                                    </button>
+<button class="bg-surface-container-low py-4 text-xs font-black uppercase tracking-widest text-on-surface-variant hover:text-primary hover:bg-surface-container-highest transition-all rounded-lg border border-outline-variant/10 flex flex-col items-center gap-1">
+<span class="material-symbols-outlined">refresh</span> Reload
+                                    </button>
+<button class="bg-surface-container-low py-4 text-xs font-black uppercase tracking-widest text-on-surface-variant hover:text-primary hover:bg-surface-container-highest transition-all rounded-lg border border-outline-variant/10 flex flex-col items-center gap-1">
+<span class="material-symbols-outlined">link</span> Bind
+                                    </button>
+<button class="bg-surface-container-low py-4 text-xs font-black uppercase tracking-widest text-on-surface-variant hover:text-primary hover:bg-surface-container-highest transition-all rounded-lg border border-outline-variant/10 flex flex-col items-center gap-1">
+<span class="material-symbols-outlined">construction</span> Tools
+                                    </button>
+</div>
+</div>
+</div>
+<div class="col-span-12 lg:col-span-8 flex flex-col overflow-hidden bg-[#1e2022] rounded-xl border border-outline-variant/20 shadow-inner">
+<div class="lua-log-wrap flex-1 p-5 cli-text text-sm leading-relaxed overflow-y-auto bg-[#0c0f10]/50" id="log">
+<div class="text-[#9aa0a6] mb-2 opacity-80">[08:42:01] <span class="text-secondary font-bold">SYSTEM:</span> Initializing mLRS Serial Protocol...</div>
+<div class="text-[#9aa0a6] mb-2 opacity-80">[08:42:03] <span class="text-primary font-bold">INFO:</span> Handshake successful. Firmware v1.2.0-stable.</div>
+<div class="text-[#9aa0a6] mb-2 opacity-80">[08:42:04] <span class="text-tertiary font-bold">RX:</span> Telemetry link established. RSSI -42dBm.</div>
+<div class="text-[#9aa0a6] mb-2 opacity-80">[08:42:05] <span class="text-error font-bold">WARN:</span> CRC mismatch in packet 0x42 (ignored).</div>
+<div class="text-[#f4af2a] mt-3 animate-pulse text-lg">_</div>
+</div>
+<div class="p-4 border-t border-outline-variant/20 bg-surface-container-lowest flex gap-3 items-center">
+<span class="material-symbols-outlined text-outline text-xl">terminal</span>
+<input class="flex-1 bg-transparent border-none focus:ring-0 cli-text text-base text-primary font-medium placeholder:text-outline-variant/50" id="cmd" placeholder="Enter CLI command..." type="text"/>
+<button class="bg-primary-container px-8 py-3 text-sm font-black text-on-primary-container uppercase rounded-lg transition-all hover:brightness-110 active:scale-95 shadow-lg shadow-primary/20 flex items-center gap-2" id="btn-send">
+                                    Send <span class="material-symbols-outlined text-base">subdirectory_arrow_left</span>
+</button>
+</div>
+<div class="p-3 flex flex-wrap gap-2 bg-[#1e2022] border-t border-outline-variant/10">
+<button class="px-4 py-1.5 bg-surface-container-high text-[11px] font-black text-outline uppercase hover:text-primary hover:bg-surface-container-highest transition-all rounded-md">v</button>
+<button class="px-4 py-1.5 bg-surface-container-high text-[11px] font-black text-outline uppercase hover:text-primary hover:bg-surface-container-highest transition-all rounded-md">pl</button>
+<button class="px-4 py-1.5 bg-surface-container-high text-[11px] font-black text-outline uppercase hover:text-primary hover:bg-surface-container-highest transition-all rounded-md">pl c</button>
+<button class="px-4 py-1.5 bg-surface-container-high text-[11px] font-black text-outline uppercase hover:text-primary hover:bg-surface-container-highest transition-all rounded-md">stats</button>
+<button class="px-4 py-1.5 bg-surface-container-high text-[11px] font-black text-error uppercase hover:bg-error-container hover:text-on-error-container transition-all rounded-md" id="btn-stop-stats">stop stats</button>
+</div>
+</div>
+</div>
+<div class="lua-info mt-auto bg-surface-container-lowest grid grid-cols-4 border-t border-outline-variant/30 p-4">
+<div class="flex flex-col items-center border-r border-outline-variant/20">
+<span class="text-[10px] text-outline uppercase tracking-widest font-black mb-1">Tx Mode</span>
+<span class="technical-title text-base text-primary font-black">LORA_50HZ</span>
+</div>
+<div class="flex flex-col items-center border-r border-outline-variant/20">
+<span class="text-[10px] text-outline uppercase tracking-widest font-black mb-1">Rx Status</span>
+<span class="technical-title text-base text-primary font-black">CONNECTED</span>
+</div>
+<div class="flex flex-col items-center border-r border-outline-variant/20">
+<span class="text-[10px] text-outline uppercase tracking-widest font-black mb-1">Tx Power</span>
+<span class="technical-title text-base text-primary font-black">100mW</span>
+</div>
+<div class="flex flex-col items-center">
+<span class="text-[10px] text-outline uppercase tracking-widest font-black mb-1">Rx Power</span>
+<span class="technical-title text-base text-primary font-black">10mW</span>
+</div>
+</div>
+</div>
+<div class="absolute bottom-6 right-8 pointer-events-none opacity-10">
+<img class="w-32 h-32 rotate-45" data-alt="abstract technical circuit pattern minimal faint lines on dark background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCziijHrJKqqaD4HBnwXARQy8eF5srp6Olu7NWTuEpbigodIpauL3YnaiIOSXtenk58IjH9gXllJtnjgNi3ragBSQvJzUog8aJSu8fL09-EadJMFcVluFRPnwwdBzz1W9rB_gVmQa9sS98eo-HtayIhnwMUbTWMyZuUUiL_pjmNJZpHP75dIxHCxv_2wVcgKtChZsF1i97w9K_UmdDem6TfDjO3HyxRTMqr6IncaWG00Yg4N9CVYiNsDSp9vTRq27flOBwWw5vE2Hx5"/>
+</div>
+</div>
+</section>
+<aside class="he-sidebar w-96 bg-[#191c1e] h-full flex flex-col border-l border-outline-variant/20 shadow-2xl z-40 fixed right-0 top-0 pt-20" dir="rtl">
+<div class="p-6 flex flex-col h-full gap-8">
+<div class="flex items-center gap-5 mb-2">
+<div class="w-14 h-14 rounded-full bg-surface-container-highest border-2 border-primary/30 flex items-center justify-center overflow-hidden shadow-lg">
+<img class="w-full h-full object-cover" data-alt="Tactical AI Assistant" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB4z_UKj-HskwRGLus-C2ST8y5Nyix2FXQzSSKTIoVueDfkhC2a71g659WHAwHCZ_p22CAWt8UsXslfTKrHLGrRE3VQ5dd8SdjAIWj5BZ1TqJjTZ97qC4zCIzUU-892CPYZW7siWczlSg4yi7tBnO4Xv5snmwV90_y-ZMoUX7PNVXbx4Zqm6_Y8Q-ejfFd2JMy7Q91IH3Fqwb7fNqdfBWMksGICL9bUoZ1Ll-NIw-nCj_CiHZUdxWStlgPzybl1wusO0pe8b_qN2A_0"/>
+</div>
+<div>
+<h2 class="text-[#ffd087] font-black text-xl leading-tight font-body">מרכז שליטה</h2>
+<p class="text-[#9aa0a6] text-[11px] uppercase font-bold tracking-widest mt-0.5">בקרת מערכת מתקדמת</p>
+</div>
+</div>
+<div class="flex bg-surface-container-lowest p-1.5 rounded-xl border border-outline-variant/10 shadow-inner">
+<button class="he-tab-btn flex-1 py-3 text-sm font-black text-primary bg-surface-container-highest rounded-lg shadow-md transition-all flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-lg">menu_book</span> ספר הוראות
+                    </button>
+<button class="he-tab-btn flex-1 py-3 text-sm font-black text-on-surface-variant hover:text-on-surface transition-colors flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-lg">smart_toy</span> עוזר mLRS
+                    </button>
+</div>
+<div class="flex-1 flex flex-col overflow-hidden">
+<div class="he-manual flex flex-col gap-6 overflow-y-auto pr-2">
+<div class="space-y-3">
+<h4 class="text-[11px] font-black text-primary/80 uppercase tracking-widest mb-3 border-b border-outline-variant/20 pb-2">מדריכים מהירים</h4>
+<a class="flex items-center justify-between p-4 bg-surface-container-low hover:bg-surface-container-highest transition-all rounded-xl border border-outline-variant/10 group shadow-sm" href="#">
+<span class="text-sm font-bold text-on-surface flex items-center gap-3">
+<span class="material-symbols-outlined text-primary/60">terminal</span> שימוש ב-CLI פקודות
+                                </span>
+<span class="material-symbols-outlined text-lg text-outline group-hover:text-primary transition-transform group-hover:translate-x-1">open_in_new</span>
+</a>
+<a class="flex items-center justify-between p-4 bg-surface-container-low hover:bg-surface-container-highest transition-all rounded-xl border border-outline-variant/10 group shadow-sm" href="#">
+<span class="text-sm font-bold text-on-surface flex items-center gap-3">
+<span class="material-symbols-outlined text-primary/60">description</span> הגדרה ראשונית mLRS.lua
+                                </span>
+<span class="material-symbols-outlined text-lg text-outline group-hover:text-primary transition-transform group-hover:translate-x-1">open_in_new</span>
+</a>
+<a class="flex items-center justify-between p-4 bg-surface-container-low hover:bg-surface-container-highest transition-all rounded-xl border border-outline-variant/10 group shadow-sm" href="#">
+<span class="text-sm font-bold text-on-surface flex items-center gap-3">
+<span class="material-symbols-outlined text-primary/60">router</span> חיבור גשר WiFi
+                                </span>
+<span class="material-symbols-outlined text-lg text-outline group-hover:text-primary transition-transform group-hover:translate-x-1">open_in_new</span>
+</a>
+</div>
+<div class="p-4 bg-primary/5 rounded-xl border border-primary/20 shadow-inner">
+<h5 class="text-xs font-black text-primary uppercase mb-2 flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">info</span> פרוטוקולי חומרה
+                            </h5>
+<p class="text-[13px] leading-relaxed text-on-surface-variant font-medium">הוראות חיבור עבור Matek, ExpressLRS ופרוטוקולי שידור מתקדמים המותאמים למערכת mLRS.</p>
+</div>
+</div>
+</div>
+<div class="mt-auto pt-6 border-t border-outline-variant/30">
+<h4 class="he-sidebar-title--second text-[11px] font-black text-outline uppercase tracking-widest mb-3 flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">history</span> סטטוס פעולה אחרונה
+                    </h4>
+<div class="bg-[#242729] p-5 rounded-xl border-l-4 border-primary shadow-lg" id="he-last-action">
+<p class="text-sm text-on-surface font-medium leading-relaxed">
+                            בוצעה טעינה מחדש של פרמטרי ה-Tx. המערכת זיהתה 12 ערכים תקינים וערך אחד שאינו בטווח המותר (<span class="text-primary font-bold">Power Level</span>). מומלץ לוודא את תצורת המתח.
+                        </p>
+</div>
+</div>
+<div class="flex gap-4 mt-2">
+<button class="flex-1 flex flex-row-reverse items-center justify-center gap-3 p-4 text-on-surface-variant hover:bg-surface-container-highest transition-all rounded-xl text-base font-bold border border-outline-variant/10 shadow-sm">
+<span class="material-symbols-outlined text-2xl">settings</span>
+<span>הגדרות</span>
+</button>
+<button class="flex-1 flex flex-row-reverse items-center justify-center gap-3 p-4 text-on-surface-variant hover:bg-surface-container-highest transition-all rounded-xl text-base font-bold border border-outline-variant/10 shadow-sm">
+<span class="material-symbols-outlined text-2xl">help</span>
+<span>עזרה</span>
+</button>
+</div>
+<button class="w-full bg-[#f4af2a] text-[#432c00] font-black py-4 rounded-xl text-base uppercase tracking-widest hover:brightness-110 hover:shadow-2xl hover:shadow-primary/30 transition-all flex items-center justify-center gap-3 shadow-xl">
+<span class="material-symbols-outlined font-black">system_update</span>
+                    עדכון קושחה
+                </button>
+</div>
+</aside>
+</main>
+<div class="fixed bottom-8 left-8 group z-[100]">
+<button class="w-16 h-16 bg-primary-container text-on-primary-container rounded-full flex items-center justify-center shadow-2xl hover:scale-110 transition-all border-4 border-surface shadow-primary/40">
+<span class="material-symbols-outlined text-3xl font-black">help_center</span>
+</button>
+<div class="absolute bottom-20 left-0 w-80 p-5 bg-surface-container-highest border border-outline-variant/40 rounded-2xl opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0 transition-all pointer-events-none shadow-2xl backdrop-blur-md">
+<p class="text-sm text-on-surface leading-relaxed">
+<span class="font-black text-primary flex items-center gap-2 mb-1">
+<span class="material-symbols-outlined text-base">tips_and_updates</span> טיפ טקטי:
+                </span> 
+                ניתן להשתמש בקיצור הדרך <kbd class="px-2 py-0.5 bg-surface-container-lowest rounded border border-outline-variant/30 font-mono text-xs">Alt+C</kbd> כדי לנקות את ה-Log במהירות במהלך טיסה.
+            </p>
+</div>
+</div>
+</body></html>

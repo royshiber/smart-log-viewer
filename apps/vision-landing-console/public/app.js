@@ -1,15 +1,24 @@
 
 /* ─── ARDUPILOT READ / DIFF / WRITE ─── *//** Why: single client-side version for the top badge (must match index.html cache-bust and server APP_VERSION). What: read at init when wiring the version modal. */
-const APP_VERSION_NEW = '1.02.34';
+const APP_VERSION_NEW = '1.02.45';
 
 /** Why: single source of truth for what changed in each release. What: rendered into versionModal when user clicks the version badge. */
 const VERSION_HISTORY = [
   {
-    version: '1.02.34',
-    date: '2026-04-04',
+    version: '1.02.45',
+    date: '2026-03-27',
     changes: [
-      'מונוריפו: הועתק Vision Landing Console המלא ל־apps/vision-landing-console — כל הטאבים (מרכז פרמטרים, תחקור, תהליכים, טלמטריה, מפה טריין, יועץ), שרת עם SQLite/Gemini/API.',
-      'Monorepo: full VLC UI + server (lib/db, uploads, terrain, advisor, ArduPilot tools) now lives under apps/vision-landing-console; version badge syncs client/src/version.js.',
+      'ניווט: טאב ראשי ״לוגים והעלאות״ — הפאנל #flights (העלאות, טבלאות לוגים, ניהול טיסות) היה קיים ב-HTML אבל לא מחובר לשורת הטאבים.',
+      'בדיקות: npm run test:smoke — שרת זמני + בדיקות API + Playwright (טאבים, Ardu, מפה, יועץ).',
+    ],
+  },
+  {
+    version: '1.02.41',
+    date: '2026-03-27',
+    changes: [
+      'ArduPilot: תת-טאבי קטגוריות — תוקן CSS כך שרק הפאנל הפעיל מוצג (לפני כן כל הקבוצות נשארו גלויות והחלפה נראתה שבורה).',
+      'מפת טריין: סיבוב — סליידר אופקי צר + כפתורי ±15° + N (במקום חוגה).',
+      'ניווט לפי תמונה: כרטיס הסבר + שתי אפשרויות רדיו (מפת טיסה / לוויין), לא כפתורים צפופים בסרגל השכבות.',
     ],
   },
   {
@@ -843,6 +852,75 @@ const jetsonMem = document.getElementById('jetsonMem');
 const jetsonOut = document.getElementById('jetsonOut');
 const jetsonStatusDot = document.getElementById('jetsonStatusDot');
 const jetsonRefreshBtn = document.getElementById('jetsonRefreshBtn');
+const jetsonInstalledVersionEl = document.getElementById('jetsonInstalledVersion');
+const jetsonTargetVersionSelect = document.getElementById('jetsonTargetVersionSelect');
+const jetsonInstallBtn = document.getElementById('jetsonInstallBtn');
+
+/** Why: release dropdown + diff text need the same catalog the server uses. What: filled by GET /api/jetson/releases. */
+let jetsonReleasesCache = [];
+/** Why: diff panel compares selected target to last known installed from SSE/REST. What: string version or empty before first status. */
+let jetsonInstalledVersionCached = '';
+
+/** Why: populate version picker from server catalog (synced with Aero-Lab list). What: builds options; preserves selection when possible. */
+async function loadJetsonReleasesCatalog() {
+  try {
+    const res = await fetch('/api/jetson/releases');
+    const data = await res.json();
+    jetsonReleasesCache = Array.isArray(data.releases) ? data.releases : [];
+    if (!jetsonTargetVersionSelect) return;
+    const prev = jetsonTargetVersionSelect.value;
+    jetsonTargetVersionSelect.innerHTML = jetsonReleasesCache
+      .map((r) => `<option value="${r.version}">${r.version} (${r.channel})</option>`)
+      .join('');
+    const pick =
+      (prev && jetsonReleasesCache.some((r) => r.version === prev) && prev) ||
+      (jetsonInstalledVersionCached && jetsonReleasesCache.some((r) => r.version === jetsonInstalledVersionCached) && jetsonInstalledVersionCached) ||
+      jetsonReleasesCache[0]?.version ||
+      '';
+    if (pick) jetsonTargetVersionSelect.value = pick;
+    renderJetsonVersionNotes();
+  } catch {
+    if (document.getElementById('jetsonSelectedNotesHe')) {
+      document.getElementById('jetsonSelectedNotesHe').textContent = 'לא ניתן לטעון את רשימת הגרסאות.';
+    }
+  }
+}
+
+/** Why: visual state for install lifecycle in the compact badge. What: maps installState to CSS class + short Hebrew label. */
+function applyJetsonInstallStateBadge(state) {
+  const badge = document.getElementById('jetsonInstallStateBadge');
+  if (!badge) return;
+  badge.className = 'jetson-install-badge';
+  const cls = { idle: 'idle', installing: 'busy', success: 'ok', error: 'err' };
+  badge.classList.add(cls[state] || 'idle');
+  const labels = { idle: 'מוכן', installing: 'מתקין…', success: 'הצלחה', error: 'שגיאה' };
+  badge.textContent = labels[state] || state || '';
+}
+
+/** Why: operator sees Hebrew release notes and a plain diff vs what the console thinks is installed. What: uses cached catalog + installedVersion. */
+function renderJetsonVersionNotes() {
+  const sel = jetsonTargetVersionSelect?.value || '';
+  const rel = jetsonReleasesCache.find((r) => r.version === sel);
+  const notesEl = document.getElementById('jetsonSelectedNotesHe');
+  const diffEl = document.getElementById('jetsonDiffNotesHe');
+  if (notesEl) notesEl.textContent = rel?.notesHe || '—';
+  if (!diffEl) return;
+  const inst = jetsonInstalledVersionCached;
+  if (!rel) {
+    diffEl.textContent = '—';
+    return;
+  }
+  if (!inst) {
+    diffEl.textContent = 'מחכים לגרסה מותקנת מהשרת (רענן או SSE).';
+    return;
+  }
+  if (sel === inst) {
+    diffEl.textContent = 'אין שינוי — הגרסה שנבחרה זהה לגרסה המסומנת כמותקנת במאגר המקומי.';
+    return;
+  }
+  const prevRel = jetsonReleasesCache.find((r) => r.version === inst);
+  diffEl.textContent = `מעבר מ־${inst} ל־${sel}. בגרסה היעד: ${rel.notesHe} · במה שרץ עכשיו: ${prevRel?.notesHe || 'אין תיאור במאגר לגרסה הנוכחית.'}`;
+}
 
 /** Why: keep latest SSE-delivered telemetry accessible to the confidence-bar simulation. What: updated by SSE handler; read by the 1s sim interval. */
 let latestVisionFromServer = null;
@@ -875,9 +953,55 @@ function applyJetsonUi(online, data) {
   const qualEl = document.getElementById('linkQuality');
   if (latEl) latEl.textContent = data.ageMs != null ? `${Math.round(data.ageMs)}ms` : '-';
   if (qualEl) qualEl.textContent = data.linkQualityPct != null ? `${data.linkQualityPct}%` : '-';
+  const latJ = document.getElementById('heartbeatLatencyJetson');
+  const qualJ = document.getElementById('linkQualityJetson');
+  if (latJ) latJ.textContent = data.ageMs != null ? `${Math.round(data.ageMs)}ms` : '-';
+  if (qualJ) qualJ.textContent = data.linkQualityPct != null ? `${data.linkQualityPct}%` : '-';
+
+  if (data.installedVersion != null) {
+    jetsonInstalledVersionCached = String(data.installedVersion);
+    if (jetsonInstalledVersionEl) jetsonInstalledVersionEl.textContent = data.installedVersion;
+  }
+  if (data.installState) applyJetsonInstallStateBadge(data.installState);
+  const la = document.getElementById('jetsonInstallLastAction');
+  if (la && data.lastAction) la.textContent = data.lastAction;
+  renderJetsonVersionNotes();
+  if (jetsonInstallBtn) jetsonInstallBtn.disabled = data.installState === 'installing';
 }
 
 if (jetsonRefreshBtn) jetsonRefreshBtn.addEventListener('click', refreshJetsonStatus);
+
+jetsonTargetVersionSelect?.addEventListener('change', () => {
+  renderJetsonVersionNotes();
+});
+
+/** Why: trigger local/simulated or companion-backed bundle install from the telemetry tab. What: POST /api/jetson/install then refresh status. */
+if (jetsonInstallBtn) {
+  jetsonInstallBtn.addEventListener('click', async () => {
+    const v = jetsonTargetVersionSelect?.value;
+    if (!v) return;
+    jetsonInstallBtn.disabled = true;
+    try {
+      const res = await fetch('/api/jetson/install', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ version: v }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'התקנה נכשלה');
+      await refreshJetsonStatus();
+      if (jetsonOut) jetsonOut.textContent = data.lastAction || 'התקנה הושלמה.';
+    } catch (err) {
+      if (jetsonOut) jetsonOut.textContent = err?.message || String(err);
+      await refreshJetsonStatus();
+    }
+  });
+}
+
+(async () => {
+  await refreshJetsonStatus();
+  await loadJetsonReleasesCatalog();
+})();
 
 const visionLateralEl = document.getElementById('visionLateralOffset');
 const visionHeadingEl = document.getElementById('visionHeadingError');
@@ -933,6 +1057,7 @@ function applySlamUi(d) {
       applyJetsonUi(payload.jetson?.online, payload.jetson || {});
       applyVisionUi(payload.vision);
       applySlamUi(payload.slam);
+      if (payload.visionNav?.mode) applyVisionNavModeUi(payload.visionNav.mode);
     } catch {}
   });
   src.onerror = () => {
@@ -956,6 +1081,53 @@ const logDropZone = document.getElementById('logDropZone');
 const logPickFileBtn = document.getElementById('logPickFileBtn');
 const logFileNameDisplay = document.getElementById('logFileNameDisplay');
 const pullLogsBtn = document.getElementById('pullLogsBtn');
+const refreshAllLogsBtn = document.getElementById('refreshAllLogsBtn');
+const allLogsArduTbody = document.getElementById('allLogsArduTbody');
+const allLogsJetsonTbody = document.getElementById('allLogsJetsonTbody');
+
+/** Why: escape text/HTML for safe table cells and href. What: minimal entity encode for innerHTML rows. */
+function escapeAllLogsCell(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/"/g, '&quot;');
+}
+
+/** Why: Ardu/Jetson history tables were never wired after copy into monorepo. What: GET /api/flights/all-logs, split by source, render download links. */
+async function refreshAllLogsTable() {
+  const uploadLogStatus = document.getElementById('uploadLogStatus');
+  if (!allLogsArduTbody || !allLogsJetsonTbody) return;
+  try {
+    const res = await fetch('/api/flights/all-logs');
+    const data = await res.json();
+    const logs = Array.isArray(data.logs) ? data.logs : [];
+    const bySource = (src) => logs.filter((l) => String(l.source || '').toLowerCase() === src);
+    function tbodyHtml(list) {
+      if (!list.length) return '<tr><td colspan="3">אין לוגים</td></tr>';
+      return list
+        .map((l) => {
+          const name = escapeAllLogsCell(l.original_name || '—');
+          const flightTitle = escapeAllLogsCell(l.flight_title || `#${l.flight_id}`);
+          const href = l.downloadUrl ? escapeAllLogsCell(l.downloadUrl) : '';
+          const action = href ? `<a href="${href}" download>הורדה</a>` : '—';
+          return `<tr><td>${name}</td><td>${flightTitle}</td><td>${action}</td></tr>`;
+        })
+        .join('');
+    }
+    allLogsArduTbody.innerHTML = tbodyHtml(bySource('ardupilot'));
+    allLogsJetsonTbody.innerHTML = tbodyHtml(bySource('jetson'));
+    if (uploadLogStatus) uploadLogStatus.textContent = `נטענו ${logs.length} לוגים מהשרת.`;
+  } catch (err) {
+    if (uploadLogStatus) uploadLogStatus.textContent = `טעינת כל הלוגים נכשלה: ${err?.message || err}`;
+  }
+}
+
+pullLogsBtn?.addEventListener('click', () => {
+  refreshAllLogsTable();
+});
+refreshAllLogsBtn?.addEventListener('click', () => {
+  refreshAllLogsTable();
+});
 
 /** Why: show chosen filename in the modern drop zone; what: updates label after native input or drag-drop. */
 function updateLogFileNameDisplay() {
@@ -1096,12 +1268,13 @@ if (uploadLogBtn) {
       if (logFileInput) logFileInput.value = '';
       updateLogFileNameDisplay();
       await refreshFlightLogsList();
+      await refreshAllLogsTable();
     } catch (err) {
       if (flightLogsOut) flightLogsOut.textContent = `העלאה נכשלה: ${err?.message || err}`;
     }
   });
 }
-refreshFlightLists().then(refreshFlightLogsList);
+refreshFlightLists().then(refreshFlightLogsList).then(() => refreshAllLogsTable());
 
 const linkState = document.getElementById('linkState');
 const lastRefresh = document.getElementById('lastRefresh');
@@ -1549,16 +1722,24 @@ function initTerrainMap() {
   const BearingCtrl = L.Control.extend({
     options: { position: 'topleft' },
     onAdd(m) {
-      const root = L.DomUtil.create('div', 'terrain-bearing-control leaflet-bar');
-      root.innerHTML =
-        '<span class="terrain-rot-deg">0°</span><input type="range" class="terrain-rot-slider" min="-180" max="180" value="0" aria-label="סיבוב מפה" /><button type="button" class="terrain-rot-north" title="צפון">N</button>';
-      const slider = root.querySelector('.terrain-rot-slider');
+      const root = L.DomUtil.create('div', 'terrain-bearing-control terrain-bearing-control--strip leaflet-bar');
+      root.innerHTML = `
+        <div class="terrain-bearing-strip" role="group" aria-label="סיבוב המפה">
+          <button type="button" class="terrain-rot-step" data-rot-delta="-15" title="סיבוב 15° נגד כיוון השעון">−15°</button>
+          <input type="range" class="terrain-rot-slider-compact" min="-180" max="180" value="0" step="1" aria-label="זווית סיבוב המפה" />
+          <button type="button" class="terrain-rot-step" data-rot-delta="15" title="סיבוב 15° עם כיוון השעון">+15°</button>
+          <span class="terrain-rot-deg">0°</span>
+          <button type="button" class="terrain-rot-north" title="איפוס לצפון (0°)">N</button>
+        </div>`;
+      const slider = root.querySelector('.terrain-rot-slider-compact');
       const degEl = root.querySelector('.terrain-rot-deg');
       const northBtn = root.querySelector('.terrain-rot-north');
 
       const applyDeg = (d) => {
         let x = Number(d);
         if (!Number.isFinite(x)) x = 0;
+        while (x > 180) x -= 360;
+        while (x < -180) x += 360;
         if (typeof m.setBearing === 'function') m.setBearing(x);
         if (degEl) degEl.textContent = `${Math.round(x)}°`;
         if (slider) slider.value = String(Math.round(x));
@@ -1569,7 +1750,20 @@ function initTerrainMap() {
         if (degEl) degEl.textContent = '—';
       } else {
         L.DomEvent.on(slider, 'input', (ev) => applyDeg(ev.target.value));
+        root.querySelectorAll('.terrain-rot-step').forEach((b) => {
+          L.DomEvent.on(b, 'click', () => {
+            const cur = Number(slider.value) || 0;
+            applyDeg(cur + Number(b.dataset.rotDelta || 0));
+          });
+        });
+        L.DomEvent.on(slider, 'keydown', (ev) => {
+          const step = ev.shiftKey ? 15 : 5;
+          const cur = Number(slider.value) || 0;
+          if (ev.key === 'ArrowRight' || ev.key === 'ArrowUp') applyDeg(cur + step);
+          if (ev.key === 'ArrowLeft' || ev.key === 'ArrowDown') applyDeg(cur - step);
+        });
         L.DomEvent.on(northBtn, 'click', () => applyDeg(0));
+        applyDeg(0);
       }
 
       L.DomEvent.disableClickPropagation(root);
@@ -1698,11 +1892,51 @@ async function loadTerrainCoverage() {
   } catch {}
 }
 
+/** Why: radio cards under terrain must match server/SSE mode. What: syncs checked state, `.active` on labels, and status line. */
+function applyVisionNavModeUi(mode) {
+  const hint = document.getElementById('terrainNavModeHint');
+  document.querySelectorAll('.terrain-nav-ref-option').forEach((label) => {
+    const on = label.dataset.navMode === mode;
+    label.classList.toggle('active', on);
+    const inp = label.querySelector('input[type="radio"]');
+    if (inp) inp.checked = on;
+  });
+  if (hint) {
+    hint.textContent =
+      mode === 'prior_mission_map'
+        ? 'נשמר בשרת: ייחוס למפת כיסוי / טיסה קודמת (מוזרם גם ב־SSE לצינור Jetson).'
+        : 'נשמר בשרת: ייחוס לצילום לוויין — דורש התאמת תנאי תאורה ורזולוציה בשטח.';
+  }
+}
+
+/** Why: operator selects how the pipeline should compare the live frame. What: POST /api/vision/nav-mode and refresh local UI. */
+async function postVisionNavMode(mode) {
+  try {
+    const res = await fetch('/api/vision/nav-mode', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ mode }),
+    });
+    const d = await res.json();
+    if (d.mode) applyVisionNavModeUi(d.mode);
+  } catch {}
+}
+
+/** Why: opening terrain tab should show current nav reference without waiting for next SSE tick. What: GET /api/vision/nav-mode once. */
+async function syncVisionNavModeFromServer() {
+  try {
+    const res = await fetch('/api/vision/nav-mode');
+    const d = await res.json();
+    if (d.mode) applyVisionNavModeUi(d.mode);
+  } catch {}
+}
+
 function onTerrainTabActivated() {
   setTimeout(() => {
     initTerrainMap();
     applyTerrainBasemapVisibility();
     loadTerrainCoverage();
+    syncVisionNavModeFromServer();
     terrainInvalidateLayout();
   }, 100);
 }
@@ -1756,6 +1990,13 @@ if (terrainClearBtn) {
     terrainInvalidateLayout();
   });
 }
+
+document.querySelectorAll('input[name="terrainNavRef"]').forEach((inp) => {
+  inp.addEventListener('change', () => {
+    if (inp.checked) postVisionNavMode(inp.value);
+  });
+});
+syncVisionNavModeFromServer();
 
 /* ─── CAMERA ANNOTATIONS ─── */
 const annotationCanvas = document.getElementById('annotationCanvas');

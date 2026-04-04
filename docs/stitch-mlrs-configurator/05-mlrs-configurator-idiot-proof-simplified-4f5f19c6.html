@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>mLRS Configurator - Tactical Aviator</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-surface-variant": "#d5c4ae",
+                        "surface-container-high": "#272a2c",
+                        "surface-container-lowest": "#0c0f10",
+                        "outline": "#9e8e7a",
+                        "primary-container": "#f4af2a",
+                        "secondary-container": "#5f4415",
+                        "on-tertiary-fixed": "#40000c",
+                        "background": "#111416",
+                        "on-secondary-fixed": "#281900",
+                        "on-secondary-fixed-variant": "#5c4213",
+                        "secondary": "#e7c186",
+                        "primary-fixed-dim": "#ffba3b",
+                        "on-secondary-container": "#d8b379",
+                        "inverse-primary": "#7f5700",
+                        "surface-container-low": "#191c1e",
+                        "on-error-container": "#ffdad6",
+                        "on-error": "#690005",
+                        "tertiary": "#ffcbcc",
+                        "surface-tint": "#ffba3b",
+                        "primary": "#ffd087",
+                        "on-primary-container": "#664500",
+                        "tertiary-fixed": "#ffdada",
+                        "outline-variant": "#514534",
+                        "on-tertiary": "#680019",
+                        "inverse-on-surface": "#2e3133",
+                        "on-surface": "#e1e3e5",
+                        "on-primary-fixed-variant": "#604100",
+                        "surface": "#111416",
+                        "on-background": "#e1e3e5",
+                        "tertiary-fixed-dim": "#ffb3b5",
+                        "on-tertiary-fixed-variant": "#8b162b",
+                        "surface-dim": "#111416",
+                        "on-tertiary-container": "#921c2f",
+                        "surface-bright": "#373a3c",
+                        "secondary-fixed": "#ffdead",
+                        "surface-variant": "#323537",
+                        "primary-fixed": "#ffdead",
+                        "surface-container-highest": "#323537",
+                        "surface-container": "#1d2022",
+                        "tertiary-container": "#ffa3a7",
+                        "secondary-fixed-dim": "#e7c186",
+                        "on-primary": "#432c00",
+                        "error-container": "#93000a",
+                        "on-secondary": "#432c00",
+                        "error": "#ffb4ab",
+                        "on-primary-fixed": "#281900",
+                        "inverse-surface": "#e1e3e5",
+                        "success": "#4ade80",
+                        "on-success": "#064e3b"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.5rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Space Grotesk"],
+                        "body": ["Space Grotesk"],
+                        "label": ["Space Grotesk"],
+                        "mono": ["Space Grotesk"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        body { 
+            font-family: 'Space Grotesk', sans-serif; 
+            font-size: 18px;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        .technical-title, .cli-text, nav a, button, input, textarea { 
+            font-family: 'Space Grotesk', sans-serif !important; 
+        }
+        
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #111416; }
+        ::-webkit-scrollbar-thumb { background: #323537; border-radius: 4px; }
+        
+        .device-bezel {
+            box-shadow: inset 0 0 60px rgba(0,0,0,0.9), 0 30px 80px rgba(0,0,0,0.7);
+        }
+        .inner-glow {
+            box-shadow: inset 0 0 30px rgba(244, 175, 42, 0.05);
+        }
+        .status-terminal-glow {
+            box-shadow: 0 0 30px rgba(244, 175, 42, 0.25), inset 0 0 15px rgba(244, 175, 42, 0.1);
+            animation: pulse-glow 3s infinite ease-in-out;
+        }
+        @keyframes pulse-glow {
+            0%, 100% { border-color: rgba(244, 175, 42, 0.6); }
+            50% { border-color: rgba(244, 175, 42, 1); }
+        }
+        .form-radio {
+            width: 1.75rem;
+            height: 1.75rem;
+        }
+        [data-main-panel], [data-tab-panel] { display: none; }
+        [data-main-panel].active, [data-tab-panel].active { display: flex; }
+    </style>
+</head>
+<body class="bg-background text-on-surface h-screen overflow-hidden select-none">
+<header class="bg-[#0c0f10] border-b border-outline-variant/30 flex justify-between items-center w-full px-10 py-5 fixed top-0 z-50">
+<div class="flex items-center gap-10">
+<span class="text-3xl font-black text-[#f4af2a] tracking-widest font-headline uppercase">mLRS Configurator</span>
+<nav class="hidden md:flex gap-8 items-center bg-surface-container px-2 py-1.5 rounded-2xl border border-outline-variant/20 shadow-inner">
+<button class="nav-main-btn px-6 py-2.5 rounded-xl font-headline tracking-tighter uppercase text-lg font-black bg-primary-container text-on-primary-container transition-all" data-main="home">Home</button>
+<button class="nav-main-btn px-6 py-2.5 rounded-xl font-headline tracking-tighter uppercase text-lg font-bold text-[#9aa0a6] hover:text-primary transition-all" data-main="parameters">Parameters</button>
+<button class="nav-main-btn px-6 py-2.5 rounded-xl font-headline tracking-tighter uppercase text-lg font-bold text-[#9aa0a6] hover:text-primary transition-all" data-main="terminal">Terminal</button>
+<button class="nav-main-btn px-6 py-2.5 rounded-xl font-headline tracking-tighter uppercase text-lg font-bold text-[#9aa0a6] hover:text-primary transition-all" data-main="tools">Tools</button>
+</nav>
+</div>
+<div class="flex items-center gap-8">
+<span class="font-headline tracking-tighter uppercase text-sm text-[#9aa0a6] font-bold">v1.2.0-STABLE</span>
+<button class="bg-surface-container-highest text-on-surface-variant p-3 rounded-xl hover:bg-primary-container hover:text-on-primary-container transition-all" title="Settings">
+<span class="material-symbols-outlined text-2xl">settings</span>
+</button>
+</div>
+</header>
+<main class="pt-24 h-screen flex overflow-hidden">
+<!-- Main Content Area -->
+<section class="flex-1 bg-surface flex flex-col p-8 items-center justify-center relative">
+<div class="device-bezel bg-surface-container-lowest w-full max-w-6xl h-full rounded-3xl p-8 flex flex-col relative overflow-hidden border-2 border-outline-variant/40">
+<!-- Home Tab Panel -->
+<div class="flex-1 flex flex-col active" data-main-panel="home">
+<div class="flex justify-between items-center mb-10 px-4">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-primary-container text-4xl">home</span>
+<h1 class="technical-title text-primary-container text-2xl font-black tracking-tight uppercase">System Hub</h1>
+</div>
+<div class="flex items-center gap-4">
+<span class="flex items-center gap-3 bg-success/20 text-success px-5 py-2 rounded-full text-sm font-black uppercase" id="status">
+<span class="w-3 h-3 bg-success rounded-full animate-pulse"></span> Online
+                        </span>
+</div>
+</div>
+<div class="flex-1 flex flex-col items-center justify-center gap-12 bg-[#16191b] rounded-2xl inner-glow border border-outline-variant/30 p-12">
+<!-- Simplified Connection Toggle -->
+<div class="flex gap-8 p-3 bg-surface-container-high rounded-3xl border border-outline-variant/20 shadow-xl">
+<label class="flex items-center gap-4 px-8 py-5 rounded-2xl cursor-pointer hover:bg-surface-container-highest transition-all">
+<input checked="" class="form-radio bg-transparent border-primary text-primary focus:ring-0" name="conn-simple" type="radio"/>
+<div class="flex flex-col">
+<span class="text-xl font-black text-on-surface uppercase tracking-widest flex items-center gap-3">
+<span class="material-symbols-outlined text-3xl">cable</span> Serial
+                                </span>
+</div>
+</label>
+<div class="w-px bg-outline-variant/30 h-16 my-auto"></div>
+<label class="flex items-center gap-4 px-8 py-5 rounded-2xl cursor-pointer hover:bg-surface-container-highest transition-all">
+<input class="form-radio bg-transparent border-outline text-primary focus:ring-0" name="conn-simple" type="radio"/>
+<div class="flex flex-col">
+<span class="text-xl font-black text-on-surface-variant uppercase tracking-widest flex items-center gap-3">
+<span class="material-symbols-outlined text-3xl">router</span> WiFi Bridge
+                                </span>
+</div>
+</label>
+</div>
+<!-- Big Idiot-Proof Action Button -->
+<div class="flex flex-col items-center gap-6">
+<button class="w-[400px] h-32 bg-primary-container text-on-primary-container rounded-[2rem] font-black text-4xl uppercase tracking-tighter flex items-center justify-center gap-6 shadow-2xl shadow-primary/20 hover:scale-105 active:scale-95 transition-all group" id="btn-serial">
+<span class="material-symbols-outlined text-5xl group-hover:rotate-12 transition-transform">power_settings_new</span>
+                            Connect
+                        </button>
+<p class="text-outline text-sm font-black uppercase tracking-[0.3em] opacity-60">Establish secure link to hardware</p>
+</div>
+<!-- Secondary Quick Actions -->
+<div class="grid grid-cols-2 gap-8 w-full max-w-2xl mt-8">
+<button class="flex flex-col items-center justify-center gap-4 p-8 bg-surface-container-high hover:bg-surface-container-highest transition-all rounded-3xl border-2 border-outline-variant/20 shadow-lg">
+<span class="material-symbols-outlined text-5xl text-primary">link</span>
+<span class="text-xl font-black uppercase tracking-widest text-on-surface">Bind Mode</span>
+</button>
+<button class="flex flex-col items-center justify-center gap-4 p-8 bg-surface-container-high hover:bg-surface-container-highest transition-all rounded-3xl border-2 border-outline-variant/20 shadow-lg">
+<span class="material-symbols-outlined text-5xl text-primary">save</span>
+<span class="text-xl font-black uppercase tracking-widest text-on-surface">Save All</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Parameters Tab Panel -->
+<div class="flex-1 flex flex-col" data-main-panel="parameters">
+<div class="flex justify-between items-center mb-6 px-4">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-primary-container text-3xl">settings_input_component</span>
+<h1 class="technical-title text-primary-container text-xl font-black tracking-tight uppercase">Parameter Management</h1>
+</div>
+</div>
+<div class="flex-1 grid grid-cols-12 gap-8 p-4">
+<!-- Hebrew Quick Settings Card -->
+<div class="col-span-5">
+<div class="bg-[#1d2022] border-4 border-[#f4af2a]/40 rounded-3xl p-8 flex flex-col gap-8 shadow-2xl h-full" dir="rtl">
+<h3 class="text-2xl font-black text-primary flex items-center gap-4 mb-4 tracking-widest uppercase">
+<span class="material-symbols-outlined text-3xl">bolt</span>
+                                הגדרות מהירות
+                            </h3>
+<div class="flex flex-col gap-6">
+<div class="relative">
+<label class="text-sm font-black text-outline uppercase mb-2 block mr-2">מזהה פרמטר</label>
+<input class="w-full bg-surface-container-lowest border-2 border-outline-variant/40 text-xl px-6 py-5 focus:border-primary-container outline-none transition-all rounded-2xl font-bold" id="quick-param-id" placeholder="לדוגמה: 12" type="text"/>
+</div>
+<div class="relative">
+<label class="text-sm font-black text-outline uppercase mb-2 block mr-2">ערך חדש</label>
+<input class="w-full bg-surface-container-lowest border-2 border-outline-variant/40 text-xl px-6 py-5 focus:border-primary-container outline-none transition-all rounded-2xl font-bold" id="quick-param-val" placeholder="לדוגמה: 100" type="text"/>
+</div>
+</div>
+<button class="w-full bg-primary-container text-on-primary-container py-6 text-2xl font-black uppercase rounded-2xl hover:brightness-110 shadow-xl transition-all flex items-center justify-center gap-4 mt-auto" id="btn-quick-send">
+<span class="material-symbols-outlined text-3xl font-black">publish</span> שלח פקודה
+                            </button>
+</div>
+</div>
+<!-- Detailed Config Buttons -->
+<div class="col-span-7 flex flex-col gap-6">
+<button class="flex-1 flex items-center justify-between px-10 py-8 bg-surface-container-low hover:bg-surface-container-highest transition-all group rounded-3xl border-2 border-outline-variant/20 shadow-lg">
+<div class="flex items-center gap-8">
+<span class="material-symbols-outlined text-5xl text-primary">settings_remote</span>
+<div class="flex flex-col items-start">
+<span class="text-2xl font-black uppercase text-on-surface tracking-widest">Tx Parameters</span>
+<span class="text-sm text-outline font-bold">Manage Transmitter Radio Link Settings</span>
+</div>
+</div>
+<span class="material-symbols-outlined text-4xl text-outline group-hover:text-primary transition-all">chevron_right</span>
+</button>
+<button class="flex-1 flex items-center justify-between px-10 py-8 bg-surface-container-low hover:bg-surface-container-highest transition-all group rounded-3xl border-2 border-outline-variant/20 shadow-lg">
+<div class="flex items-center gap-8">
+<span class="material-symbols-outlined text-5xl text-primary">satellite_alt</span>
+<div class="flex flex-col items-start">
+<span class="text-2xl font-black uppercase text-on-surface tracking-widest">Rx Parameters</span>
+<span class="text-sm text-outline font-bold">Manage Receiver Settings and Telemetry</span>
+</div>
+</div>
+<span class="material-symbols-outlined text-4xl text-outline group-hover:text-primary transition-all">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Terminal Tab Panel -->
+<div class="flex-1 flex flex-col" data-main-panel="terminal">
+<div class="flex-1 flex flex-col overflow-hidden bg-[#0c0f10] rounded-2xl border-2 border-outline-variant/20 shadow-inner">
+<div class="flex items-center justify-between p-4 bg-surface-container border-b border-outline-variant/30">
+<span class="text-sm font-black uppercase tracking-widest text-outline flex items-center gap-2">
+<span class="material-symbols-outlined text-lg">terminal</span> Console Output
+                        </span>
+<button class="text-xs font-black uppercase text-outline hover:text-primary flex items-center gap-2" id="btn-clear">
+<span class="material-symbols-outlined text-sm">delete</span> Clear
+                        </button>
+</div>
+<div class="flex-1 p-6 cli-text text-lg leading-relaxed overflow-y-auto font-medium" id="log">
+<div class="text-[#9aa0a6] mb-3 opacity-60">[08:42:01] <span class="text-secondary font-black">SYSTEM:</span> Initializing mLRS Serial Protocol...</div>
+<div class="text-[#9aa0a6] mb-3 opacity-60">[08:42:03] <span class="text-primary font-black">INFO:</span> Handshake successful. Firmware v1.2.0-stable.</div>
+<div class="text-[#9aa0a6] mb-3 opacity-60">[08:42:04] <span class="text-success font-black">RX:</span> Telemetry link established. RSSI -42dBm.</div>
+<div class="text-[#f4af2a] mt-4 animate-pulse text-2xl font-black">_</div>
+</div>
+<div class="p-6 border-t border-outline-variant/30 bg-[#1d2022] flex gap-4 items-center">
+<span class="material-symbols-outlined text-outline text-3xl font-black">keyboard_command_key</span>
+<input class="flex-1 bg-transparent border-none focus:ring-0 text-2xl text-primary font-black placeholder:text-outline-variant/30" id="cmd" placeholder="Type command here..." type="text"/>
+<button class="bg-primary-container px-10 py-5 text-xl font-black text-on-primary-container uppercase rounded-2xl transition-all hover:brightness-110 shadow-xl shadow-primary/30 flex items-center gap-3" id="btn-send">
+                            Execute <span class="material-symbols-outlined text-2xl font-black">subdirectory_arrow_left</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Tools Tab Panel -->
+<div class="flex-1 flex flex-col items-center justify-center p-12" data-main-panel="tools">
+<div class="grid grid-cols-3 gap-8 w-full h-full max-h-[500px]">
+<div class="p-8 bg-surface-container-high rounded-3xl border-2 border-outline-variant/20 flex flex-col items-center justify-center gap-6 hover:border-primary/40 transition-all cursor-pointer">
+<span class="material-symbols-outlined text-6xl text-primary">update</span>
+<h3 class="text-2xl font-black uppercase text-on-surface">Flash Firmware</h3>
+</div>
+<div class="p-8 bg-surface-container-high rounded-3xl border-2 border-outline-variant/20 flex flex-col items-center justify-center gap-6 hover:border-primary/40 transition-all cursor-pointer">
+<span class="material-symbols-outlined text-6xl text-primary">history</span>
+<h3 class="text-2xl font-black uppercase text-on-surface">Logs Library</h3>
+</div>
+<div class="p-8 bg-surface-container-high rounded-3xl border-2 border-outline-variant/20 flex flex-col items-center justify-center gap-6 hover:border-primary/40 transition-all cursor-pointer">
+<span class="material-symbols-outlined text-6xl text-primary">tune</span>
+<h3 class="text-2xl font-black uppercase text-on-surface">Signal Analyzer</h3>
+</div>
+<div class="p-8 bg-surface-container-high rounded-3xl border-2 border-outline-variant/20 flex flex-col items-center justify-center gap-6 hover:border-primary/40 transition-all cursor-pointer">
+<span class="material-symbols-outlined text-6xl text-primary">qr_code_2</span>
+<h3 class="text-2xl font-black uppercase text-on-surface">Pairing QR</h3>
+</div>
+<div class="p-8 bg-surface-container-high rounded-3xl border-2 border-outline-variant/20 flex flex-col items-center justify-center gap-6 hover:border-primary/40 transition-all cursor-pointer">
+<span class="material-symbols-outlined text-6xl text-primary">cloud_download</span>
+<h3 class="text-2xl font-black uppercase text-on-surface">Backup Config</h3>
+</div>
+<div class="p-8 bg-surface-container-high rounded-3xl border-2 border-outline-variant/20 flex flex-col items-center justify-center gap-6 hover:border-primary/40 transition-all cursor-pointer">
+<span class="material-symbols-outlined text-6xl text-primary">settings</span>
+<h3 class="text-2xl font-black uppercase text-on-surface">Global Settings</h3>
+</div>
+</div>
+</div>
+<!-- Global Status Bar -->
+<div class="lua-info mt-auto bg-[#0c0f10] grid grid-cols-4 border-t border-outline-variant/40 p-6">
+<div class="flex flex-col items-center border-r border-outline-variant/20">
+<span class="text-xs text-outline uppercase tracking-widest font-black mb-1">Tx Mode</span>
+<span class="technical-title text-xl text-primary font-black uppercase">LORA_50HZ</span>
+</div>
+<div class="flex flex-col items-center border-r border-outline-variant/20">
+<span class="text-xs text-outline uppercase tracking-widest font-black mb-1">Rx Status</span>
+<span class="technical-title text-xl text-success font-black uppercase">CONNECTED</span>
+</div>
+<div class="flex flex-col items-center border-r border-outline-variant/20">
+<span class="text-xs text-outline uppercase tracking-widest font-black mb-1">Tx Power</span>
+<span class="technical-title text-xl text-primary font-black uppercase">100mW</span>
+</div>
+<div class="flex flex-col items-center">
+<span class="text-xs text-outline uppercase tracking-widest font-black mb-1">Rx Power</span>
+<span class="technical-title text-xl text-primary font-black uppercase">10mW</span>
+</div>
+</div>
+</div>
+<div class="absolute bottom-10 left-10 opacity-5 pointer-events-none">
+<img class="w-48 h-48 rotate-12" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCziijHrJKqqaD4HBnwXARQy8eF5srp6Olu7NWTuEpbigodIpauL3YnaiIOSXtenk58IjH9gXllJtnjgNi3ragBSQvJzUog8aJSu8fL09-EadJMFcVluFRPnwwdBzz1W9rB_gVmQa9sS98eo-HtayIhnwMUbTWMyZuUUiL_pjmNJZpHP75dIxHCxv_2wVcgKtChZsF1i97w9K_UmdDem6TfDjO3HyxRTMqr6IncaWG00Yg4N9CVYiNsDSp9vTRq27flOBwWw5vE2Hx5"/>
+</div>
+</section>
+<!-- Right Sidebar (RTL) -->
+<aside class="he-sidebar w-[420px] bg-[#111416] h-full flex flex-col border-l-2 border-outline-variant/30 shadow-2xl z-40 fixed right-0 top-0 pt-24" dir="rtl">
+<div class="p-8 flex flex-col h-full gap-8">
+<!-- Sidebar Header -->
+<div class="flex items-center gap-6 mb-2">
+<div class="w-16 h-16 rounded-2xl bg-surface-container-highest border-2 border-primary/40 flex items-center justify-center overflow-hidden shadow-2xl rotate-3">
+<img class="w-full h-full object-cover grayscale brightness-125" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB4z_UKj-HskwRGLus-C2ST8y5Nyix2FXQzSSKTIoVueDfkhC2a71g659WHAwHCZ_p22CAWt8UsXslfTKrHLGrRE3VQ5dd8SdjAIWj5BZ1TqJjTZ97qC4zCIzUU-892CPYZW7siWczlSg4yi7tBnO4Xv5snmwV90_y-ZMoUX7PNVXbx4Zqm6_Y8Q-ejfFd2JMy7Q91IH3Fqwb7fNqdfBWMksGICL9bUoZ1Ll-NIw-nCj_CiHZUdxWStlgPzybl1wusO0pe8b_qN2A_0"/>
+</div>
+<div>
+<h2 class="text-primary font-black text-3xl leading-tight">מרכז שליטה</h2>
+<p class="text-outline text-sm uppercase font-bold tracking-[0.2em] mt-1 opacity-70">CONTROL CENTER ALPHA</p>
+</div>
+</div>
+<!-- Tab Navigation (Sidebar) -->
+<div class="flex bg-surface-container-lowest p-2 rounded-2xl border border-outline-variant/20 shadow-inner">
+<button class="he-tab-btn flex-1 py-4 text-lg font-black text-primary bg-surface-container-highest rounded-xl shadow-lg transition-all flex items-center justify-center gap-3" data-tab="manual">
+<span class="material-symbols-outlined text-2xl">menu_book</span> ספר הוראות
+                </button>
+<button class="he-tab-btn flex-1 py-4 text-lg font-black text-on-surface-variant hover:text-on-surface transition-all flex items-center justify-center gap-3" data-tab="ai">
+<span class="material-symbols-outlined text-2xl">smart_toy</span> עוזר mLRS
+                </button>
+</div>
+<div class="flex-1 flex flex-col overflow-hidden">
+<!-- Manual Tab Content -->
+<div class="he-manual flex flex-col gap-6 overflow-y-auto pr-3 active" data-tab-panel="manual">
+<div class="space-y-4">
+<h4 class="text-xs font-black text-primary/60 uppercase tracking-widest mb-4 border-b-2 border-primary/20 pb-2 mr-1">מדריכים ופרוטוקולים</h4>
+<a class="flex items-center justify-between p-6 bg-surface-container-low hover:bg-surface-container-highest transition-all rounded-2xl border-2 border-outline-variant/10 group shadow-md" href="#">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-3xl">terminal</span>
+</div>
+<div class="flex flex-col">
+<span class="text-lg font-black text-on-surface">שימוש ב-CLI פקודות</span>
+<span class="text-xs text-outline font-bold">מדריך פקודות טרמינל</span>
+</div>
+</div>
+<span class="material-symbols-outlined text-2xl text-outline group-hover:text-primary transition-all group-hover:-translate-x-2">arrow_back_ios</span>
+</a>
+<div class="p-6 bg-primary/5 rounded-2xl border-2 border-primary/20 shadow-inner mt-4 relative overflow-hidden">
+<h5 class="text-base font-black text-primary uppercase mb-3 flex items-center gap-3 tracking-widest">
+<span class="material-symbols-outlined text-xl font-black">memory</span> פרוטוקולי חומרה
+                            </h5>
+<p class="text-lg leading-relaxed text-on-surface-variant font-bold">מערכת ה-mLRS תומכת בפרוטוקולים מתקדמים. ודא כי קצב השידור תואם להגדרות.</p>
+</div>
+</div>
+</div>
+<!-- AI Assistant Tab Content -->
+<div class="he-ai-assistant flex flex-col h-full overflow-hidden" data-tab-panel="ai">
+<div class="flex-1 overflow-y-auto pr-3 space-y-6 py-2" id="mlrs-chat-log">
+<div class="flex items-start gap-4">
+<div class="w-10 h-10 rounded-full bg-primary/20 border border-primary/40 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-primary text-xl">smart_toy</span>
+</div>
+<div class="bg-surface-container-highest p-5 rounded-2xl rounded-tr-none border border-outline-variant/20 shadow-md max-w-[85%]">
+<p class="text-lg font-bold text-on-surface leading-relaxed">שלום! אני עוזר ה-mLRS הטקטי שלך. כיצד אוכל לסייע?</p>
+</div>
+</div>
+</div>
+<div class="mt-4 pt-4 border-t border-outline-variant/20">
+<div class="relative">
+<textarea class="w-full bg-surface-container-lowest border-2 border-outline-variant/20 rounded-2xl p-5 pr-14 text-lg font-bold focus:border-primary-container outline-none min-h-[100px] resize-none" id="mlrs-chat-input" placeholder="כתוב פה שאלה..."></textarea>
+<button class="absolute top-4 left-4 w-12 h-12 bg-primary-container text-on-primary-container rounded-xl flex items-center justify-center shadow-lg">
+<span class="material-symbols-outlined font-black">send</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Very Prominent Last Action Status -->
+<div class="mt-auto pt-6 border-t-2 border-outline-variant/40">
+<h4 class="text-sm font-black text-outline uppercase tracking-widest mb-4 flex items-center gap-3">
+<span class="material-symbols-outlined text-lg font-bold">monitor_heart</span> סטטוס פעולה אחרונה
+                </h4>
+<div class="bg-[#1a1c1e] p-8 rounded-3xl border-4 border-primary status-terminal-glow shadow-2xl" id="he-last-action">
+<p class="text-xl text-primary font-black leading-relaxed">
+                        בוצעה טעינה מחדש של פרמטרי ה-Tx. המערכת זיהתה 12 ערכים תקינים וערך אחד חריג (<span class="underline decoration-2 underline-offset-4">Power Level</span>). 
+                    </p>
+</div>
+</div>
+<button class="w-full bg-[#f4af2a] text-[#432c00] font-black py-6 rounded-2xl text-2xl uppercase tracking-widest hover:brightness-110 shadow-2xl active:scale-[0.98] transition-all flex items-center justify-center gap-4">
+<span class="material-symbols-outlined text-4xl font-black">system_update</span>
+                עדכון קושחה
+            </button>
+</div>
+</aside>
+</main>
+<script>
+    // Tab switching logic
+    const navBtns = document.querySelectorAll('.nav-main-btn');
+    const mainPanels = document.querySelectorAll('[data-main-panel]');
+
+    navBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const target = btn.getAttribute('data-main');
+            
+            navBtns.forEach(b => {
+                b.classList.remove('bg-primary-container', 'text-on-primary-container', 'shadow-xl');
+                b.classList.add('text-[#9aa0a6]', 'font-bold');
+            });
+            btn.classList.remove('text-[#9aa0a6]', 'font-bold');
+            btn.classList.add('bg-primary-container', 'text-on-primary-container', 'shadow-xl');
+
+            mainPanels.forEach(p => {
+                p.classList.toggle('active', p.getAttribute('data-main-panel') === target);
+            });
+        });
+    });
+
+    const sidebarTabBtns = document.querySelectorAll('.he-tab-btn');
+    const sidebarPanels = document.querySelectorAll('[data-tab-panel]');
+
+    sidebarTabBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const target = btn.getAttribute('data-tab');
+            sidebarTabBtns.forEach(b => {
+                b.classList.remove('bg-surface-container-highest', 'text-primary', 'shadow-lg');
+                b.classList.add('text-on-surface-variant');
+            });
+            btn.classList.remove('text-on-surface-variant');
+            btn.classList.add('bg-surface-container-highest', 'text-primary', 'shadow-lg');
+            sidebarPanels.forEach(p => {
+                p.classList.toggle('active', p.getAttribute('data-tab-panel') === target);
+            });
+        });
+    });
+</script>
+</body></html>

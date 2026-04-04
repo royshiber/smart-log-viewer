@@ -29,7 +29,7 @@
           <span>הפרש Vision מול GPS</span>
           <strong id="liveGpsVisionDelta">-- m</strong>
         </div>
-        <button id="versionBtn" class="badge clickable" title="לחץ כדי לראות מה עודכן בגרסה">v1.02.34</button>
+        <button id="versionBtn" class="badge clickable" title="לחץ כדי לראות מה עודכן בגרסה">v1.02.45</button>
       </div>
     </header>
 
@@ -37,6 +37,7 @@
       <nav class="tabs">
         <button class="tab active" data-tab="control" title="כל פרמטרי הנחיתה, הניווט הוויזואלי והקושחה במקום אחד">מרכז פרמטרים</button>
         <button class="tab" data-tab="recordings" title="הקלטות ולוגים תחת תחקור">תחקור</button>
+        <button class="tab" data-tab="flights" title="העלאת לוגים, טבלת כל הלוגים וניהול טיסות">לוגים והעלאות</button>
         <button class="tab" data-tab="processes" title="תרשים זרימת שלבי הנחיתה בזמן אמת">תהליכים</button>
         <button class="tab" data-tab="telemetry" title="טלמטריה, סטטוסים ונתוני Jetson">טלמטריה וסטטוסים</button>
         <button class="tab" data-tab="terrain" title="מפת טריין חזותי — אזורים מכוסים ומידע ניווט לפי תמונה">מפה טריין</button>
@@ -196,6 +197,28 @@
               <button type="button" id="jetsonRefreshBtn">⟳ רענן</button>
               <p class="jetson-hint jetson-hint--dash" id="jetsonOut"></p>
             </div>
+            <div class="jetson-version-panel" aria-label="ניהול גרסת קוד Jetson">
+              <h4 class="jetson-version-title">גרסת קוד על Jetson</h4>
+              <p class="jetson-version-line">
+                <span class="jetson-version-label">מותקנת כעת (מאגר מקומי):</span>
+                <strong id="jetsonInstalledVersion">—</strong>
+                <span id="jetsonInstallStateBadge" class="jetson-install-badge idle"></span>
+              </p>
+              <label class="jetson-version-label-block">
+                <span>בחר גרסה להתקנה / Rollback</span>
+                <select id="jetsonTargetVersionSelect" class="jetson-version-select" title="גרסאות מהמאגר המסונכרן לפרויקט"></select>
+              </label>
+              <div class="jetson-version-notes">
+                <p class="jetson-notes-title">מה בגרסה שנבחרה</p>
+                <p id="jetsonSelectedNotesHe" class="jetson-notes-body">טוען…</p>
+                <p class="jetson-notes-title">לעומת מה שרץ אצלך עכשיו</p>
+                <p id="jetsonDiffNotesHe" class="jetson-notes-body">—</p>
+              </div>
+              <p id="jetsonInstallLastAction" class="jetson-install-action-hint"></p>
+              <button type="button" id="jetsonInstallBtn" class="btn-jetson-install" title="מבצע התקנה לפי הבחירה (סימולציה מקומית או סוכן אם הוגדר)">
+                התקן / עדכן לגרסה שנבחרה
+              </button>
+            </div>
           </div>
         </div>
       </section>
@@ -303,6 +326,32 @@
             <button type="button" id="terrainClearBtn" class="terrain-layer-btn" title="מנקה את כל כיסוי הטריין">✕ נקה</button>
           </div>
         </div>
+        <div class="terrain-nav-ref-card" role="radiogroup" aria-label="ייחוס לניווט לפי תמונה">
+          <div class="terrain-nav-ref-head">
+            <h4 class="terrain-nav-ref-title">ייחוס לניווט לפי תמונה</h4>
+            <p class="terrain-nav-ref-lead">
+              בוחרים מול מה אלגוריתם הראייה משווה את תמונת המצלמה בזמן אמת. הערך נשמר בשרת ומוזרם ב־SSE —
+              צינור ה־Jetson צריך לקרוא מ־<code class="terrain-nav-code">/api/vision/nav-mode</code>.
+            </p>
+          </div>
+          <div class="terrain-nav-ref-grid">
+            <label class="terrain-nav-ref-option active" data-nav-mode="prior_mission_map">
+              <input type="radio" name="terrainNavRef" value="prior_mission_map" checked />
+              <span class="terrain-nav-ref-option-body">
+                <span class="terrain-nav-ref-label">מפת כיסוי / טיסה קודמת</span>
+                <span class="terrain-nav-ref-desc">השוואה למה שנצבר באזור (מומלץ כשכבר יש מיפוי טוב מהשטח).</span>
+              </span>
+            </label>
+            <label class="terrain-nav-ref-option" data-nav-mode="satellite_match">
+              <input type="radio" name="terrainNavRef" value="satellite_match" />
+              <span class="terrain-nav-ref-option-body">
+                <span class="terrain-nav-ref-label">צילום לוויין</span>
+                <span class="terrain-nav-ref-desc">השוואה לרקע לוויין חיצוני (Esri וכו׳) — דורש התאמת תנאי תאורה ורזולוציה.</span>
+              </span>
+            </label>
+          </div>
+          <p id="terrainNavModeHint" class="terrain-nav-ref-status" aria-live="polite"></p>
+        </div>
         <div class="terrain-map-shell">
           <div id="terrainMapRotatable" class="terrain-map-rotatable">
             <div id="terrainMap"></div>
@@ -369,6 +418,6 @@
       <button data-action="jump">קפוץ לזמן אירוע</button>
     </div>
 
-    <script src="./app.js?v=1.02.34"></script>
+    <script src="./app.js?v=1.02.45"></script>
   </body>
 </html>

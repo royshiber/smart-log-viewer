@@ -1,0 +1,22 @@
+Stitch (Google) — פרויקט mLRS Configurator
+==========================================
+
+קישור: https://stitch.withgoogle.com/projects/16939315915376783238
+
+## משיכה אוטומטית (מומלץ)
+
+1. קבל `STITCH_API_KEY` מ-Google Stitch / AI Studio (ראה `@google/stitch-sdk`).
+2. שמור ב-`server/.env` (אל תעלה ל-Git).
+3. מהשורש של הריפו:
+   ```
+   npm run fetch:stitch-mlrs
+   ```
+   נשמר תחת `docs/stitch-mlrs-configurator/` (HTML + PNG + manifest.json).
+
+הממשק ב-`src/style.css` מסונכרן לטוקנים מהייצוא (מסך 05 — Idiot-Proof Simplified): Space Grotesk, `#111416`, `#0c0f10`, `#1d2022`, `#f4af2a` / `#664500`, וכו'.
+
+## ידני
+
+אפשר עדיין להדביק "Copy as Code" מ-Stitch לקובץ ב-repo אם צריך השוואה.
+
+English: Run `npm run fetch:stitch-mlrs` with `STITCH_API_KEY` in `server/.env` to refresh `docs/stitch-mlrs-configurator/`.

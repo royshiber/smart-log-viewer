@@ -503,7 +503,29 @@ h1 { margin: 0; font-size: 1.35rem; color: var(--primary); }
   flex: 1 1 auto;
   min-height: 0;
   overflow: hidden;
-  display: block;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+/**
+ * Why: without hiding non-active panels, every category stack stays visible — tab clicks change `.active` on buttons only.
+ * What: single visible subpanel fills the scroll area under Ardu category tabs.
+ */
+.ardu-cat-subpanel {
+  display: none;
+  flex: 1 1 0;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 4px 2px 8px 0;
+  align-content: start;
+}
+
+.ardu-cat-subpanel.visible {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 8px;
 }
 
 .ardu-group-section {
@@ -1419,6 +1441,143 @@ button:hover,
   transform: translateY(1px);
 }
 
+.jetson-version-panel {
+  margin-top: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-low);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.jetson-version-title {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text);
+  font-family: "Space Grotesk", sans-serif;
+}
+
+.jetson-version-line {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.78rem;
+}
+
+.jetson-version-label {
+  color: var(--text-muted);
+}
+
+.jetson-version-label-block {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.jetson-version-select {
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.8rem;
+  max-width: 100%;
+}
+
+.jetson-version-notes {
+  padding: 8px 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.jetson-notes-title {
+  margin: 0 0 4px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--primary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.jetson-notes-body {
+  margin: 0 0 10px;
+  font-size: 0.76rem;
+  line-height: 1.35;
+  color: var(--text);
+}
+
+.jetson-notes-body:last-child {
+  margin-bottom: 0;
+}
+
+.jetson-install-badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  letter-spacing: 0.04em;
+}
+
+.jetson-install-badge.idle {
+  background: rgba(100, 116, 139, 0.15);
+  color: var(--text-muted);
+}
+
+.jetson-install-badge.busy {
+  background: rgba(234, 179, 8, 0.2);
+  color: #a16207;
+}
+
+.jetson-install-badge.ok {
+  background: rgba(34, 197, 94, 0.18);
+  color: #15803d;
+}
+
+.jetson-install-badge.err {
+  background: rgba(239, 68, 68, 0.15);
+  color: #b91c1c;
+}
+
+.jetson-install-action-hint {
+  margin: 0;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  line-height: 1.3;
+}
+
+.btn-jetson-install {
+  align-self: flex-start;
+  font-family: "Space Grotesk", "Inter", sans-serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  background: linear-gradient(180deg, #0f766e 0%, #0d5c56 100%);
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(15, 118, 110, 0.28);
+}
+
+.btn-jetson-install:hover:not(:disabled) {
+  filter: brightness(1.05);
+}
+
+.btn-jetson-install:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .tele-dash-col .tele-card .tele-q {
   border-color: rgba(0, 71, 141, 0.22);
   background: rgba(0, 71, 141, 0.05);
@@ -2132,6 +2291,121 @@ button:hover,
   color: #fff;
 }
 
+.terrain-toolbar-sep {
+  width: 1px;
+  height: 22px;
+  background: var(--border);
+  margin-inline: 4px;
+  flex-shrink: 0;
+}
+
+.terrain-nav-hint {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  line-height: 1.25;
+  max-width: min(220px, 100%);
+}
+
+.terrain-nav-ref-card {
+  flex-shrink: 0;
+  margin-top: 6px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  background: var(--surface-low);
+  border-radius: 10px;
+}
+
+.terrain-nav-ref-head {
+  margin-bottom: 10px;
+}
+
+.terrain-nav-ref-title {
+  margin: 0 0 6px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--text);
+  font-family: "Space Grotesk", sans-serif;
+}
+
+.terrain-nav-ref-lead {
+  margin: 0;
+  font-size: 0.76rem;
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+
+.terrain-nav-code {
+  font-size: 0.7rem;
+  padding: 1px 5px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  unicode-bidi: plaintext;
+  direction: ltr;
+  display: inline-block;
+}
+
+.terrain-nav-ref-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 10px;
+}
+
+.terrain-nav-ref-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 0;
+  padding: 10px 12px;
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.terrain-nav-ref-option:hover {
+  border-color: rgba(0, 71, 141, 0.35);
+}
+
+.terrain-nav-ref-option.active {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 1px rgba(0, 71, 141, 0.12);
+}
+
+.terrain-nav-ref-option input[type="radio"] {
+  margin-top: 4px;
+  flex-shrink: 0;
+  accent-color: var(--primary);
+}
+
+.terrain-nav-ref-option-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.terrain-nav-ref-label {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.terrain-nav-ref-desc {
+  font-size: 0.72rem;
+  line-height: 1.35;
+  color: var(--text-muted);
+}
+
+.terrain-nav-ref-status {
+  margin: 10px 0 0;
+  font-size: 0.72rem;
+  line-height: 1.35;
+  color: var(--primary);
+  font-weight: 600;
+}
+
 /**
  * Why: Leaflet needs a bounded box so tiles don’t spill past the panel bottom; what: flex child with min-height 0 + max-height from viewport.
  */
@@ -2189,10 +2463,36 @@ button:hover,
   z-index: 1000;
 }
 
-.terrain-rot-slider {
-  width: 112px;
+.terrain-bearing-strip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.terrain-rot-slider-compact {
+  width: min(132px, 32vw);
+  height: 6px;
   accent-color: #0f4f92;
-  cursor: ew-resize;
+  cursor: pointer;
+}
+
+.terrain-rot-step {
+  padding: 5px 8px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  border: 1px solid #0b3f78;
+  border-radius: 6px;
+  background: linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%);
+  color: #0b3f78;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.terrain-rot-step:hover {
+  filter: brightness(1.03);
+  border-color: #0f4f92;
 }
 
 .terrain-rot-deg {
@@ -2220,15 +2520,13 @@ button:hover,
   filter: brightness(1.05);
 }
 
-.terrain-bearing-control.disabled .terrain-rot-slider,
+.terrain-bearing-control.disabled .terrain-rot-slider-compact,
+.terrain-bearing-control.disabled .terrain-rot-step,
 .terrain-bearing-control.disabled .terrain-rot-north,
 .terrain-bearing-control.disabled .terrain-rot-deg {
   opacity: 0.55;
-}
-
-.terrain-bearing-control.disabled .terrain-rot-slider,
-.terrain-bearing-control.disabled .terrain-rot-north {
   cursor: not-allowed;
+  pointer-events: none;
 }
 
 .terrain-alt-legend {

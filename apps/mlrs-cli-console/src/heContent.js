@@ -80,23 +80,43 @@ export const HE_AFTER_CLICK = {
 };
 
 /**
- * Why: Manual text without internal scrolling (single viewport layout).
- * What: Returns compact inner HTML with upstream links and one-line protocol hints (trusted, static only).
+ * Why: Mixed Hebrew + English in one line caused messy breaks; Stitch-style sidebar needs clear RTL prose and LTR code islands.
+ * What: Returns structured manual HTML: pill links row (LTR), titled sections, monospace commands in separate blocks (trusted, static only).
  */
 export function getManualHtml() {
   return `
-<div class="he-manual-compact">
-  <p class="he-manual-links">
-    <a href="https://github.com/olliw42/mLRS-docu/blob/master/docs/CLI.md" target="_blank" rel="noreferrer">CLI</a> ·
-    <a href="https://github.com/olliw42/mLRS/blob/master/lua/mLRS.lua" target="_blank" rel="noreferrer">mLRS.lua</a> ·
-    <a href="https://github.com/olliw42/mLRS-docu/blob/master/docs/WIRELESS_BRIDGE.md" target="_blank" rel="noreferrer">WiFi bridge</a> ·
-    <a href="https://github.com/olliw42/mLRS-docu/blob/master/docs/MATEKSYS.md" target="_blank" rel="noreferrer">Matek</a> ·
-    <a href="https://github.com/olliw42/mLRS-docu/blob/master/docs/PARAMETERS.md" target="_blank" rel="noreferrer">PARAMETERS</a> ·
-    <a href="https://github.com/olliw42/mLRS-docu/blob/master/docs/BINDING.md" target="_blank" rel="noreferrer">BINDING</a>
-  </p>
-  <p class="he-manual-one"><strong>CLI</strong> כמו ב-Lua: פקודות עם <code>;</code> · <strong>115200 8N1</strong> · CRLF. WiFi: גשר <code>mlrs-wireless-bridge</code> → TCP (למשל 5760), דפדפן דרך <code>tcp-ws-bridge</code>.</p>
-  <p class="he-manual-one"><strong>תפריט:</strong> <code>pl tx;</code> / <code>pl rx;</code> · <code>pstore;</code> · <code>reload;</code> · <code>bind;</code> · <code>h;</code> · למטה: <code>v;</code> <code>pl;</code> <code>pl c;</code> <code>stats;</code>. פרמטר: <code>p שם = ערך;</code> (קו תחתון) + <code>pstore;</code>.</p>
-  <p class="he-manual-one">צריבה: <a href="https://olliw.eu/mlrsflasher" target="_blank" rel="noreferrer">mLRS Web Flasher</a> (לא מסך זה).</p>
+<div class="he-manual-doc" dir="rtl">
+  <nav class="he-manual-link-pills" dir="ltr" aria-label="מקורות GitHub">
+    <a class="he-pill-link" href="https://github.com/olliw42/mLRS-docu/blob/master/docs/CLI.md" target="_blank" rel="noreferrer">CLI</a>
+    <a class="he-pill-link" href="https://github.com/olliw42/mLRS/blob/master/lua/mLRS.lua" target="_blank" rel="noreferrer">mLRS.lua</a>
+    <a class="he-pill-link" href="https://github.com/olliw42/mLRS-docu/blob/master/docs/WIRELESS_BRIDGE.md" target="_blank" rel="noreferrer">WiFi</a>
+    <a class="he-pill-link" href="https://github.com/olliw42/mLRS-docu/blob/master/docs/MATEKSYS.md" target="_blank" rel="noreferrer">Matek</a>
+    <a class="he-pill-link" href="https://github.com/olliw42/mLRS-docu/blob/master/docs/PARAMETERS.md" target="_blank" rel="noreferrer">PARAM</a>
+    <a class="he-pill-link" href="https://github.com/olliw42/mLRS-docu/blob/master/docs/BINDING.md" target="_blank" rel="noreferrer">BIND</a>
+  </nav>
+  <section class="he-manual-block">
+    <h4 class="he-manual-h">סריאל ופקודות</h4>
+    <p class="he-manual-prose">אותה שכבת מסוף כמו ב־Lua על השלט: כל פקודה נגמרת בנקודה־פסיק. קצב קבוע <span dir="ltr" class="he-ltr-nobreak">115200&nbsp;8N1</span> וסיום שורה <span dir="ltr" class="he-ltr-nobreak">CRLF</span>.</p>
+  </section>
+  <section class="he-manual-block">
+    <h4 class="he-manual-h">WiFi מהמחשב</h4>
+    <p class="he-manual-prose">המודול מדבר עם גשר בשם <code class="he-code" dir="ltr">mlrs-wireless-bridge</code> (שקוף ל־TCP, לרוב פורט 5760). הדפדפן לא פותח TCP ישירות — משתמשים בגשר <code class="he-code" dir="ltr">tcp-ws-bridge</code> המקומי של הפרויקט.</p>
+  </section>
+  <section class="he-manual-block">
+    <h4 class="he-manual-h">פקודות מהתפריט</h4>
+    <pre class="he-cmd-block" dir="ltr">pl tx;   pl rx;   pstore;
+reload;  bind;    h;</pre>
+    <p class="he-manual-prose he-manual-prose--tight">בשורת הכלים למטה: <code class="he-code" dir="ltr">v;</code> <code class="he-code" dir="ltr">pl;</code> <code class="he-code" dir="ltr">pl c;</code> <code class="he-code" dir="ltr">stats;</code></p>
+  </section>
+  <section class="he-manual-block">
+    <h4 class="he-manual-h">שינוי פרמטר</h4>
+    <pre class="he-cmd-block" dir="ltr">p tx_power = 20;</pre>
+    <p class="he-manual-prose he-manual-prose--tight">רווחים בשם הפרמטר הופכים לקו תחתון ב־CLI. אחרי כל שינוי חובה <code class="he-code" dir="ltr">pstore;</code> לפני כיבוי.</p>
+  </section>
+  <section class="he-manual-block he-manual-block--last">
+    <h4 class="he-manual-h">צריבת קושחה</h4>
+    <p class="he-manual-prose">לא מסך זה — <a href="https://olliw.eu/mlrsflasher" target="_blank" rel="noreferrer">mLRS Web Flasher</a> לפי התיעוד.</p>
+  </section>
 </div>
 `;
 }

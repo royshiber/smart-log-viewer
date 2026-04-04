@@ -5,7 +5,8 @@
   "description": "Full Vision Landing Console (from standalone project), embedded in monorepo",
   "scripts": {
     "start": "node server.js",
-    "dev": "node --watch server.js"
+    "dev": "node --watch server.js",
+    "test:smoke": "node scripts/vlc-smoke.mjs"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
@@ -14,5 +15,8 @@
     "dotenv": "^17.3.1",
     "express": "^4.21.0",
     "multer": "^2.1.1"
+  },
+  "devDependencies": {
+    "playwright": "^1.50.1"
   }
 }

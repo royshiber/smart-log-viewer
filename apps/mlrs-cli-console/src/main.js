@@ -392,124 +392,149 @@ function collectUiRefs(root) {
 }
 
 /**
- * Why: Build LUA-like shell and wire events.
- * What: Injects HTML/CSS structure from mLRS.lua main page patterns.
+ * Why: Match Google Stitch dashboard layout (3 columns + chrome) while keeping CLI behaviour.
+ * What: Injects grid shell: left rail (connection + params + menu), center terminal, RTL sidebar.
  */
 function mountApp() {
   const root = document.getElementById('app');
   if (!root) return;
 
   root.innerHTML = `
-    <div class="app-layout">
-      <div class="app-main-col">
-        <div class="device-bezel">
-          <div class="device-screen">
-            <header class="lua-title-bar">
-              <span class="lua-title-main">mLRS Configurator: Main Page</span>
-              <span class="lua-title-ver">Lua ${LUA_SCRIPT_REF} · Desktop</span>
-            </header>
-            <div class="lua-body">
-              <div class="conn-panel">
-                <div class="conn-label-row"><span class="conn-label">Connection</span></div>
-                <div class="conn-modes">
-                  <label class="conn-lab"><input type="radio" name="mlrs-conn" value="serial" checked /> USB Serial (Web Serial)</label>${helpQ('modeSerial')}
-                  <label class="conn-lab"><input type="radio" name="mlrs-conn" value="wifi" /> WiFi (local WS → TCP bridge)</label>${helpQ('modeWifi')}
-                </div>
-                <div class="tcp-fields" id="wifi-fields" style="display:none">
-                  <span class="tcp-label">Bridge WS URL</span>
-                  <div class="tcp-url-row">
-                    <input type="text" id="ws-url" value="${DEFAULT_WS_URL}" dir="ltr" spellcheck="false" autocomplete="off" />
-                    ${helpQ('wsUrl')}
-                  </div>
-                </div>
-                <div class="conn-actions">
-                  <div class="ctl-with-help" id="serial-btn-wrap">
-                    <button type="button" class="tool-btn primary" id="btn-serial">Connect serial…</button>${helpQ('btnSerial')}
-                  </div>
-                  <div class="ctl-with-help" id="ws-btn-wrap" style="display:none">
-                    <button type="button" class="tool-btn primary" id="btn-ws-connect">Connect WiFi bridge</button>${helpQ('btnWs')}
-                  </div>
-                  <div class="ctl-with-help">
-                    <button type="button" class="tool-btn danger" id="btn-disconnect" disabled>Disconnect</button>${helpQ('btnDisconnect')}
-                  </div>
-                  <div class="ctl-with-help">
-                    <button type="button" class="tool-btn" id="btn-clear">Clear log</button>${helpQ('btnClear')}
-                  </div>
-                </div>
-                <div class="conn-label" style="margin-top:8px">Status</div>
-                <div id="status" class="status-line">Disconnected</div>
+    <div class="app-shell">
+      <header class="mlrs-chrome-top">
+        <div class="mlrs-chrome-brand">
+          <span class="mlrs-chrome-title">mLRS CONFIGURATOR</span>
+          <span class="mlrs-chrome-sub">Lua ${LUA_SCRIPT_REF} · CLI desktop</span>
+        </div>
+        <div class="mlrs-chrome-tabs-track" dir="ltr">
+          <nav class="mlrs-chrome-tabs" aria-label="אזור עבודה (מסך זה = CLI)">
+            <span class="mlrs-chrome-tab">CONFIG</span>
+            <span class="mlrs-chrome-tab">FLASHING</span>
+            <span class="mlrs-chrome-tab mlrs-chrome-tab--active">CLI</span>
+            <span class="mlrs-chrome-tab">FILES</span>
+          </nav>
+        </div>
+        <div class="mlrs-chrome-actions">
+          <button type="button" class="mlrs-btn-connect" id="btn-chrome-connect">CONNECT</button>
+          <a class="mlrs-chrome-link-ghost" href="https://olliw.eu/mlrsflasher" target="_blank" rel="noreferrer">Flasher</a>
+        </div>
+      </header>
+      <div class="app-layout">
+        <aside class="mlrs-left-rail" aria-label="Connection and actions">
+          <div class="mlrs-panel">
+            <div class="conn-panel">
+              <div class="conn-label-row"><span class="conn-label">Connection</span></div>
+              <div class="conn-modes conn-modes--pills">
+                <label class="conn-pill"><input type="radio" name="mlrs-conn" value="serial" checked /><span>Serial</span></label>${helpQ('modeSerial')}
+                <label class="conn-pill"><input type="radio" name="mlrs-conn" value="wifi" /><span>WiFi</span></label>${helpQ('modeWifi')}
               </div>
-              <div class="lua-warn-row">
-                <div class="lua-warn">
-                  After parameter changes run <strong>pstore;</strong> to save. If Mission Planner uses the same TCP link to the ESP bridge, disconnect it before this app.
-                </div>
-                ${helpQ('warnBox')}
-              </div>
-              <div class="quick-settings" dir="rtl">
-                <h3 class="quick-settings-title">שינוי פרמטר</h3>
-                <p class="quick-one-line">חבר למעלה → <strong>Edit Tx/Rx</strong> → בחר פרמטר וערך → <strong>שלח שינוי</strong> → חובה <strong>Save</strong> (<code>pstore;</code>).</p>
-                <div class="quick-form quick-form--compact">
-                  <div class="quick-field quick-field--param">
-                    <label class="quick-label" for="quick-param-id">פרמטר</label>
-                    <span class="quick-field-help">${helpQ('quickParamSelect')}</span>
-                    <select id="quick-param-id" class="quick-select" aria-describedby="quick-param-hint"></select>
-                    <p id="quick-param-hint" class="quick-hint"></p>
-                  </div>
-                  <div class="quick-field quick-field--custom" id="wrap-quick-cli-key" style="display:none">
-                    <label class="quick-label" for="quick-cli-key">שם CLI</label>
-                    <input type="text" id="quick-cli-key" class="quick-input" dir="ltr" spellcheck="false" autocomplete="off" placeholder="tx_ser_dest" />
-                  </div>
-                  <div class="quick-field quick-field--val">
-                    <label class="quick-label" for="quick-param-val">ערך</label>
-                    <span class="quick-field-help">${helpQ('quickParamValue')}</span>
-                    <input type="text" id="quick-param-val" class="quick-input" dir="ltr" spellcheck="false" autocomplete="off" />
-                  </div>
-                  <div class="ctl-with-help quick-send-wrap">
-                    <button type="button" class="tool-btn primary" id="btn-quick-send">שלח</button>
-                    ${helpQ('btnQuickSend')}
-                  </div>
+              <div class="tcp-fields" id="wifi-fields" style="display:none">
+                <span class="tcp-label">Bridge WS URL</span>
+                <div class="tcp-url-row">
+                  <input type="text" id="ws-url" value="${DEFAULT_WS_URL}" dir="ltr" spellcheck="false" autocomplete="off" />
+                  ${helpQ('wsUrl')}
                 </div>
               </div>
-              <nav class="lua-menu-row" aria-label="Main actions">
-                <span class="lua-menu-item"><button type="button" class="lua-menu-btn" data-cmd="pl tx;" data-he-action="editTx" disabled>Edit Tx</button>${helpQ('editTx')}</span>
-                <span class="lua-menu-item"><button type="button" class="lua-menu-btn" data-cmd="pl rx;" data-he-action="editRx" disabled>Edit Rx</button>${helpQ('editRx')}</span>
-                <span class="lua-menu-item"><button type="button" class="lua-menu-btn" data-cmd="pstore;" data-he-action="save" disabled>Save</button>${helpQ('save')}</span>
-                <span class="lua-menu-item"><button type="button" class="lua-menu-btn" data-cmd="reload;" data-he-action="reload" disabled>Reload</button>${helpQ('reload')}</span>
-                <span class="lua-menu-item"><button type="button" class="lua-menu-btn" data-cmd="bind;" data-he-action="bind" disabled>Bind</button>${helpQ('bind')}</span>
-                <span class="lua-menu-item"><button type="button" class="lua-menu-btn" data-cmd="h;" data-he-action="tools" disabled>Tools</button>${helpQ('tools')}</span>
-              </nav>
-              <div class="lua-log-wrap">
-                <div class="lua-log-inner">
-                  <textarea id="log" class="lua-log" readonly aria-label="mLRS CLI log"></textarea>
+              <div class="conn-actions">
+                <div class="ctl-with-help" id="serial-btn-wrap">
+                  <button type="button" class="tool-btn primary tool-btn--block" id="btn-serial">Connect serial…</button>${helpQ('btnSerial')}
                 </div>
-              </div>
-              <div class="lua-cmd-row">
-                <input type="text" id="cmd" placeholder="e.g. p tx_power = 1;" dir="ltr" spellcheck="false" autocomplete="off" aria-describedby="cmd-help-hint" />
-                ${helpQ('cmdInput')}
+                <div class="ctl-with-help" id="ws-btn-wrap" style="display:none">
+                  <button type="button" class="tool-btn primary tool-btn--block" id="btn-ws-connect">Connect WiFi bridge</button>${helpQ('btnWs')}
+                </div>
                 <div class="ctl-with-help">
-                  <button type="button" class="tool-btn" id="btn-send" disabled>Send</button>${helpQ('send')}
+                  <button type="button" class="tool-btn danger tool-btn--block" id="btn-disconnect" disabled>Disconnect</button>${helpQ('btnDisconnect')}
+                </div>
+                <div class="ctl-with-help">
+                  <button type="button" class="tool-btn tool-btn--block" id="btn-clear">Clear log</button>${helpQ('btnClear')}
                 </div>
               </div>
-              <div class="tool-row" id="cli-tools">
-                <div class="ctl-with-help"><button type="button" class="tool-btn" data-cmd="v;" data-he-action="v" disabled>v</button>${helpQ('v')}</div>
-                <div class="ctl-with-help"><button type="button" class="tool-btn" data-cmd="pl;" data-he-action="pl" disabled>pl</button>${helpQ('pl')}</div>
-                <div class="ctl-with-help"><button type="button" class="tool-btn" data-cmd="pl c;" data-he-action="plC" disabled>pl c</button>${helpQ('plC')}</div>
-                <div class="ctl-with-help"><button type="button" class="tool-btn" data-cmd="stats;" data-he-action="stats" disabled>stats</button>${helpQ('stats')}</div>
-                <div class="ctl-with-help"><button type="button" class="tool-btn" id="btn-stop-stats" data-he-action="stopStats" disabled>stop stats</button>${helpQ('stopStats')}</div>
+              <div class="conn-label conn-label--status">Status</div>
+              <div id="status" class="status-line status-line--chip">Disconnected</div>
+            </div>
+            <div class="lua-warn-row">
+              <div class="lua-warn lua-warn--stitch" role="alert">
+                <strong class="lua-warn-kicker">pstore &amp; TCP</strong>
+                After parameter changes run <strong>pstore;</strong> to save. If Mission Planner uses the same TCP link to the ESP bridge, disconnect it before this app.
               </div>
-              <dl class="lua-info">
-                <dt class="lua-info-dt"><span>Tx</span>${helpQ('infoTx')}</dt><dd id="info-tx">—</dd>
-                <dt class="lua-info-dt"><span>Rx</span>${helpQ('infoRx')}</dt><dd id="info-rx">—</dd>
-                <dt>Tx Power</dt><dd id="info-txp">—</dd>
-                <dt>Rx Power</dt><dd id="info-rxp">—</dd>
-              </dl>
+              ${helpQ('warnBox')}
+            </div>
+            <div class="quick-settings" dir="rtl">
+              <h3 class="quick-settings-title">שינוי פרמטר</h3>
+              <p class="quick-one-line">חבר למעלה → <strong>Edit Tx/Rx</strong> → בחר פרמטר וערך → <strong>שלח שינוי</strong> → חובה <strong>Save</strong> (<code>pstore;</code>).</p>
+              <div class="quick-form quick-form--compact">
+                <div class="quick-field quick-field--param">
+                  <label class="quick-label" for="quick-param-id">פרמטר</label>
+                  <span class="quick-field-help">${helpQ('quickParamSelect')}</span>
+                  <select id="quick-param-id" class="quick-select" aria-describedby="quick-param-hint"></select>
+                  <p id="quick-param-hint" class="quick-hint"></p>
+                </div>
+                <div class="quick-field quick-field--custom" id="wrap-quick-cli-key" style="display:none">
+                  <label class="quick-label" for="quick-cli-key">שם CLI</label>
+                  <input type="text" id="quick-cli-key" class="quick-input" dir="ltr" spellcheck="false" autocomplete="off" placeholder="tx_ser_dest" />
+                </div>
+                <div class="quick-field quick-field--val">
+                  <label class="quick-label" for="quick-param-val">ערך</label>
+                  <span class="quick-field-help">${helpQ('quickParamValue')}</span>
+                  <input type="text" id="quick-param-val" class="quick-input" dir="ltr" spellcheck="false" autocomplete="off" />
+                </div>
+                <div class="ctl-with-help quick-send-wrap">
+                  <button type="button" class="tool-btn primary" id="btn-quick-send">שלח</button>
+                  ${helpQ('btnQuickSend')}
+                </div>
+              </div>
+            </div>
+            <nav class="lua-menu-row lua-menu-row--rail" aria-label="Main actions">
+              <span class="lua-menu-item lua-menu-item--rail"><button type="button" class="lua-menu-btn" data-cmd="pl tx;" data-he-action="editTx" disabled>Edit Tx</button>${helpQ('editTx')}</span>
+              <span class="lua-menu-item lua-menu-item--rail"><button type="button" class="lua-menu-btn" data-cmd="pl rx;" data-he-action="editRx" disabled>Edit Rx</button>${helpQ('editRx')}</span>
+              <span class="lua-menu-item lua-menu-item--rail"><button type="button" class="lua-menu-btn" data-cmd="pstore;" data-he-action="save" disabled>Save</button>${helpQ('save')}</span>
+              <span class="lua-menu-item lua-menu-item--rail"><button type="button" class="lua-menu-btn" data-cmd="reload;" data-he-action="reload" disabled>Reload</button>${helpQ('reload')}</span>
+              <span class="lua-menu-item lua-menu-item--rail"><button type="button" class="lua-menu-btn" data-cmd="bind;" data-he-action="bind" disabled>Bind</button>${helpQ('bind')}</span>
+              <span class="lua-menu-item lua-menu-item--rail"><button type="button" class="lua-menu-btn" data-cmd="h;" data-he-action="tools" disabled>Tools</button>${helpQ('tools')}</span>
+            </nav>
+          </div>
+        </aside>
+        <main class="mlrs-center-stage mlrs-device-bezel">
+          <div class="mlrs-terminal-head"><span class="mlrs-terminal-title">CLI / LOG</span></div>
+          <div class="lua-log-wrap lua-log-wrap--stitch">
+            <div class="lua-log-inner">
+              <textarea id="log" class="lua-log" readonly aria-label="mLRS CLI log"></textarea>
             </div>
           </div>
-        </div>
-      </div>
-      <aside class="he-sidebar" dir="rtl">
+          <div class="lua-cmd-row">
+            <input type="text" id="cmd" placeholder="e.g. p tx_power = 1;" dir="ltr" spellcheck="false" autocomplete="off" aria-describedby="cmd-help-hint" />
+            ${helpQ('cmdInput')}
+            <div class="ctl-with-help">
+              <button type="button" class="tool-btn tool-btn--accent" id="btn-send" disabled>Send</button>${helpQ('send')}
+            </div>
+          </div>
+          <div class="tool-row" id="cli-tools">
+            <div class="ctl-with-help"><button type="button" class="tool-btn" data-cmd="v;" data-he-action="v" disabled>v</button>${helpQ('v')}</div>
+            <div class="ctl-with-help"><button type="button" class="tool-btn" data-cmd="pl;" data-he-action="pl" disabled>pl</button>${helpQ('pl')}</div>
+            <div class="ctl-with-help"><button type="button" class="tool-btn" data-cmd="pl c;" data-he-action="plC" disabled>pl c</button>${helpQ('plC')}</div>
+            <div class="ctl-with-help"><button type="button" class="tool-btn" data-cmd="stats;" data-he-action="stats" disabled>stats</button>${helpQ('stats')}</div>
+            <div class="ctl-with-help"><button type="button" class="tool-btn" id="btn-stop-stats" data-he-action="stopStats" disabled>stop stats</button>${helpQ('stopStats')}</div>
+          </div>
+          <div class="mlrs-bottom-bar">
+            <dl class="lua-info lua-info--bar">
+              <dt class="sr-only">Tx</dt>
+              <dd id="info-tx" class="mlrs-pill" title="Tx">—</dd>
+              <dt class="sr-only">Rx</dt>
+              <dd id="info-rx" class="mlrs-pill" title="Rx">—</dd>
+              <dt class="sr-only">Tx Power</dt>
+              <dd id="info-txp" class="mlrs-pill" title="Tx Power">—</dd>
+              <dt class="sr-only">Rx Power</dt>
+              <dd id="info-rxp" class="mlrs-pill" title="Rx Power">—</dd>
+            </dl>
+            <div class="mlrs-bottom-help">
+              <span class="ctl-with-help"><span class="mlrs-bottom-help-label">Tx</span>${helpQ('infoTx')}</span>
+              <span class="ctl-with-help"><span class="mlrs-bottom-help-label">Rx</span>${helpQ('infoRx')}</span>
+            </div>
+          </div>
+        </main>
+        <aside class="he-sidebar" dir="rtl">
         <div class="he-sidebar-body">
-          <div class="he-tabs" role="tablist">
+          <div class="he-tabs" role="tablist" dir="ltr">
             <button type="button" class="he-tab-btn active" data-tab="manual" role="tab" aria-selected="true">ספר הוראות</button>
             <button type="button" class="he-tab-btn" data-tab="chat" role="tab" aria-selected="false">עוזר mLRS (AI)</button>
           </div>
@@ -538,7 +563,18 @@ function mountApp() {
         </div>
         <h2 class="he-sidebar-title he-sidebar-title--second">אחרי הפעולה האחרונה</h2>
         <div id="he-last-action" class="he-context-box">לחץ על כפתור או בחר מצב חיבור — כאן יופיע הסבר בעברית על מה שקרה.</div>
+        <div class="he-sidebar-foot">
+          <a class="he-foot-btn" href="https://github.com/olliw42/mLRS-docu/blob/master/docs/CLI.md" target="_blank" rel="noreferrer">מסמכים</a>
+          <a class="he-foot-btn" href="https://olliw.eu/mlrsflasher" target="_blank" rel="noreferrer">אודות / צריבה</a>
+        </div>
       </aside>
+    </div>
+      <footer class="mlrs-global-dock" aria-label="סטטוס קישור">
+        <span class="mlrs-dock-label">LINK</span>
+        <span class="mlrs-dock-pill" id="mlrs-dock-link">—</span>
+        <span class="mlrs-dock-conn" id="mlrs-dock-conn">DISCONNECTED</span>
+        <span class="mlrs-dock-ver">Lua ${LUA_SCRIPT_REF} · CLI</span>
+      </footer>
     </div>
   `;
 
@@ -577,6 +613,31 @@ function mountApp() {
     showHeContext('modeWifi');
   });
   syncConnModeUi();
+
+  const dockLinkEl = root.querySelector('#mlrs-dock-link');
+  const dockConnEl = root.querySelector('#mlrs-dock-conn');
+
+  /**
+   * Why: Bottom dock should mirror Stitch “LINK / CONNECTED” without changing every transport call site.
+   * What: Syncs from #status text via MutationObserver; highlights CONNECTED when not “Disconnected”.
+   */
+  function syncStatusDock() {
+    if (!statusEl || !dockLinkEl || !dockConnEl) return;
+    const t = (statusEl.textContent || '').trim();
+    dockLinkEl.textContent = t.length > 36 ? `${t.slice(0, 33)}…` : t || '—';
+    const disconnected = t === 'Disconnected' || t === '';
+    dockConnEl.textContent = disconnected ? 'DISCONNECTED' : 'CONNECTED';
+    dockConnEl.classList.toggle('mlrs-dock-conn--on', !disconnected);
+  }
+
+  const statusObserver = new MutationObserver(() => syncStatusDock());
+  statusObserver.observe(statusEl, { childList: true, characterData: true, subtree: true });
+  syncStatusDock();
+
+  root.querySelector('#btn-chrome-connect')?.addEventListener('click', () => {
+    if (modeWifi?.checked) ui.wsBtn.click();
+    else ui.serialBtn.click();
+  });
 
   ui.serialBtn.addEventListener('click', () => connectSerialTransport(logEl, statusEl, ui, showHeContext));
   ui.wsBtn.addEventListener('click', () =>
@@ -749,8 +810,9 @@ function mountApp() {
     if (st?.ok) {
       chatStatusEl.textContent = 'Gemini מוכן (שרת + מפתח).';
     } else {
-      chatStatusEl.textContent =
-        'אין חיבור לעוזר: הרץ npm run dev:server בשורש הפרויקט והגדר GEMINI_API_KEY ב-server/.env';
+      chatStatusEl.textContent = st?.reason
+        ? `עוזר לא זמין: ${st.reason}`
+        : 'אין חיבור לעוזר: הרץ npm run dev:server בשורש הפרויקט והגדר GEMINI_API_KEY ב-server/.env';
     }
   });
 

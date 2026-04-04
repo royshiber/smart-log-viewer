@@ -10,6 +10,8 @@ import multer from 'multer';
 import { openDatabase, uploadsDir, projectRoot } from './lib/db.mjs';
 import { getGeminiModelInfo } from './lib/gemini-model.mjs';
 import { runAdvisor } from './lib/gemini-advisor.mjs';
+import { DEFAULT_RELEASES, isKnownJetsonVersion } from './lib/jetson-releases.mjs';
+import { readJetsonVersionState, writeJetsonVersionState } from './lib/jetson-version-store.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -48,6 +50,11 @@ const jetsonState = {
   missedBeats: 0,
   totalBeats: 0,
 };
+
+const JETSON_COMPANION_BASE_URL = (process.env.JETSON_COMPANION_BASE_URL || '').trim();
+
+/** Why: terrain tab lets operators choose how vision compares the live frame (satellite vs prior flight map). What: in-memory mode; Jetson can poll GET /api/vision/nav-mode or read SSE `visionNav`. */
+const visionNavModeState = { mode: 'prior_mission_map' };
 
 /** Why: receive real-time vision output from companion (Jetson). What: stores latest frame metadata for UI display and advisor context. */
 const visionState = {
@@ -88,6 +95,7 @@ app.get('/api/health', (_req, res) => {
 });
 
 function jetsonStatusHandler(_req, res) {
+  const vs = readJetsonVersionState();
   const now = Date.now();
   const last = jetsonState.lastSeen ? Date.parse(jetsonState.lastSeen) : 0;
   const online = Number.isFinite(last) && last > 0 && (now - last) < 15000;
@@ -99,8 +107,13 @@ function jetsonStatusHandler(_req, res) {
     ...jetsonState,
     online,
     heartbeatAgeMs,
+    ageMs: heartbeatAgeMs,
     packetLossPct,
     linkQualityPct,
+    installedVersion: vs.installedVersion,
+    installState: vs.installState,
+    lastAction: vs.lastAction,
+    history: vs.history,
   });
 }
 
@@ -130,6 +143,88 @@ function jetsonRebootRequestHandler(_req, res) {
 app.get('/api/jetson/status', jetsonStatusHandler);
 app.post('/api/jetson/heartbeat', jetsonHeartbeatHandler);
 app.post('/api/jetson/reboot-request', jetsonRebootRequestHandler);
+
+/** Why: same catalog as Aero-Lab for upgrade/rollback picks. What: returns DEFAULT_RELEASES JSON. */
+app.get('/api/jetson/releases', (_req, res) => {
+  res.json({ ok: true, releases: DEFAULT_RELEASES });
+});
+
+/**
+ * Why: lab UI triggers bundle install/rollback; optional companion performs real on-device steps.
+ * What: validates version, persists state, simulates ~900ms or forwards POST to JETSON_COMPANION_BASE_URL/install.
+ */
+app.post('/api/jetson/install', async (req, res) => {
+  const targetVersion = String(req.body?.version || '');
+  if (!targetVersion || !isKnownJetsonVersion(targetVersion)) {
+    return res.status(400).json({ ok: false, error: 'גרסה לא מוכרת' });
+  }
+  const before = readJetsonVersionState();
+  const inProgressState = {
+    ...before,
+    installState: 'installing',
+    lastAction: `מתקין ${targetVersion}...`,
+    history: [
+      { ts: new Date().toISOString(), action: 'INSTALL', version: targetVersion, status: 'in_progress' },
+      ...before.history,
+    ].slice(0, 20),
+  };
+  writeJetsonVersionState(inProgressState);
+
+  try {
+    if (JETSON_COMPANION_BASE_URL) {
+      const response = await fetch(`${JETSON_COMPANION_BASE_URL}/install`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ version: targetVersion }),
+      });
+      if (!response.ok) throw new Error(`Companion install failed (${response.status})`);
+    } else {
+      await new Promise((r) => setTimeout(r, 900));
+    }
+    const successState = {
+      ...inProgressState,
+      installedVersion: targetVersion,
+      installState: 'success',
+      lastAction: `הותקן ${targetVersion} (מצב מקומי — ללא סוכן אמיתי אלא אם הוגדר JETSON_COMPANION_BASE_URL)`,
+      history: [
+        { ts: new Date().toISOString(), action: 'INSTALL', version: targetVersion, status: 'success' },
+        ...inProgressState.history.filter((entry) => entry.status !== 'in_progress'),
+      ].slice(0, 20),
+    };
+    writeJetsonVersionState(successState);
+    return res.json({ ok: true, ...successState });
+  } catch (err) {
+    const failState = {
+      ...inProgressState,
+      installState: 'error',
+      lastAction: `התקנה נכשלה עבור ${targetVersion}`,
+      history: [
+        { ts: new Date().toISOString(), action: 'INSTALL', version: targetVersion, status: 'error' },
+        ...inProgressState.history.filter((entry) => entry.status !== 'in_progress'),
+      ].slice(0, 20),
+    };
+    writeJetsonVersionState(failState);
+    return res.status(500).json({
+      ok: false,
+      error: err instanceof Error ? err.message : 'Install failed',
+      ...failState,
+    });
+  }
+});
+
+app.get('/api/vision/nav-mode', (_req, res) => {
+  res.json({ ok: true, mode: visionNavModeState.mode });
+});
+
+/** Why: persist operator choice for image-based nav reference. What: sets satellite_match | prior_mission_map. */
+app.post('/api/vision/nav-mode', (req, res) => {
+  const m = String(req.body?.mode || '').trim();
+  if (m !== 'satellite_match' && m !== 'prior_mission_map') {
+    return res.status(400).json({ ok: false, message: 'mode must be satellite_match or prior_mission_map' });
+  }
+  visionNavModeState.mode = m;
+  res.json({ ok: true, mode: m });
+});
 
 app.get('/api/rpi/status', jetsonStatusHandler);
 app.post('/api/rpi/heartbeat', jetsonHeartbeatHandler);
@@ -214,10 +309,22 @@ setInterval(() => {
   const linkQualityPct = total > 0 ? Math.max(0, 100 - Math.round((jetsonState.missedBeats / total) * 100)) : null;
   const visionAgeMs = visionState.frameTimestamp ? (now - Date.parse(visionState.frameTimestamp)) : null;
   const slamAgeMs = slamState.frameTimestamp ? (now - Date.parse(slamState.frameTimestamp)) : null;
+  const jv = readJetsonVersionState();
   broadcastSse('telemetry', {
-    jetson: { online: jetsonOnline, ageMs: jetsonAgeMs, cpuLoadPct: jetsonState.cpuLoadPct, tempC: jetsonState.tempC, memPct: jetsonState.memPct, linkQualityPct },
+    jetson: {
+      online: jetsonOnline,
+      ageMs: jetsonAgeMs,
+      cpuLoadPct: jetsonState.cpuLoadPct,
+      tempC: jetsonState.tempC,
+      memPct: jetsonState.memPct,
+      linkQualityPct,
+      installedVersion: jv.installedVersion,
+      installState: jv.installState,
+      lastAction: jv.lastAction,
+    },
     vision: { ...visionState, ageMs: visionAgeMs },
     slam: { ...slamState, ageMs: slamAgeMs },
+    visionNav: { mode: visionNavModeState.mode },
   });
 }, 300);
 
@@ -230,6 +337,31 @@ app.post('/api/flights', (req, res) => {
   const title = String(req.body?.title || '').trim() || `טיסה ${new Date().toISOString().slice(0, 10)}`;
   const r = db.prepare(`INSERT INTO flights (title) VALUES (?)`).run(title);
   res.json({ ok: true, flight: { id: r.lastInsertRowid, title } });
+});
+
+/** Why: must be registered before `/api/flights/:id/...` so `all-logs` is never captured as a flight id. What: lists all uploaded logs (schema column is created_at, exposed as uploaded_at for the UI). */
+app.get('/api/flights/all-logs', (_req, res) => {
+  try {
+    const rows = db.prepare(`
+      SELECT la.id, la.flight_id, la.source, la.original_name, la.stored_path, la.mime, la.size_bytes,
+             la.created_at AS uploaded_at,
+             f.title as flight_title
+      FROM log_artifacts la JOIN flights f ON la.flight_id = f.id
+      ORDER BY la.created_at DESC LIMIT 200
+    `).all();
+    const logs = rows.map((row) => {
+      const rel = String(row.stored_path || '').replace(/\\/g, '/');
+      const fileName = rel.split('/').pop();
+      return {
+        ...row,
+        downloadUrl: fileName ? `/uploads/${encodeURIComponent(fileName)}` : null,
+      };
+    });
+    res.json({ ok: true, logs });
+  } catch (err) {
+    console.error('[all-logs]', err);
+    res.json({ ok: true, logs: [] });
+  }
 });
 
 app.post('/api/flights/:id/notes', (req, res) => {
@@ -259,8 +391,8 @@ app.post('/api/flights/:id/logs', upload.single('file'), async (req, res) => {
       return res.status(400).json({ ok: false, message: 'bad flight id' });
     }
     const source = String(req.body?.source || 'ardupilot').toLowerCase();
-    if (!['ardupilot', 'jetson'].includes(source)) {
-      return res.status(400).json({ ok: false, message: 'source must be ardupilot or jetson' });
+    if (!['ardupilot', 'jetson', 'auto'].includes(source)) {
+      return res.status(400).json({ ok: false, message: 'source must be ardupilot, jetson, or auto' });
     }
     const exists = db.prepare(`SELECT id FROM flights WHERE id = ?`).get(flightId);
     if (!exists) return res.status(404).json({ ok: false, message: 'flight not found' });
@@ -454,33 +586,18 @@ app.post('/api/terrain/coverage', (req, res) => {
   res.json({ ok: true, total: terrainCoverage.length });
 });
 
-/** Why: pilot wants to see all logs ever uploaded without switching flight contexts. What: joins log_artifacts + flights so every log is visible in one place. */
-app.get('/api/flights/all-logs', (_req, res) => {
-  try {
-    const rows = db.prepare(`
-      SELECT la.id, la.flight_id, la.source, la.original_name, la.stored_path, la.mime, la.size_bytes, la.uploaded_at,
-             f.title as flight_title
-      FROM log_artifacts la JOIN flights f ON la.flight_id = f.id
-      ORDER BY la.uploaded_at DESC LIMIT 200
-    `).all();
-    const logs = rows.map((row) => {
-      const rel = String(row.stored_path || '').replace(/\\/g, '/');
-      const fileName = rel.split('/').pop();
-      return {
-        ...row,
-        downloadUrl: fileName ? `/uploads/${encodeURIComponent(fileName)}` : null,
-      };
-    });
-    res.json({ ok: true, logs });
-  } catch {
-    res.json({ ok: true, logs: [] });
-  }
-});
-
 /** Why: serve the SPA only after API routes so /api/* is never shadowed by files under public/. What: static assets for the browser UI. */
 app.use('/uploads', express.static(uploadsDir));
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`Vision Landing Console v${APP_VERSION}: http://localhost:${PORT}`);
+});
+server.on('error', (err) => {
+  if (err.code === 'EADDRINUSE') {
+    console.error(`Port ${PORT} is already in use. Stop the other process or set PORT=4011 and restart.`);
+  } else {
+    console.error(err);
+  }
+  process.exit(1);
 });

@@ -14,6 +14,8 @@
 
 ## פתוחות
 
+- [x] **T-041** — mLRS Configurator: משיכת Stitch (`npm run fetch:stitch-mlrs`, `STITCH_API_KEY`) + סנכרון UI לפי `docs/stitch-mlrs-configurator/05-*.html` (Space Grotesk, טוקני Material) (2026-04-04, גרסה 1.02.46).
+- [ ] **T-032** — STEP Collector v2 לפי `docs/STEP_COLLECTOR_PRODUCT_PLAN.md`: MVP בלי Playwright כברירת מחדל (ייבוא + חיפוש בדפדפן המערכת + תיקיות), עיצוב מיושר Stitch אחרי ייצוא מהמשתמש; Playwright רק opt-in.
 - [ ] **T-029** — הרחבת mLRS Configurator: עורך פרמטרים מובנה (פארס ל־`pl tx`/`pl rx`), מילוי שורת המידע מ־`v;`, תרגום מלא EN↔HE (אופציונלי: Node+serialport ללא Chrome).
 - [ ] **T-002** — לחבר סקריפט `mavlink_udp_bridge.py` ל-Jetson אמיתי ולוודא telemetry בקצב 5-10Hz (דורש חומרה).
 - [ ] **T-019** — דיבוג תקלה: Gemini לא עובד (איסוף לוגים בזמן ריצה, זיהוי שורש תקלה ותיקון מאומת).
@@ -37,6 +39,10 @@
 - [x] **T-034** — Vision Landing Console: החזרת שורת טאבים ו־`wireMainTabs` (פאנל מלא רק בטאב טלמטריה וסטטוסים) (2026-04-04, גרסה 1.02.31).
 - [x] **T-035** — Vision Landing Console: הסרת טאבים ומסכי ״בפיתוח״ — מסך יחיד בלבד; גרסה 1.02.30 (2026-04-04).
 - [x] **T-037** — Vision Landing Console המלא הועתק ל־`apps/vision-landing-console` (public + lib + server מ־VisionLandingConsole), תלויות npm, `/api/meta`, גרסה 1.02.34 (2026-04-04).
+- [x] **T-038** — Vision Landing Console: תיקון all-logs (SQL created_at, סדר route), שרת על 0.0.0.0 + EADDRINUSE, חיבור UI לטבלת כל הלוגים ו־source=auto (2026-03-27, גרסה 1.02.36).
+- [x] **T-039** — Vision Landing Console: ניהול גרסת Jetson בטאב טלמטריה + API releases/install + חוגת סיבוב מפה + מצב ייחוס ניווט לפי תמונה (API/SSE) (2026-03-27, גרסה 1.02.40).
+- [x] **T-040** — Vision Landing Console: תיקון תת-טאבי ArduPilot (CSS `.ardu-cat-subpanel`), סיבוב מפה — סליידר+צעדים; ייחוס ניווט — כרטיס רדיו (2026-03-27, גרסה 1.02.41).
+- [x] **T-042** — Vision Landing Console: `npm run test:smoke` (API + Playwright) + טאב ״לוגים והעלאות״ ל־#flights (2026-03-27, גרסה 1.02.45).
 - [x] **T-007** — מימוש Desktop STEP Collector ב-Python: ממשק CustomTkinter, אוטומציית Playwright (GrabCAD ואז TraceParts), fallback ידני ל-Captcha וארגון קבצים אוטומטי (2026-03-24, גרסה 1.02.30).
 - [x] **T-009** — פריסה ציבורית חינמית ומבודדת: התאמת פורט דינמי לשרת, הוספת Docker deployment עם healthcheck וכתיבת מדריך פריסה ל-Koyeb בלי לפגוע ב-local dev (2026-03-24, גרסה 1.02.43).
 - [x] **T-008** — הקשחת STEP Collector להרצה אמיתית: שיפור סלקטורים, הורדה ישירה באירוע Playwright, ושיפור זרימת fallback ידני (2026-03-24, גרסה 1.02.31).
@@ -62,6 +68,8 @@
 - [x] **T-023** — STEP Collector: פריסה — יומן + התקדמות בשורה תחתונה (`bottom_dock`) כדי שלא ייחתכו; גובה חלון ברירת מחדל גדול יותר (2026-04-04, v1.02.72).
 - [x] **T-024** — STEP Collector: תיקון חיתוך ע״י שורת משימות — `pack` (dock תחתון לפני אמצע), `_fit_window_to_screen`, לכידת `download` ל־`_incoming`, סף 0.12, timeout ידני 420s (2026-04-04, v1.02.32).
 - [x] **T-026** — STEP Collector: תקיעה ב־Chromium — heartbeat כל ~15s, `launch(timeout=600s)`, ערוץ `chrome`/`msedge` דרך env, הודעות והנחיות `playwright install` (2026-04-04, v1.02.34).
+- [x] **T-027** — STEP Collector: Windows — ניסיון `channel=chrome` אוטומטי ואז fallback ל־Chromium; CI כולל `master` (2026-04-04, v1.02.37).
+- [x] **T-043** — STEP Collector: `npm run fetch:stitch-project` → `docs/stitch-step-collector/`; ממשק לפי ייצוא Stitch Main View (סרגל צד, כרטיסי סטטוס אופקיים, פלטה מקובץ HTML) (2026-04-04, v1.02.47).
 
 ## בוטלו
 
